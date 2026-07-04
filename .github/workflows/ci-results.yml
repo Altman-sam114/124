@@ -1,0 +1,209 @@
+name: WWIIHexV0 CI Results
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci-results:
+    name: Build and package CI results
+    runs-on: macos-latest
+
+    env:
+      PROJECT_NAME: WWIIHexV0
+      PROJECT_FILE: WWIIHexV0.xcodeproj
+      SCHEME: WWIIHexV0
+      DESTINATION: generic/platform=iOS
+      RESULT_BUNDLE: ci-results/WWIIHexV0.xcresult
+      BUILD_LOG: ci-results/xcodebuild.log
+      STATIC_LOG: ci-results/static-checks.log
+      JUNIT_PATH: ci-results/junit.xml
+      FAILURE_SUMMARY: ci-results/ci-failure-summary.md
+      MANIFEST_PATH: ci-results/ci-artifact-manifest.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Static checks
+        id: static_checks
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci-results
+          {
+            echo "== git diff --check =="
+            git diff --check
+
+            echo
+            echo "== plutil project file =="
+            plutil -lint "$PROJECT_FILE/project.pbxproj"
+
+            echo
+            echo "== scheme XML =="
+            xmllint --noout "$PROJECT_FILE/xcshareddata/xcschemes/WWIIHexV0.xcscheme"
+            xmllint --noout "$PROJECT_FILE/xcshareddata/xcschemes/WWIIHexV0Probes.xcscheme"
+
+            echo
+            echo "== JSON data parse =="
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path("WWIIHexV0/Data").glob("*.json")):
+              with path.open(encoding="utf-8") as handle:
+                  json.load(handle)
+              print(f"json ok: {path}")
+          PY
+          } > "$STATIC_LOG" 2>&1
+
+      - name: Xcode build
+        id: xcodebuild
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p ci-results .derivedData-ci
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "$DESTINATION" \
+            -derivedDataPath .derivedData-ci \
+            -resultBundlePath "$RESULT_BUNDLE" \
+            CODE_SIGNING_ALLOWED=NO \
+            build > "$BUILD_LOG" 2>&1
+
+      - name: Generate CI reports
+        if: always()
+        shell: bash
+        env:
+          STATIC_OUTCOME: ${{ steps.static_checks.outcome }}
+          BUILD_OUTCOME: ${{ steps.xcodebuild.outcome }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+        run: |
+          set -euo pipefail
+          mkdir -p ci-results
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from xml.sax.saxutils import escape
+
+          result_dir = Path("ci-results")
+          static_outcome = os.environ["STATIC_OUTCOME"]
+          build_outcome = os.environ["BUILD_OUTCOME"]
+          commit_sha = os.environ["COMMIT_SHA"]
+          short_sha = commit_sha[:7]
+          run_id = os.environ["RUN_ID"]
+          run_attempt = os.environ["RUN_ATTEMPT"]
+
+          result_bundle = Path(os.environ["RESULT_BUNDLE"])
+          result_bundle_path = str(result_bundle) if result_bundle.exists() else ""
+          test_outcome = "skipped"
+
+          failures = []
+          if static_outcome != "success":
+              failures.append(("static_checks", "Static checks failed. See ci-results/static-checks.log."))
+          if build_outcome != "success":
+              failures.append(("xcodebuild_build", "Xcode build failed. See ci-results/xcodebuild.log."))
+
+          manifest = {
+              "version": "cloud-validation-v1",
+              "branch": os.environ["BRANCH_NAME"],
+              "commitSha": commit_sha,
+              "shortSha": short_sha,
+              "runId": run_id,
+              "runAttempt": run_attempt,
+              "workflowName": os.environ["WORKFLOW_NAME"],
+              "createdAt": datetime.now(timezone.utc).isoformat(),
+              "projectName": os.environ["PROJECT_NAME"],
+              "scheme": os.environ["SCHEME"],
+              "destination": os.environ["DESTINATION"],
+              "resultBundlePath": result_bundle_path,
+              "junitPath": os.environ["JUNIT_PATH"],
+              "buildLogPath": os.environ["BUILD_LOG"],
+              "staticChecksLogPath": os.environ["STATIC_LOG"],
+              "failureSummaryPath": os.environ["FAILURE_SUMMARY"],
+              "staticChecksOutcome": static_outcome,
+              "buildOutcome": build_outcome,
+              "testOutcome": test_outcome,
+              "projectSpecificReports": [
+                  os.environ["STATIC_LOG"],
+                  os.environ["BUILD_LOG"],
+                  result_bundle_path,
+              ],
+          }
+          Path(os.environ["MANIFEST_PATH"]).write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
+          summary_lines = [
+              "# CI Failure Summary",
+              "",
+              f"- branch: {manifest['branch']}",
+              f"- commitSha: {commit_sha}",
+              f"- runId: {run_id}",
+              f"- runAttempt: {run_attempt}",
+              f"- staticChecksOutcome: {static_outcome}",
+              f"- buildOutcome: {build_outcome}",
+              f"- testOutcome: {test_outcome}",
+              "",
+          ]
+          if failures:
+              summary_lines.append("## Failures")
+              summary_lines.append("")
+              for name, message in failures:
+                  summary_lines.append(f"- `{name}`: {message}")
+          else:
+              summary_lines.append("CI passed. No failures were reported by static checks or build.")
+          Path(os.environ["FAILURE_SUMMARY"]).write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
+
+          testcases = [
+              ("static_checks", static_outcome, "Static checks"),
+              ("xcodebuild_build", build_outcome, "Xcode build"),
+          ]
+          failure_count = sum(1 for _, outcome, _ in testcases if outcome != "success")
+          xml_lines = [
+              '<?xml version="1.0" encoding="UTF-8"?>',
+              f'<testsuite name="WWIIHexV0 CI" tests="{len(testcases)}" failures="{failure_count}" errors="0" skipped="0">',
+          ]
+          for name, outcome, label in testcases:
+              xml_lines.append(f'  <testcase classname="ci" name="{escape(name)}">')
+              if outcome != "success":
+                  xml_lines.append(f'    <failure message="{escape(label + " failed")}">{escape(outcome)}</failure>')
+              xml_lines.append("  </testcase>")
+          xml_lines.append("</testsuite>")
+          Path(os.environ["JUNIT_PATH"]).write_text("\n".join(xml_lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload CI result package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wwiihexv0-ci-cloud-validation-main-${{ github.sha }}-run${{ github.run_id }}-attempt${{ github.run_attempt }}
+          path: ci-results/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Evaluate CI outcome
+        if: always()
+        shell: bash
+        run: |
+          if [[ "${{ steps.static_checks.outcome }}" != "success" || "${{ steps.xcodebuild.outcome }}" != "success" ]]; then
+            echo "CI failed. Download the artifact and inspect ci-failure-summary.md, junit.xml, and xcodebuild.log."
+            exit 1
+          fi
+          echo "CI passed."

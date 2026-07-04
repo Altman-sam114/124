@@ -22,6 +22,23 @@
 - Legacy Agent D 管线保留作回归参考，默认战争 AI 主路径不得退回旧管线。
 - 不恢复 organization；当前战斗核心是 strength、retreat、supply、encirclement。
 - 严守用户给定范围。不要擅自扩展功能、重构架构、删除旧实现或回滚其他人改动。
+## 2.1 角色召唤与身份标识
+- 用户消息以 `agenta`、`a:` 或 `A:` 开头，表示召唤 Agent A。
+- 用户消息以 `agentb`、`b:` 或 `B:` 开头，表示召唤 Agent B。
+- 用户消息以 `agentc`、`c:` 或 `C:` 开头，表示召唤 Agent C。
+- 没有这些前缀时，按普通 Codex 任务处理；若任务需要 A/B/C 边界，提醒用户指定角色或说明本轮按普通任务执行。
+- Agent A 最终回复第一行必须写：`我是 Agent A。`
+- Agent B 最终回复第一行必须写：`我是 Agent B。`
+- Agent C 最终回复第一行必须写：`我是 Agent C。`
+## 2.2 main 直推与云端验证
+- 默认使用 `main` 作为唯一上传、提交、推送和云端验证分支；本轮不引入 `smalldata_test`、`develop`、`codeb/...`、候选分支或 PR 合并流。
+- Agent B 每轮开始前必须同步最新 `origin/main`，确认当前分支为 `main`、远端目标为 `origin/main`、工作区无无关改动，再做本轮实现。
+- Agent B 本地只跑 `md/test/test.md` 允许的轻量检查，提交后直接 `git push origin main` 触发 GitHub Actions。
+- GitHub Actions 负责云端重验证，并上传未加密 CI 结果包；不要把加密发布包或历史 output 冒充 Agent C 验收结果包。
+- Agent C 只验收 `origin/main` 最新 commit 对应的 run id、run attempt、manifest、日志、JUnit/摘要和项目结果文件。
+- Agent C 下载 artifact 前必须完成 `gh auth login`；默认缓存目录为 `/private/tmp/wwiihexv0-c-review-<run_id>/`，人工确认前不自动删除。
+- 云端失败时，Agent C 写退回清单；Agent B 默认在 `main` 上追加修复 commit 并重新 push，不做未授权回滚。
+- 任何 Agent 在 `git push origin main` 或改变远端 `main` 前，必须确认提交范围只包含本轮相关文件和用户已要求上传的项目改动。
 ## 3. 标准迭代工作流
 ### 3.1 人工
 人工提出实现目标；精做任务可同时给出算法框架、边界、验收标准和禁止项。人工把 `AGENTS.md`、`update_log.md`、`md/flow/flow.md` 和相关上下文交给 Agent A。
@@ -37,20 +54,22 @@ Agent A 输出的提示词应包含：目标、范围、禁止项、当前架构
 Agent B 负责按 Agent A 的提示词完成实现。
 Agent B 必须：
 1. 阅读 Agent A 提示词、`AGENTS.md`、`update_log.md`、`md/flow/flow.md`、`md/test/test.md` 和相关源码。
-2. 按提示词小步实现；先定位根因，再改代码；必要时可阅读既有测试作为语义参考，但不默认新增、修改或执行测试。
+2. 先同步最新 `origin/main` 并确认当前分支是 `main`；按提示词小步实现；先定位根因，再改代码；必要时可阅读既有测试作为语义参考，但不默认新增、修改或执行测试。
 3. 严禁主动运行耗费性能的验证：包括 `xcodebuild test`、`xcodebuild build-for-testing`、Probe、Smoke、Stage Regression、Dynamic Theater Regression、Full、模拟器启动、UI test、性能测试和全量构建。
-4. 只运行 `md/test/test.md` 允许的轻量语法/格式检查；若某问题必须依赖重测试才能确认，只记录风险，不擅自运行。
+4. 只运行 `md/test/test.md` 允许的轻量语法/格式检查；若某问题必须依赖重测试才能确认，提交并推送后交给 GitHub Actions 云端验证。
 5. 更新必要文档；若轻量检查规则、核心逻辑、分支策略或版本状态变化，必须同步更新 `md/test/test.md`、`md/flow/*`、`README.md` 或 `update_log.md`。
-6. 输出实现结果：改动摘要、关键文件、轻量检查命令和结果、未跑重测试及原因、遗留风险。
+6. 完成后在 `main` 上 commit 并 push 到 `origin/main`，触发云端 CI 结果包。
+7. 输出实现结果：改动摘要、关键文件、轻量检查命令和结果、push 状态、云端 run 状态、未跑本机重测试及原因、遗留风险。
 ### 3.4 Agent C：验收与核心逻辑文档
 Agent C 负责验收 Agent B 的结果，并把当前进展沉淀进项目核心逻辑文档。
 Agent C 必须：
 1. 阅读 Agent B 输出、实际 diff、轻量检查结果、`AGENTS.md`、`update_log.md`、`md/flow/flow.md` 和 `md/test/test.md`。
-2. 核对实现是否满足 Agent A 提示词和人工目标，重点检查架构边界、文档同步、冲突风险和未说明风险。
-3. 根据当前真实进展更新 `md/flow/` 下的 markdown 与 mermaid/流程图文件，至少关注 `md/flow/flow.md` 和 `md/flow/flowchart.md`。
-4. 若形成正式版本或历史维护事项，更新 `update_log.md`，让下一轮 Agent A 能接上上下文。
-5. 若本轮使用多分支或多个子 Agent，必须检查文件级冲突、接口分叉、重复实现、项目文件变更冲突、数据 schema 冲突和文档口径冲突。
-6. 输出验收结论：通过/不通过、问题清单、已更新文档、轻量检查结果、建议下一步。
+2. 用 `gh auth login` 后下载 `origin/main` 最新 commit 对应的 GitHub Actions 未加密结果包，核对 `ci-artifact-manifest.json`、JUnit/摘要、主日志、failure summary、run id 和 run attempt。
+3. 核对实现是否满足 Agent A 提示词和人工目标，重点检查架构边界、文档同步、冲突风险和未说明风险。
+4. 根据当前真实进展更新 `md/flow/` 下的 markdown 与 mermaid/流程图文件，至少关注 `md/flow/flow.md` 和 `md/flow/flowchart.md`。
+5. 若形成正式版本或历史维护事项，更新 `update_log.md`，让下一轮 Agent A 能接上上下文。
+6. 若本轮使用多分支或多个子 Agent，必须检查文件级冲突、接口分叉、重复实现、项目文件变更冲突、数据 schema 冲突和文档口径冲突。
+7. 输出验收结论：通过/不通过、问题清单、已更新文档、轻量检查结果、云端结果包核对结论、建议下一步。
 ### 3.5 回到人工
 人工阅读 Agent C 的验收、核心逻辑文档和轻量检查结果，决定是否接受、授权补测、修正、合并分支或进入下一轮开发。下一轮通过 `update_log.md` 和新的目标继续交给 Agent A，形成循环迭代。
 ### 3.6 多分支与并发子 Agent 规则
@@ -62,10 +81,10 @@ Agent C 必须：
 - 没有完成冲突检查前，不得声称多分支/多 Agent 工作已可合并。
 ## 4. 检查规则
 - 每轮实现或验收前必须读 `md/test/test.md`。
-- 现在默认不做 Xcode / XCTest / 模拟器测试，也不做耗费性能的构建验证。
+- 现在默认不做本机 Xcode / XCTest / 模拟器测试，也不做本机耗费性能的构建验证；重验证默认交给 GitHub Actions。
 - 禁止主动运行：`xcodebuild test`、`xcodebuild build-for-testing`、Probe、Smoke、Stage Regression、Dynamic Theater Regression、Full、UI test、性能测试、模拟器启动和全量 app 构建。
 - 默认只做轻量语法/格式检查：Markdown 文本检查、`plutil -lint`、`xmllint --noout`、`jq empty`、针对改动文件的轻量静态检查等，具体以 `md/test/test.md` 为准。
-- 若任务风险必须靠重测试才能排除，Agent 只能在交付中说明“按当前规范未跑重测试，风险未验证”，不得自行扩大验证。
+- 若任务风险必须靠重测试才能排除，Agent 默认 commit/push 后让云端 CI 验证；无法云端验证时，必须说明阻塞原因和未验证风险，不得自行扩大本机验证。
 - 不得用“已验证”代替具体命令和结果；不得伪造测试通过。
 ## 5. 文档规则
 - `AGENTS.md` 只写工作流、入口规则和基本信息，保持精简，不堆阶段细节。
@@ -73,6 +92,7 @@ Agent C 必须：
 - `md/flow/flow.md` 与 `md/flow/flowchart.md` 记录当前核心逻辑和流程图。
 - `md/test/test.md` 记录轻量检查范围、禁止执行项、命令模板和历史测试基线说明。
 - 阶段 prompt 放在对应 `md/prompt/...` 目录；Agent A 写目标提示词，Agent B 按提示词实现，Agent C 根据结果更新核心逻辑文档。
+- `md/prompt/README.md` 记录 Agent A/B/C 召唤约定、云端阶段要求、main push 和 artifact 验收要求。
 - 若源码行为、检查规则、核心流程、分支策略或版本状态改变，相关文档必须同步更新。
 ## 6. 交付格式
 最终回复保持简洁，必须说明：

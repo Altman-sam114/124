@@ -30,6 +30,7 @@ TestResults.xcresult/
 *.dat
 *.tmp
 *.log
+.worktrees/
 
 ## Swift Package Manager
 .build/
