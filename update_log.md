@@ -26,14 +26,17 @@
 - 云端 run 28826187439 继续暴露 `GeneralRegistry.commanderConfig(zoneId:)` 缺少 `return`，已补回显式返回，不改变生成配置内容。
 - 云端 run 28826279374 继续暴露 `WarCommandExecutor.defensiveDestination` 的 chained collection expression 触发 Swift type-check 超时，已拆为显式循环构建候选 hex，保持排序和过滤语义不变。
 - 云端 run 28826420013 继续暴露 `TurnManager` 使者停战候选和归附交接候选的 chained expression type-check 超时，以及 enum case 缺少上下文；已拆为显式候选数组，并显式使用 `Command.updateDiplomacy`、`DiplomaticStatus.truce/submitted` 与 `Command.resolveSubmissionHandoff`。
+- 云端 run 28826568215 继续暴露 `AgentPromptBuilder.systemPrompt` 和 `MapEditorExporter` 地点导出闭包缺少显式 `return`；已补回显式返回，不改变 prompt 文本或导出字段。
 
 关键文件：
 
 - `WWIIHexV0/Commands/WarCommandExecutor.swift`
 - `WWIIHexV0/Agents/GeneralRegistry.swift`
+- `WWIIHexV0/Agents/AgentPromptBuilder.swift`
 - `WWIIHexV0/Core/GameState.swift`
 - `WWIIHexV0/Rules/EconomyRules.swift`
 - `WWIIHexV0/Turn/TurnManager.swift`
+- `MapEditor/MapEditorExporter.swift`
 - `md/prompt/v3.0-隋唐迁移/v3.7_dynamic_theater_faction_fallback_record.md`
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `README.md`

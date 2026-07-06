@@ -265,7 +265,7 @@ enum MapEditorExporter {
                   !document.isKeyLocationSuppressed(at: location.coord) else {
                 return nil
             }
-            KeyLocationDefinition(
+            return KeyLocationDefinition(
                 id: location.id,
                 name: exportDisplayName(location.name, fallback: "未命名关键地点"),
                 kind: location.kind,

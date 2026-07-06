@@ -24,7 +24,7 @@ struct AgentPromptBuilder {
         let agentName = displayAgentName(context.agentId)
         let factionName = displayFactionName(context.faction)
         let personality = sanitizePromptText(context.personality)
-        """
+        return """
         你是本地军议决策层，负责为回合制六角格策略战局生成结构化军令。
         决策者：\(agentName)
         势力：\(factionName)
