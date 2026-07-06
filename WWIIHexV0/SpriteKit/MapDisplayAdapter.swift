@@ -119,8 +119,11 @@ struct MapDisplayAdapter {
         let region = regionId.flatMap { state.map.region(id: $0) }
         let tile = state.map.tile(at: hex)
         let terrain = tile?.baseTerrain ?? region?.terrain ?? .plain
-        let cityName = tile?.cityName ?? (hex == region?.representativeHex ? region?.city?.name : nil)
-        let fortressName = tile?.fortressName
+        let cityName = displayOptionalMapName(
+            tile?.cityName ?? (hex == region?.representativeHex ? region?.city?.name : nil),
+            fallback: "城邑"
+        )
+        let fortressName = displayOptionalMapName(tile?.fortressName, fallback: "关隘")
 
         return HexDisplayState(
             coord: hex,
@@ -200,22 +203,26 @@ struct MapDisplayAdapter {
             .filter { objective in
                 region.displayHexes.contains(objective.coord)
             }
-            .map(\.name)
+            .map { displayMapName($0.name, fallback: "要地") }
         let objectiveStatus = objectiveNames.isEmpty
-            ? "None"
-            : "\(region.controller.displayName) controlled"
+            ? "无"
+            : "由 \(displayFactionName(region.controller)) 控制"
 
         let cityLevel = EconomyRules().cityLevel(for: region, map: state.map)
         let economicOutput = regionalEconomicOutput(for: region, cityLevel: cityLevel)
+        let selectedHexDynamicTheaterId = selectedHex.flatMap { state.theaterState.dynamicTheaterId(for: $0, map: state.map) }
+        let selectedHexFrontZoneId = selectedHex.flatMap { state.warDeploymentState.zoneId(for: $0, map: state.map) }
+        let theaterId = state.theaterState.dominantDynamicTheaterId(for: regionId, map: state.map)
+        let frontZoneId = dominantDynamicFrontZoneId(for: regionId)
 
         return RegionInspectorState(
             region: region,
             selectedHex: selectedHex,
             selectedHexController: selectedHex.flatMap { state.map.tile(at: $0)?.controller },
-            selectedHexDynamicTheaterId: selectedHex.flatMap { state.theaterState.dynamicTheaterId(for: $0, map: state.map) },
-            selectedHexFrontZoneId: selectedHex.flatMap { state.warDeploymentState.zoneId(for: $0, map: state.map) },
-            theaterId: state.theaterState.dominantDynamicTheaterId(for: regionId, map: state.map),
-            frontZoneId: dominantDynamicFrontZoneId(for: regionId),
+            selectedHexDynamicTheaterId: selectedHexDynamicTheaterId,
+            selectedHexFrontZoneId: selectedHexFrontZoneId,
+            theaterId: theaterId,
+            frontZoneId: frontZoneId,
             frontPressure: state.frontLineState.regionStates[regionId]?.frontLines
                 .flatMap(\.segments)
                 .map(\.pressureLevel)
@@ -233,12 +240,14 @@ struct MapDisplayAdapter {
         let regionId = division.location(in: state.map)
         let frontLineIds = regionId
             .flatMap { state.frontLineState.regionStates[$0]?.frontLines.map(\.id) } ?? []
+        let dynamicTheaterId = state.theaterState.dynamicTheaterId(for: division.coord, map: state.map)
+        let frontZoneId = state.warDeploymentState.zoneId(for: division.coord, map: state.map)
         return UnitInspectorStrategicState(
             coord: division.coord,
             regionId: regionId,
-            dynamicTheaterId: state.theaterState.dynamicTheaterId(for: division.coord, map: state.map),
+            dynamicTheaterId: dynamicTheaterId,
             frontLineIds: frontLineIds.sorted { $0.rawValue < $1.rawValue },
-            frontZoneId: state.warDeploymentState.zoneId(for: division.coord, map: state.map),
+            frontZoneId: frontZoneId,
             deploymentRole: WarDeploymentManager().deploymentRole(
                 for: division,
                 in: state.map,
@@ -262,20 +271,75 @@ struct MapDisplayAdapter {
         }?.key ?? state.warDeploymentState.regionToFrontZone[regionId]
     }
 
-    private func terrain(for hex: HexCoord) -> BaseTerrain {
-        if let regionId = regionId(for: hex),
-           let region = state.map.region(id: regionId) {
-            return region.terrain
+    private func displayOptionalMapName(_ name: String?, fallback: String) -> String? {
+        guard let name else {
+            return nil
         }
-        return state.map.tile(at: hex)?.baseTerrain ?? .plain
+        return displayMapName(name, fallback: fallback)
+    }
+
+    private func displayMapName(_ name: String, fallback: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return fallback
+        }
+
+        let sanitized = sanitizeRawMapIdentifier(in: trimmed)
+            .replacingOccurrences(of: "巴斯托涅", with: "旧战局要地")
+            .replacingOccurrences(of: "圣维特", with: "旧战局要地")
+            .replacingOccurrences(of: "色当", with: "旧战局要地")
+            .replacingOccurrences(of: "阿登", with: "旧战局")
+            .replacingOccurrences(of: "Ardennes", with: "旧战局")
+            .replacingOccurrences(of: "ardennes", with: "旧战局")
+            .replacingOccurrences(of: "Bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "St. Vith", with: "旧战局要地")
+            .replacingOccurrences(of: "St Vith", with: "旧战局要地")
+            .replacingOccurrences(of: "st. vith", with: "旧战局要地")
+            .replacingOccurrences(of: "st vith", with: "旧战局要地")
+            .replacingOccurrences(of: "Sedan", with: "旧战局要地")
+            .replacingOccurrences(of: "sedan", with: "旧战局要地")
+            .replacingOccurrences(of: "德军", with: "旧剧本")
+            .replacingOccurrences(of: "盟军", with: "旧剧本")
+            .replacingOccurrences(of: "防区", with: "行军防区")
+
+        return sanitized.isEmpty ? fallback : sanitized
+    }
+
+    private func sanitizeRawMapIdentifier(in name: String) -> String {
+        name
+            .replacingOccurrences(
+                of: #"\b(region|theater|front_zone|objective|obj|hex|general|agent|commander|division|unit|war_directive|player_directive|player_operation|court_decision|ruler_decision)_[A-Za-z0-9_\-]+\b"#,
+                with: "相关地点",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\b(ger|all|allied|axis|germany|france)_[A-Za-z0-9_\-]+\b"#,
+                with: "相关旧战局",
+                options: .regularExpression
+            )
+    }
+
+    private func displayFactionName(_ faction: Faction) -> String {
+        switch faction {
+        case .germany, .allies:
+            return "旧剧本势力"
+        default:
+            return faction.displayName
+        }
+    }
+
+    private func terrain(for hex: HexCoord) -> BaseTerrain {
+        if let terrain = state.map.tile(at: hex)?.baseTerrain {
+            return terrain
+        }
+        return regionId(for: hex)
+            .flatMap { state.map.region(id: $0)?.terrain } ?? .plain
     }
 
     private func controller(for hex: HexCoord) -> Faction? {
-        if let regionId = regionId(for: hex),
-           let region = state.map.region(id: regionId) {
-            return region.controller
-        }
-        return state.map.tile(at: hex)?.controller
+        state.map.tile(at: hex)?.controller ?? regionId(for: hex)
+            .flatMap { state.map.region(id: $0)?.controller }
     }
 
     private func regionalEconomicOutput(for region: RegionNode, cityLevel: CityLevel) -> EconomyResources {

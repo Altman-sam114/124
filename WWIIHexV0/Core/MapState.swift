@@ -6,6 +6,41 @@ struct SupplySource: Codable, Equatable, Identifiable {
     let coord: HexCoord
 }
 
+struct MapFeatureKind: Codable, Equatable, Hashable, RawRepresentable {
+    let rawValue: String
+
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.init(rawValue: try container.decode(String.self))
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+
+    static let ferry = MapFeatureKind(rawValue: "ferry")
+    static let port = MapFeatureKind(rawValue: "port")
+    static let harbor = MapFeatureKind(rawValue: "harbor")
+
+    var isWaterTransit: Bool {
+        self == .ferry || self == .port || self == .harbor
+    }
+}
+
+struct MapFeatureMarker: Codable, Equatable, Identifiable {
+    let id: String
+    let name: String
+    let kind: MapFeatureKind
+    let coord: HexCoord
+    let faction: Faction?
+    let objectiveId: String?
+}
+
 enum ObjectiveType: String, Codable, Equatable {
     case city
     case fortress
@@ -25,6 +60,7 @@ struct MapState: Codable, Equatable {
     var tiles: [HexCoord: HexTile]
     var supplySources: [SupplySource]
     var objectives: [Objective]
+    var featureMarkers: [MapFeatureMarker]
     /// v0.2: 省份图（战略层叠加）。默认空，hex 仍是战术层权威坐标。
     /// Agent 2 填 ardennes province 数据后此处非空。
     var regions: [RegionId: RegionNode]
@@ -39,6 +75,7 @@ struct MapState: Codable, Equatable {
         tiles: [HexCoord: HexTile],
         supplySources: [SupplySource],
         objectives: [Objective],
+        featureMarkers: [MapFeatureMarker] = [],
         regions: [RegionId: RegionNode] = [:],
         hexToRegion: [HexCoord: RegionId] = [:],
         regionEdges: Set<RegionEdge> = []
@@ -48,9 +85,48 @@ struct MapState: Codable, Equatable {
         self.tiles = tiles
         self.supplySources = supplySources
         self.objectives = objectives
+        self.featureMarkers = featureMarkers
         self.regions = regions
         self.hexToRegion = hexToRegion
         self.regionEdges = regionEdges
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case width
+        case height
+        case tiles
+        case supplySources
+        case objectives
+        case featureMarkers
+        case regions
+        case hexToRegion
+        case regionEdges
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        width = try container.decode(Int.self, forKey: .width)
+        height = try container.decode(Int.self, forKey: .height)
+        tiles = try container.decode([HexCoord: HexTile].self, forKey: .tiles)
+        supplySources = try container.decode([SupplySource].self, forKey: .supplySources)
+        objectives = try container.decode([Objective].self, forKey: .objectives)
+        featureMarkers = try container.decodeIfPresent([MapFeatureMarker].self, forKey: .featureMarkers) ?? []
+        regions = try container.decodeIfPresent([RegionId: RegionNode].self, forKey: .regions) ?? [:]
+        hexToRegion = try container.decodeIfPresent([HexCoord: RegionId].self, forKey: .hexToRegion) ?? [:]
+        regionEdges = try container.decodeIfPresent(Set<RegionEdge>.self, forKey: .regionEdges) ?? []
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(width, forKey: .width)
+        try container.encode(height, forKey: .height)
+        try container.encode(tiles, forKey: .tiles)
+        try container.encode(supplySources, forKey: .supplySources)
+        try container.encode(objectives, forKey: .objectives)
+        try container.encode(featureMarkers, forKey: .featureMarkers)
+        try container.encode(regions, forKey: .regions)
+        try container.encode(hexToRegion, forKey: .hexToRegion)
+        try container.encode(regionEdges, forKey: .regionEdges)
     }
 
     func contains(_ coord: HexCoord) -> Bool {
@@ -86,8 +162,19 @@ struct MapState: Codable, Equatable {
         objectives.first { $0.name == name }
     }
 
+    func objective(id: String) -> Objective? {
+        objectives.first { $0.id == id }
+    }
+
     func controllerOfObjective(named name: String) -> Faction? {
         guard let coord = objective(named: name)?.coord else {
+            return nil
+        }
+        return tile(at: coord)?.controller
+    }
+
+    func controllerOfObjective(id: String) -> Faction? {
+        guard let coord = objective(id: id)?.coord else {
             return nil
         }
         return tile(at: coord)?.controller
@@ -218,25 +305,25 @@ struct MapState: Codable, Equatable {
             $0.baseTerrain = .fortress
             $0.controller = .allies
             $0.hasRoad = true
-            $0.fortressName = "Bastogne Fortress"
+            $0.fortressName = "旧战局要塞"
         }
         update(bastogne) {
             $0.baseTerrain = .city
             $0.controller = .allies
             $0.hasRoad = true
-            $0.cityName = "Bastogne"
+            $0.cityName = "旧战局要地甲"
         }
         update(houffalize) {
             $0.baseTerrain = .city
             $0.controller = nil
             $0.hasRoad = true
-            $0.cityName = "Houffalize"
+            $0.cityName = "旧战局中路驿"
         }
         update(stVith) {
             $0.baseTerrain = .city
             $0.controller = .allies
             $0.hasRoad = true
-            $0.cityName = "St. Vith"
+            $0.cityName = "旧战局要地乙"
         }
 
         let riverWestOfBastogne = HexCoord(q: 5, r: 4)
@@ -253,9 +340,9 @@ struct MapState: Codable, Equatable {
                 SupplySource(id: "german_supply", faction: .germany, coord: germanSupply)
             ],
             objectives: [
-                Objective(id: "bastogne", name: "Bastogne", coord: bastogne, type: .city),
-                Objective(id: "st_vith", name: "St. Vith", coord: stVith, type: .city),
-                Objective(id: "bastogne_fortress", name: "Bastogne Fortress", coord: bastogneFortress, type: .fortress)
+                Objective(id: "bastogne", name: "旧战局要地甲", coord: bastogne, type: .city),
+                Objective(id: "st_vith", name: "旧战局要地乙", coord: stVith, type: .city),
+                Objective(id: "bastogne_fortress", name: "旧战局要塞", coord: bastogneFortress, type: .fortress)
             ]
         )
     }

@@ -859,9 +859,7 @@ struct WarCommandExecutor {
     }
 
     private func isMobile(_ division: Division) -> Bool {
-        division.isArmor
-            || division.movement >= 5
-            || division.components.contains { $0.type == .motorizedInfantry && $0.weight >= 0.25 }
+        division.isMobileForce
     }
 
     private func enemyRegions(
@@ -982,8 +980,8 @@ struct WarCommandExecutor {
                 if lhsIsCurrent != rhsIsCurrent {
                     return !lhsIsCurrent
                 }
-                let lhsEnemyControlled = state.map.tile(at: $0)?.controller == division.faction.opponent
-                let rhsEnemyControlled = state.map.tile(at: $1)?.controller == division.faction.opponent
+                let lhsEnemyControlled = isHostileControlled($0, to: division.faction, in: state)
+                let rhsEnemyControlled = isHostileControlled($1, to: division.faction, in: state)
                 if lhsEnemyControlled != rhsEnemyControlled {
                     return lhsEnemyControlled
                 }
@@ -1022,8 +1020,8 @@ struct WarCommandExecutor {
                 let lhsDistance = nearestDistance(from: $0, to: targets)
                 let rhsDistance = nearestDistance(from: $1, to: targets)
                 if lhsDistance == rhsDistance {
-                    let lhsEnemyControlled = state.map.tile(at: $0)?.controller == division.faction.opponent
-                    let rhsEnemyControlled = state.map.tile(at: $1)?.controller == division.faction.opponent
+                    let lhsEnemyControlled = isHostileControlled($0, to: division.faction, in: state)
+                    let rhsEnemyControlled = isHostileControlled($1, to: division.faction, in: state)
                     if lhsEnemyControlled != rhsEnemyControlled {
                         return lhsEnemyControlled
                     }
@@ -1039,6 +1037,13 @@ struct WarCommandExecutor {
 
     private func nearestDistance(from coord: HexCoord, to targets: [HexCoord]) -> Int {
         targets.map { coord.distance(to: $0) }.min() ?? Int.max
+    }
+
+    private func isHostileControlled(_ coord: HexCoord, to faction: Faction, in state: GameState) -> Bool {
+        guard let controller = state.map.tile(at: coord)?.controller else {
+            return false
+        }
+        return state.diplomacyState.isHostile(faction, controller)
     }
 
     private func lightestFrontRegion(in zone: FrontZone, loads: [RegionId: Int]) -> RegionId? {
@@ -1077,9 +1082,10 @@ struct WarCommandExecutor {
         results.append(result)
 
         if !result.succeeded {
-            let rejectionReasons = result.validation.errors.map(\.rawValue).joined(separator: ", ")
+            let rejectionReasons = result.validation.errors.map(\.displayName).joined(separator: "、")
+            let reasonText = rejectionReasons.isEmpty ? "未通过规则校验" : rejectionReasons
             state.appendEvent(
-                "Directive command rejected: \(rejectionReasons) for \(command.displayName).",
+                "方面军令被规则拒绝：\(commandActionName(command))。原因：\(reasonText)。",
                 category: .frontChange,
                 relatedRecordId: relatedRecordId
             )
@@ -1122,7 +1128,7 @@ struct WarCommandExecutor {
                 continue
             }
             state.appendEvent(
-                "Region \(regionId.rawValue) controller changed to \(region.controller.displayName) via \(command.displayName).",
+                "\(region.name) 控制权转为 \(region.controller.displayName)：来自\(commandActionName(command))军令。",
                 category: .regionOwnerChange,
                 relatedRecordId: relatedRecordId
             )
@@ -1214,17 +1220,54 @@ struct WarCommandExecutor {
                 turn: state.turn
             )
         }
+        let theaterName = displayTheaterName(state.theaterState.theaters[advancingTheaterId]?.name)
+        let regionName = state.map.region(id: regionId)?.name ?? "相关州郡"
         state.appendEvent(
-            "Hex \(hex.q),\(hex.r) reassigned to dynamic theater \(advancingTheaterId.rawValue).",
+            "\(regionName) 前沿地块已纳入 \(theaterName) 推进范围。",
             category: .theaterChange,
             relatedRecordId: relatedRecordId
         )
         state.appendEvent(
-            "Front changed around region \(regionId.rawValue).",
+            "\(regionName) 周边前线已更新。",
             category: .frontChange,
             relatedRecordId: relatedRecordId
         )
         return regionId
+    }
+
+    private func displayTheaterName(_ name: String?) -> String {
+        guard let name,
+              !name.isEmpty,
+              !name.contains("_"),
+              !name.hasPrefix("theater") else {
+            return "当前方面"
+        }
+        return name
+    }
+
+    private func commandActionName(_ command: Command) -> String {
+        switch command {
+        case .move:
+            return "行军"
+        case .attack:
+            return "进攻"
+        case .hold:
+            return "固守"
+        case .allowRetreat:
+            return "退守"
+        case .resupply:
+            return "补给休整"
+        case .queueProduction:
+            return "征发"
+        case .governRegion:
+            return "州郡经营"
+        case .updateDiplomacy:
+            return "外交"
+        case .resolveSubmissionHandoff:
+            return "归附交接"
+        case .endTurn:
+            return "结束回合"
+        }
     }
 
     private func shouldAdvanceDynamicTheater(
@@ -1260,6 +1303,9 @@ struct WarCommandExecutor {
         case .attack(let attackerId, _):
             return attackerId
         case .queueProduction,
+             .governRegion,
+             .updateDiplomacy,
+             .resolveSubmissionHandoff,
              .endTurn:
             return nil
         }
@@ -1280,6 +1326,10 @@ struct WarCommandExecutor {
         switch command {
         case .move(_, let destination):
             return state.map.region(for: destination).map { [$0] } ?? []
+        case .governRegion(let regionId, _):
+            return [regionId]
+        case .resolveSubmissionHandoff:
+            return []
         default:
             return []
         }

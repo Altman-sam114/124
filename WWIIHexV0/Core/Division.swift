@@ -5,6 +5,12 @@ enum ComponentType: String, Codable, Equatable, CaseIterable {
     case motorizedInfantry
     case infantry
     case artillery
+    case cavalry
+    case archer
+    case siegeEngine
+    case `guard`
+    case naval
+    case militia
 
     var baseStats: EffectiveStats {
         switch self {
@@ -16,6 +22,119 @@ enum ComponentType: String, Codable, Equatable, CaseIterable {
             return EffectiveStats(attack: 4, defense: 5, movement: 3, range: 1, vision: 2)
         case .artillery:
             return EffectiveStats(attack: 7, defense: 2, movement: 2, range: 2, vision: 2)
+        case .cavalry:
+            return EffectiveStats(attack: 6, defense: 4, movement: 5, range: 1, vision: 3)
+        case .archer:
+            return EffectiveStats(attack: 5, defense: 3, movement: 3, range: 2, vision: 2)
+        case .siegeEngine:
+            return EffectiveStats(attack: 8, defense: 2, movement: 2, range: 2, vision: 1)
+        case .guard:
+            return EffectiveStats(attack: 6, defense: 7, movement: 3, range: 1, vision: 2)
+        case .naval:
+            return EffectiveStats(attack: 5, defense: 4, movement: 4, range: 2, vision: 3)
+        case .militia:
+            return EffectiveStats(attack: 3, defense: 3, movement: 3, range: 1, vision: 2)
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .tank:
+            return "甲骑"
+        case .motorizedInfantry:
+            return "骑军"
+        case .infantry:
+            return "步卒"
+        case .artillery:
+            return "弓弩"
+        case .cavalry:
+            return "骑军"
+        case .archer:
+            return "弓弩"
+        case .siegeEngine:
+            return "攻城器械"
+        case .guard:
+            return "亲军"
+        case .naval:
+            return "水师"
+        case .militia:
+            return "乡兵"
+        }
+    }
+
+    var displayCode: String {
+        switch self {
+        case .tank:
+            return "甲"
+        case .motorizedInfantry:
+            return "骑"
+        case .infantry:
+            return "步"
+        case .artillery:
+            return "弩"
+        case .cavalry:
+            return "骑"
+        case .archer:
+            return "弩"
+        case .siegeEngine:
+            return "器"
+        case .guard:
+            return "禁"
+        case .naval:
+            return "水"
+        case .militia:
+            return "乡"
+        }
+    }
+
+    var isMobileShock: Bool {
+        switch self {
+        case .tank,
+             .motorizedInfantry,
+             .cavalry,
+             .naval:
+            return true
+        case .infantry,
+             .artillery,
+             .archer,
+             .siegeEngine,
+             .guard,
+             .militia:
+            return false
+        }
+    }
+
+    var isRangedSupport: Bool {
+        switch self {
+        case .artillery,
+             .archer,
+             .siegeEngine,
+             .naval:
+            return true
+        case .tank,
+             .motorizedInfantry,
+             .infantry,
+             .cavalry,
+             .guard,
+             .militia:
+            return false
+        }
+    }
+
+    var isSiegeCapable: Bool {
+        switch self {
+        case .siegeEngine,
+             .artillery:
+            return true
+        case .tank,
+             .motorizedInfantry,
+             .infantry,
+             .cavalry,
+             .archer,
+             .guard,
+             .naval,
+             .militia:
+            return false
         }
     }
 }
@@ -304,11 +423,41 @@ struct Division: Identifiable, Codable, Equatable {
     }
 
     var isArmor: Bool {
-        components.contains { $0.type == .tank && $0.weight >= 0.25 }
+        components.contains { ($0.type == .tank || $0.type == .cavalry) && $0.weight >= 0.25 }
     }
 
     var isArtillery: Bool {
-        components.contains { $0.type == .artillery && $0.weight >= 0.50 }
+        components.contains { $0.type == .artillery && $0.weight >= 0.50 } ||
+            components.contains { $0.type == .siegeEngine && $0.weight >= 0.35 }
+    }
+
+    var hasCavalryShock: Bool {
+        components.contains { ($0.type == .cavalry || $0.type == .tank) && $0.weight >= 0.25 }
+    }
+
+    var isMobileForce: Bool {
+        movement >= 5 || components.contains { $0.type.isMobileShock && $0.weight >= 0.25 }
+    }
+
+    var hasRangedSupport: Bool {
+        components.contains { $0.type.isRangedSupport && $0.weight >= 0.25 }
+    }
+
+    var hasSiegeCapability: Bool {
+        components.contains { $0.type.isSiegeCapable && $0.weight >= 0.25 }
+    }
+
+    var primaryComponentType: ComponentType {
+        components.max {
+            if $0.weight == $1.weight {
+                return $0.type.rawValue > $1.type.rawValue
+            }
+            return $0.weight < $1.weight
+        }?.type ?? .infantry
+    }
+
+    var unitKindDisplayName: String {
+        primaryComponentType.displayName
     }
 
     private func weightedStat(_ keyPath: KeyPath<EffectiveStats, Int>) -> Int {

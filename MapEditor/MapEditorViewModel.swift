@@ -10,12 +10,12 @@ final class MapEditorViewModel: ObservableObject {
     @Published var paintRoad: Bool = false
     @Published var paintController: Faction? = nil
     @Published var paintSupply: Bool = false
-    @Published var supplyFaction: Faction = .germany
+    @Published var supplyFaction: Faction = .tang
     @Published var selectedRegionId: RegionId?
     @Published var selectedTheaterId: TheaterId?
     @Published var eraseRegionMembership: Bool = false
-    @Published var selectedUnitTemplateId: String = "infantry_division"
-    @Published var selectedUnitFaction: Faction = .germany
+    @Published var selectedUnitTemplateId: String = "suitang_infantry_host"
+    @Published var selectedUnitFaction: Faction = .tang
     @Published var selectedUnitHP: Int = 10
     @Published var selectedUnitFacing: HexDirection = .west
     @Published var eraseUnits: Bool = false
@@ -29,29 +29,50 @@ final class MapEditorViewModel: ObservableObject {
     @Published var inspectedCoord: HexCoord?
     @Published var inspectedRegionName: String = ""
     @Published var inspectedTheaterName: String = ""
+    @Published var inspectedKeyLocationName: String = ""
+    @Published var inspectedKeyLocationKind: String = "ferry"
+    @Published var inspectedKeyLocationFaction: Faction?
+    @Published var inspectedKeyLocationObjectiveId: String = ""
     @Published var backgroundOpacity: Double = 0.45
     @Published var backgroundScale: Double = 1
     @Published var backgroundOffsetX: Double = 0
     @Published var backgroundOffsetY: Double = 0
 
-    @Published var newRegionText: String = "新省份"
-    @Published var newTheaterText: String = "新战区"
-    @Published var newUnitNameText: String = "师"
+    @Published var newRegionText: String = "新州郡"
+    @Published var newTheaterText: String = "新方面"
+    @Published var newUnitNameText: String = "军队"
 
     init(document: MapEditorDocument = .new(width: 8, height: 6)) {
         self.document = document
+    }
+
+    var keyLocationKindOptions: [String] {
+        var options = ["capital", "city", "fortress", "pass", "granary", "supply", "ferry", "port", "harbor"]
+        if !inspectedKeyLocationKind.isEmpty, !options.contains(inspectedKeyLocationKind) {
+            options.append(inspectedKeyLocationKind)
+        }
+        return options
+    }
+
+    var inspectedKeyLocationExists: Bool {
+        guard let inspectedCoord else { return false }
+        return document.keyLocation(at: inspectedCoord) != nil
     }
 
     func newMap(width: Int, height: Int) {
         document = .new(width: width, height: height)
         selectedRegionId = nil
         selectedTheaterId = nil
+        clearInspection()
         clearPendingSelection()
         markChanged()
     }
 
     func resize(width: Int, height: Int) {
         document.resize(width: width, height: height)
+        if let inspectedCoord, !document.contains(inspectedCoord) {
+            clearInspection()
+        }
         markChanged()
     }
 
@@ -67,11 +88,11 @@ final class MapEditorViewModel: ObservableObject {
             let nextIndex = nextRegionIndex()
             id = RegionId("region_\(nextIndex)")
             let rawName = newRegionText.trimmingCharacters(in: .whitespacesAndNewlines)
-            name = rawName.isEmpty ? "省份 \(nextIndex)" : rawName
+            name = rawName.isEmpty ? "州郡 \(nextIndex)" : rawName
         }
         document.createRegion(id: id, name: name)
         selectedRegionId = id
-        lastStatusMessage = "已创建省份：\(name)（\(id.rawValue)）。"
+        lastStatusMessage = "已创建州郡：\(displayMapEditorName(name, fallback: "州郡"))。"
         markChanged()
     }
 
@@ -87,25 +108,25 @@ final class MapEditorViewModel: ObservableObject {
             let nextIndex = nextTheaterIndex()
             id = TheaterId("theater_\(nextIndex)")
             let rawName = newTheaterText.trimmingCharacters(in: .whitespacesAndNewlines)
-            name = rawName.isEmpty ? "战区 \(nextIndex)" : rawName
+            name = rawName.isEmpty ? "方面 \(nextIndex)" : rawName
         }
         document.createTheater(id: id, name: name)
         selectedTheaterId = id
-        lastStatusMessage = "已创建战区：\(name)（\(id.rawValue)）。"
+        lastStatusMessage = "已创建方面：\(displayMapEditorName(name, fallback: "方面"))。"
         markChanged()
     }
 
     func prepareNewRegion() {
         selectedRegionId = nil
         pendingRegionHexes.removeAll()
-        lastStatusMessage = "将创建新省份，ID 会自动递增。"
+        lastStatusMessage = "将自动生成新的州郡。"
         markChanged()
     }
 
     func prepareNewTheater() {
         selectedTheaterId = nil
         pendingTheaterRegions.removeAll()
-        lastStatusMessage = "将创建新战区，ID 会自动递增。"
+        lastStatusMessage = "将自动生成新的方面。"
         markChanged()
     }
 
@@ -197,9 +218,8 @@ final class MapEditorViewModel: ObservableObject {
     func inspect(at coord: HexCoord) {
         inspectedCoord = coord
         guard let hex = document.hexes[coord] else {
-            inspectedRegionName = ""
-            inspectedTheaterName = ""
-            lastStatusMessage = "坐标 \(coord.mapEditorKey) 没有地块。"
+            clearInspectedTextFields()
+            lastStatusMessage = "所选位置没有地块。"
             markChanged()
             return
         }
@@ -216,7 +236,8 @@ final class MapEditorViewModel: ObservableObject {
             inspectedRegionName = ""
             inspectedTheaterName = ""
         }
-        lastStatusMessage = "已选中：\(coord.mapEditorKey)。"
+        syncInspectedKeyLocationFields(coord: coord, hex: hex)
+        lastStatusMessage = "已选中地图位置：\(displayPosition(for: coord))。"
         markChanged()
     }
 
@@ -224,7 +245,7 @@ final class MapEditorViewModel: ObservableObject {
         guard let inspectedCoord,
               let hex = document.hexes[inspectedCoord],
               let regionId = hex.regionId else {
-            lastStatusMessage = "当前选中地块没有省份信息可保存。"
+            lastStatusMessage = "当前选中地块没有州郡信息可保存。"
             markChanged()
             return
         }
@@ -247,6 +268,59 @@ final class MapEditorViewModel: ObservableObject {
         markChanged()
     }
 
+    func saveInspectedKeyLocation() {
+        guard let inspectedCoord,
+              let hex = document.hexes[inspectedCoord] else {
+            lastStatusMessage = "当前没有可保存地点的选中地块。"
+            markChanged()
+            return
+        }
+
+        let name = inspectedKeyLocationName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let kind = inspectedKeyLocationKind.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, !kind.isEmpty else {
+            lastStatusMessage = "地点名称和类型不能为空。"
+            markChanged()
+            return
+        }
+
+        let objectiveId = inspectedKeyLocationObjectiveId.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existing = document.keyLocation(at: inspectedCoord)
+        let location = MapEditorKeyLocationDraft(
+            id: existing?.id ?? keyLocationId(kind: kind, coord: inspectedCoord),
+            name: name,
+            kind: kind,
+            coord: inspectedCoord,
+            faction: inspectedKeyLocationFaction,
+            objectiveId: objectiveId.isEmpty ? nil : objectiveId
+        )
+        document.upsertKeyLocation(location)
+        lastStatusMessage = "已保存地点：\(displayMapEditorName(name, fallback: "地点"))。"
+        markChanged()
+    }
+
+    func deleteInspectedKeyLocation() {
+        guard let inspectedCoord,
+              let hex = document.hexes[inspectedCoord] else {
+            lastStatusMessage = "当前没有可删除地点的选中地块。"
+            markChanged()
+            return
+        }
+
+        if let location = document.keyLocation(at: inspectedCoord) {
+            document.removeKeyLocation(at: inspectedCoord)
+            syncInspectedKeyLocationFields(coord: inspectedCoord, hex: hex)
+            lastStatusMessage = "已删除地点：\(displayMapEditorName(location.name, fallback: "地点"))。"
+        } else if hasDerivedKeyLocation(for: hex) {
+            document.removeKeyLocation(at: inspectedCoord)
+            syncInspectedKeyLocationFields(coord: inspectedCoord, hex: hex)
+            lastStatusMessage = "已禁止导出该地块的派生地点。"
+        } else {
+            lastStatusMessage = "当前地块没有独立地点记录。"
+        }
+        markChanged()
+    }
+
     func setBackgroundImage(path: String) {
         document.backgroundImage = MapEditorBackgroundImage(
             filePath: path,
@@ -255,7 +329,7 @@ final class MapEditorViewModel: ObservableObject {
             positionX: backgroundOffsetX,
             positionY: backgroundOffsetY
         )
-        lastStatusMessage = "已导入底图：\(URL(fileURLWithPath: path).lastPathComponent)。"
+        lastStatusMessage = "已导入底图。"
         markChanged()
     }
 
@@ -285,21 +359,22 @@ final class MapEditorViewModel: ObservableObject {
         do {
             try MapEditorStorage.save(document, to: url)
             lastErrorMessage = nil
-            lastStatusMessage = "已保存 \(url.lastPathComponent)。"
+            lastStatusMessage = "地图草稿已保存。"
         } catch {
-            lastErrorMessage = error.localizedDescription
+            lastErrorMessage = displayMessage(for: error)
         }
     }
 
     func loadDocument(from url: URL) {
         do {
             document = try MapEditorStorage.load(from: url)
+            clearInspection()
             syncBackgroundControlsFromDocument()
             lastErrorMessage = nil
-            lastStatusMessage = "已读取 \(url.lastPathComponent)。"
+            lastStatusMessage = "地图草稿已读取。"
             markChanged()
         } catch {
-            lastErrorMessage = error.localizedDescription
+            lastErrorMessage = displayMessage(for: error)
         }
     }
 
@@ -308,12 +383,13 @@ final class MapEditorViewModel: ObservableObject {
             document = try MapEditorGameResourceBridge.loadDefaultDocument()
             selectedRegionId = document.regions.keys.sorted { $0.rawValue < $1.rawValue }.first
             selectedTheaterId = document.theaters.keys.sorted { $0.rawValue < $1.rawValue }.first
+            clearInspection()
             syncBackgroundControlsFromDocument()
             lastErrorMessage = nil
-            lastStatusMessage = "已读取默认游戏资源。"
+            lastStatusMessage = "已读取默认隋唐游戏资源。"
             markChanged()
         } catch {
-            lastErrorMessage = String(describing: error)
+            lastErrorMessage = displayMessage(for: error)
         }
     }
 
@@ -322,22 +398,25 @@ final class MapEditorViewModel: ObservableObject {
             let result = try MapEditorGameResourceBridge.overwriteDefaultGameResources(document: document)
             lastExportResult = result
             lastErrorMessage = nil
-            lastStatusMessage = "已覆盖 \(result.scenarioFileName).json 和 \(result.regionFileName).json。"
+            lastStatusMessage = "已覆盖默认隋唐战局资源。"
         } catch {
-            lastErrorMessage = String(describing: error)
+            lastErrorMessage = displayMessage(for: error)
         }
     }
 
     @discardableResult
     func export() -> MapEditorExportResult? {
         do {
-            let result = try MapEditorExporter.export(document: document)
+            let result = try MapEditorExporter.export(
+                document: document,
+                metadata: MapEditorGameResourceBridge.exportMetadata(for: document)
+            )
             lastExportResult = result
             lastErrorMessage = nil
-            lastStatusMessage = "已在内存中导出 JSON。"
+            lastStatusMessage = "战役资料预览已生成。"
             return result
         } catch {
-            lastErrorMessage = String(describing: error)
+            lastErrorMessage = displayMessage(for: error)
             return nil
         }
     }
@@ -348,12 +427,24 @@ final class MapEditorViewModel: ObservableObject {
         do {
             try MapEditorExporter.write(result, to: directory)
             lastErrorMessage = nil
-            lastStatusMessage = "已导出 JSON 到 \(directory.path)。"
+            lastStatusMessage = "战役资料已导出。"
             return result
         } catch {
-            lastErrorMessage = error.localizedDescription
+            lastErrorMessage = displayMessage(for: error)
             return nil
         }
+    }
+
+    func displayName(for regionId: RegionId) -> String {
+        displayMapEditorName(document.regions[regionId]?.name, fallback: "未命名州郡")
+    }
+
+    func displayName(for theaterId: TheaterId) -> String {
+        displayMapEditorName(document.theaters[theaterId]?.name, fallback: "未命名方面")
+    }
+
+    func displayPosition(for coord: HexCoord) -> String {
+        "第 \(coord.q) 列，第 \(coord.r) 行"
     }
 
     private func editHex(at coord: HexCoord) {
@@ -363,7 +454,7 @@ final class MapEditorViewModel: ObservableObject {
         }
         if hexTool == .extend {
             if document.addHex(at: coord, terrain: .plain) {
-                lastStatusMessage = "已扩展地块：\(coord.mapEditorKey)。"
+                lastStatusMessage = "已扩展一处地块。"
             } else if !document.contains(coord) {
                 lastStatusMessage = "扩展失败：新地块必须贴着已有地块。"
             }
@@ -376,9 +467,16 @@ final class MapEditorViewModel: ObservableObject {
         hex.isSupplySource = paintSupply
         hex.supplyFaction = paintSupply ? supplyFaction : nil
         if selectedTerrain == .city, hex.cityName == nil {
-            hex.cityName = "City \(coord.q),\(coord.r)"
+            hex.cityName = "未命名城池"
+            hex.fortressName = nil
+        } else if selectedTerrain == .fortress, hex.fortressName == nil {
+            hex.fortressName = "未命名关隘"
+            hex.cityName = nil
         } else if selectedTerrain != .city {
             hex.cityName = nil
+        }
+        if selectedTerrain != .fortress {
+            hex.fortressName = nil
         }
         document.setHex(hex)
     }
@@ -435,7 +533,7 @@ final class MapEditorViewModel: ObservableObject {
     private func stampUnit(at coord: HexCoord) {
         document.initialUnits.removeAll { $0.coord == coord }
         let nextIndex = document.initialUnits.count + 1
-        let factionPrefix = selectedUnitFaction == .germany ? "ger" : "all"
+        let factionPrefix = selectedUnitFaction.mapEditorUnitPrefix
         let id = "\(factionPrefix)_editor_\(nextIndex)"
         document.initialUnits.append(
             MapEditorUnitDraft(
@@ -471,8 +569,156 @@ final class MapEditorViewModel: ObservableObject {
         pendingUnitHexes.removeAll()
     }
 
+    private func clearInspection() {
+        inspectedCoord = nil
+        clearInspectedTextFields()
+    }
+
+    private func clearInspectedTextFields() {
+        inspectedRegionName = ""
+        inspectedTheaterName = ""
+        inspectedKeyLocationName = ""
+        inspectedKeyLocationKind = "ferry"
+        inspectedKeyLocationFaction = nil
+        inspectedKeyLocationObjectiveId = ""
+    }
+
+    private func syncInspectedKeyLocationFields(coord: HexCoord, hex: MapEditorHex) {
+        if let location = document.keyLocation(at: coord) {
+            inspectedKeyLocationName = location.name
+            inspectedKeyLocationKind = location.kind
+            inspectedKeyLocationFaction = location.faction
+            inspectedKeyLocationObjectiveId = location.objectiveId ?? ""
+            return
+        }
+
+        if document.isKeyLocationSuppressed(at: coord) {
+            inspectedKeyLocationName = ""
+            inspectedKeyLocationKind = defaultKeyLocationKind(for: hex)
+            inspectedKeyLocationFaction = nil
+            inspectedKeyLocationObjectiveId = ""
+            return
+        }
+
+        inspectedKeyLocationName = defaultKeyLocationName(for: hex)
+        inspectedKeyLocationKind = defaultKeyLocationKind(for: hex)
+        inspectedKeyLocationFaction = hex.supplyFaction ?? hex.controller
+        inspectedKeyLocationObjectiveId = hex.objectiveId ?? ""
+    }
+
+    private func hasDerivedKeyLocation(for hex: MapEditorHex) -> Bool {
+        hex.cityName != nil || hex.fortressName != nil || hex.isSupplySource
+    }
+
+    private func defaultKeyLocationName(for hex: MapEditorHex) -> String {
+        if let cityName = hex.cityName {
+            return cityName
+        }
+        if let fortressName = hex.fortressName {
+            return fortressName
+        }
+        if hex.isSupplySource {
+            return "未命名粮仓"
+        }
+        return ""
+    }
+
+    private func defaultKeyLocationKind(for hex: MapEditorHex) -> String {
+        if hex.isSupplySource {
+            return "granary"
+        }
+        if hex.terrain == .fortress {
+            return "fortress"
+        }
+        if hex.terrain == .city {
+            return "city"
+        }
+        return "ferry"
+    }
+
+    private func keyLocationId(kind: String, coord: HexCoord) -> String {
+        let safeKind = kind
+            .lowercased()
+            .map { character -> Character in
+                character.isLetter || character.isNumber ? character : "_"
+            }
+        let kindPart = String(safeKind).trimmingCharacters(in: CharacterSet(charactersIn: "_"))
+        return "loc_\(kindPart.isEmpty ? "site" : kindPart)_\(coord.q)_\(coord.r)"
+    }
+
     private func markChanged() {
         redrawToken += 1
+    }
+
+    private func displayMessage(for error: Error) -> String {
+        switch error {
+        case let exportError as MapEditorExportError:
+            return exportError.description
+        case let bridgeError as MapEditorGameResourceBridgeError:
+            return bridgeError.description
+        default:
+            return "地图工具操作失败，请检查当前文档和资源文件。"
+        }
+    }
+
+    private func displayMapEditorName(_ name: String?, fallback: String) -> String {
+        guard let name else {
+            return fallback
+        }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return fallback
+        }
+
+        let sanitized = sanitizeRawMapEditorIdentifier(in: trimmed)
+            .replacingOccurrences(of: "巴斯托涅", with: "旧战局要地")
+            .replacingOccurrences(of: "圣维特", with: "旧战局要地")
+            .replacingOccurrences(of: "色当", with: "旧战局要地")
+            .replacingOccurrences(of: "阿登", with: "旧战局")
+            .replacingOccurrences(of: "Ardennes", with: "旧战局")
+            .replacingOccurrences(of: "ardennes", with: "旧战局")
+            .replacingOccurrences(of: "Bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "St. Vith", with: "旧战局要地")
+            .replacingOccurrences(of: "St Vith", with: "旧战局要地")
+            .replacingOccurrences(of: "st. vith", with: "旧战局要地")
+            .replacingOccurrences(of: "st vith", with: "旧战局要地")
+            .replacingOccurrences(of: "Sedan", with: "旧战局要地")
+            .replacingOccurrences(of: "sedan", with: "旧战局要地")
+            .replacingOccurrences(of: "德军", with: "旧剧本")
+            .replacingOccurrences(of: "盟军", with: "旧剧本")
+            .replacingOccurrences(of: "战区", with: "方面")
+
+        return sanitized.isEmpty ? fallback : sanitized
+    }
+
+    private func sanitizeRawMapEditorIdentifier(in name: String) -> String {
+        name
+            .replacingOccurrences(
+                of: #"\bregion_[A-Za-z0-9_\-]+\b"#,
+                with: "相关州郡",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\btheater_[A-Za-z0-9_\-]+\b"#,
+                with: "相关方面",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\b(front_zone|objective|obj|hex|loc)_[A-Za-z0-9_\-]+\b"#,
+                with: "相关地点",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\b(division|unit)_[A-Za-z0-9_\-]+\b"#,
+                with: "相关军队",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\b(germany|france|allied|axis|ger|all)_[A-Za-z0-9_\-]+\b"#,
+                with: "相关旧战局",
+                options: .regularExpression
+            )
     }
 
     private func syncBackgroundControlsFromDocument() {
@@ -520,6 +766,31 @@ private extension Set where Element == HexCoord {
     func sortedByMapOrder() -> [HexCoord] {
         sorted { lhs, rhs in
             lhs.r == rhs.r ? lhs.q < rhs.q : lhs.r < rhs.r
+        }
+    }
+}
+
+private extension Faction {
+    var mapEditorUnitPrefix: String {
+        switch self {
+        case .germany:
+            return "legacy_germany"
+        case .allies:
+            return "legacy_allies"
+        case .tang:
+            return "tang"
+        case .luoyangSui:
+            return "luoyang_sui"
+        case .wagang:
+            return "wagang"
+        case .xia:
+            return "xia"
+        case .qinXue:
+            return "qin_xue"
+        case .liuWuzhou:
+            return "liu_wuzhou"
+        case .tujue:
+            return "tujue"
         }
     }
 }

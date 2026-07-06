@@ -36,6 +36,10 @@ struct EconomyResources: Codable, Equatable {
         industry = max(0, industry - resources.industry)
         supplies = max(0, supplies - resources.supplies)
     }
+
+    var displaySummary: String {
+        "丁口 \(manpower), 军械 \(industry), 粮草 \(supplies)"
+    }
 }
 
 enum CityLevel: String, Codable, Equatable, CaseIterable {
@@ -47,13 +51,13 @@ enum CityLevel: String, Codable, Equatable, CaseIterable {
     var displayName: String {
         switch self {
         case .none:
-            return "None"
+            return "无"
         case .village:
-            return "Village"
+            return "县邑"
         case .town:
-            return "Town"
+            return "州城"
         case .metropolis:
-            return "Metropolis"
+            return "都城"
         }
     }
 
@@ -98,15 +102,15 @@ enum ProductionKind: String, Codable, Equatable, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .infantryDivision:
-            return "Infantry Division"
+            return "募兵步军"
         case .panzerDivision:
-            return "Panzer Division"
+            return "骑军行营"
         case .motorizedDivision:
-            return "Motorized Division"
+            return "轻骑游军"
         case .artilleryDivision:
-            return "Artillery Group"
+            return "弓弩器械营"
         case .supplyStockpile:
-            return "Supply Stockpile"
+            return "粮草转运"
         }
     }
 
@@ -240,10 +244,10 @@ struct EconomyState: Codable, Equatable {
 
 extension Division {
     var isInfantryHeavy: Bool {
-        components.contains { $0.type == .infantry && $0.weight >= 0.50 }
+        components.contains { ($0.type == .infantry || $0.type == .guard || $0.type == .militia) && $0.weight >= 0.50 }
     }
 
     var isMechanizedHeavy: Bool {
-        isArmor || components.contains { $0.type == .motorizedInfantry && $0.weight >= 0.50 }
+        isArmor || components.contains { $0.type.isMobileShock && $0.weight >= 0.50 }
     }
 }

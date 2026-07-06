@@ -36,6 +36,11 @@ struct LocalLLMDecisionProvider: DecisionProvider {
             maxTokens: maxTokens
         )
         let rawJSON = try await llmClient.completeJSON(request: request)
-        return try parser.parse(rawJSON, expectedAgentId: context.agentId, expectedTurn: context.turn)
+        let parsed = try parser.parse(rawJSON, expectedTurn: context.turn)
+        let resolved = AgentPromptAliasBook(context: context).resolve(parsed, expectedAgentId: context.agentId)
+        guard resolved.agentId == context.agentId else {
+            throw AgentDecisionParserError.agentMismatch(expected: context.agentId, actual: resolved.agentId)
+        }
+        return resolved
     }
 }

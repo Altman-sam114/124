@@ -17,6 +17,15 @@ struct DataLoader {
 
     func loadInitialGameState() -> GameState {
         if let state = try? loadGameState(
+            scenarioName: "wude_618_scenario",
+            regionName: "wude_618_regions",
+            unitTemplatesName: "suitang_unit_templates",
+            generalRegistryName: "suitang_generals"
+        ) {
+            return state
+        }
+
+        if let state = try? loadGameState(
             scenarioName: "ardennes_v0_scenario",
             regionName: "ardennes_v02_regions"
         ) {
@@ -92,13 +101,21 @@ struct DataLoader {
 
     /// v0.34: 加载 MapEditor 直接导出的 ScenarioDefinition + RegionDataSet。
     /// 这是编辑器输出的主验收路径，不要求走旧 Ardennes 数据集的 agent/胜利条件强校验。
-    func loadGameState(scenarioName: String, regionName: String) throws -> GameState {
+    func loadGameState(
+        scenarioName: String,
+        regionName: String,
+        unitTemplatesName: String = "unit_templates",
+        generalRegistryName: String = "generals"
+    ) throws -> GameState {
         let scenario = try loadScenarioDefinition(named: scenarioName)
         let regionData = try loadRegionDataSet(named: regionName)
         var map = try makeMapState(from: scenario)
         try apply(regionData, to: &map)
         map = RegionOccupationRules().mapByAggregatingControllers(in: map)
-        let divisions = try makeDivisions(from: scenario.initialUnits)
+        let divisions = try makeDivisions(
+            from: scenario.initialUnits,
+            templates: (try? loadUnitTemplates(named: unitTemplatesName)) ?? []
+        )
         let turn = scenario.initialTurn
 
         let theaterState = makeTheaterState(
@@ -122,7 +139,8 @@ struct DataLoader {
         let warDeploymentState = assignGenerals(
             to: deploymentState,
             map: map,
-            regionData: regionData
+            regionData: regionData,
+            registry: (try? loadGeneralRegistry(named: generalRegistryName)) ?? .empty
         )
 
         return GameState(
@@ -130,6 +148,8 @@ struct DataLoader {
             turn: turn,
             maxTurns: scenario.maxTurns,
             activeFaction: initialActiveFaction(for: scenario),
+            playerFaction: Faction(rawValue: scenario.playerFaction) ??
+                (scenario.id.hasPrefix("wude_618") ? .tang : .allies),
             phase: GamePhase(rawValue: scenario.initialPhase) ?? .germanAI,
             map: map,
             theaterState: theaterState,
@@ -144,7 +164,7 @@ struct DataLoader {
                     turn: turn,
                     faction: initialActiveFaction(for: scenario),
                     phase: GamePhase(rawValue: scenario.initialPhase) ?? .germanAI,
-                    message: "Loaded \(scenario.id) from MapEditor-compatible JSON."
+                    message: "已载入地图编辑器战局数据：\(scenario.displayName)。"
                 )
             ]
         )
@@ -157,8 +177,12 @@ struct DataLoader {
             return Faction(rawValue: scenario.playerFaction) ?? .allies
         case .germanAI:
             return Faction(rawValue: scenario.aiFaction) ?? .germany
+        case .playerCommand:
+            return Faction(rawValue: scenario.playerFaction) ?? .tang
+        case .aiCommand:
+            return Faction(rawValue: scenario.aiFaction) ?? .luoyangSui
         case .resolution:
-            return Faction(rawValue: scenario.playerFaction) ?? .allies
+            return Faction(rawValue: scenario.playerFaction) ?? .tang
         }
     }
 
@@ -167,7 +191,11 @@ struct DataLoader {
     }
 
     func loadUnitTemplates() throws -> [UnitTemplateDefinition] {
-        try loadJSON(UnitTemplateCatalogDefinition.self, named: "unit_templates").templates
+        try loadUnitTemplates(named: "unit_templates")
+    }
+
+    func loadUnitTemplates(named resourceName: String) throws -> [UnitTemplateDefinition] {
+        try loadJSON(UnitTemplateCatalogDefinition.self, named: resourceName).templates
     }
 
     func loadGeneralAgents() throws -> [GeneralAgentDefinition] {
@@ -175,8 +203,19 @@ struct DataLoader {
     }
 
     func loadGeneralRegistry() throws -> GeneralRegistry {
-        let catalog = try loadJSON(GeneralCatalogDefinition.self, named: "generals")
+        try loadGeneralRegistry(named: "generals")
+    }
+
+    func loadGeneralRegistry(named resourceName: String) throws -> GeneralRegistry {
+        let catalog = try loadJSON(GeneralCatalogDefinition.self, named: resourceName)
         return GeneralRegistry(generals: catalog.generals)
+    }
+
+    func loadGeneralRegistry(for scenarioId: String) throws -> GeneralRegistry {
+        if scenarioId.hasPrefix("wude_618") {
+            return try loadGeneralRegistry(named: "suitang_generals")
+        }
+        return try loadGeneralRegistry()
     }
 
     /// v0.2: 加载阿登省份图数据。失败时抛 DataLoaderError。
@@ -218,7 +257,7 @@ struct DataLoader {
             if scenario.map.tiles.count != expectedTileCount {
                 errors.append(
                     DataValidationError(
-                        message: "Map tile count \(scenario.map.tiles.count) does not match width * height \(expectedTileCount)."
+                        message: "地图地块数量 \(scenario.map.tiles.count) 与宽高乘积 \(expectedTileCount) 不一致。"
                     )
                 )
             }
@@ -226,31 +265,31 @@ struct DataLoader {
 
         let tileCoords = Set(scenario.map.tiles.map(\.coord))
         if tileCoords.count != scenario.map.tiles.count {
-            errors.append(DataValidationError(message: "Map contains duplicate tile coordinates."))
+            errors.append(DataValidationError(message: "地图存在重复地块坐标。"))
         }
 
         let unitIds = scenario.initialUnits.map(\.id)
-        appendDuplicateErrors(unitIds, label: "initial unit id", to: &errors)
+        appendDuplicateErrors(unitIds, label: "初始军队 id", to: &errors)
 
         let occupiedCoords = scenario.initialUnits.map(\.coord)
         if Set(occupiedCoords).count != occupiedCoords.count {
-            errors.append(DataValidationError(message: "Initial units contain overlapping coordinates."))
+            errors.append(DataValidationError(message: "初始军队存在重叠坐标。"))
         }
 
         for unit in scenario.initialUnits where !tileCoords.contains(unit.coord) {
             errors.append(
                 DataValidationError(
-                    message: "Initial unit \(unit.id) references missing tile (\(unit.coord.q),\(unit.coord.r))."
+                    message: "初始军队 \(unit.id) 引用了不存在的地块（\(unit.coord.q),\(unit.coord.r)）。"
                 )
             )
         }
 
         let templateIds = Set(dataSet.unitTemplates.map(\.id))
-        appendDuplicateErrors(dataSet.unitTemplates.map(\.id), label: "unit template id", to: &errors)
+        appendDuplicateErrors(dataSet.unitTemplates.map(\.id), label: "军队模板 id", to: &errors)
         for unit in scenario.initialUnits where !templateIds.contains(unit.templateId) {
             errors.append(
                 DataValidationError(
-                    message: "Initial unit \(unit.id) references unknown template \(unit.templateId)."
+                    message: "初始军队 \(unit.id) 引用了未知模板 \(unit.templateId)。"
                 )
             )
         }
@@ -260,7 +299,7 @@ struct DataLoader {
             if abs(componentWeight - 1.0) > 0.0001 {
                 errors.append(
                     DataValidationError(
-                        message: "Unit template \(template.id) component weights sum to \(componentWeight), expected 1.0."
+                        message: "军队模板 \(template.id) 的兵种权重合计为 \(componentWeight)，应为 1.0。"
                     )
                 )
             }
@@ -273,22 +312,22 @@ struct DataLoader {
             $0.isSupplySource && $0.supplyFaction == "allies"
         }
         if germanSupplySources.isEmpty {
-            errors.append(DataValidationError(message: "Scenario is missing a German supply source."))
+            errors.append(DataValidationError(message: "旧战局缺少东路势力补给源。"))
         }
         if alliedSupplySources.isEmpty {
-            errors.append(DataValidationError(message: "Scenario is missing an Allied supply source."))
+            errors.append(DataValidationError(message: "旧战局缺少西路势力补给源。"))
         }
 
         let objectiveIds = scenario.objectives.map(\.id)
-        appendDuplicateErrors(objectiveIds, label: "objective id", to: &errors)
+        appendDuplicateErrors(objectiveIds, label: "目标 id", to: &errors)
         let objectiveIdSet = Set(objectiveIds)
 
         let tileObjectiveIds = scenario.map.tiles.compactMap(\.objectiveId)
-        appendDuplicateErrors(tileObjectiveIds, label: "tile objective id", to: &errors)
+        appendDuplicateErrors(tileObjectiveIds, label: "地块目标 id", to: &errors)
         for objectiveId in tileObjectiveIds where !objectiveIdSet.contains(objectiveId) {
             errors.append(
                 DataValidationError(
-                    message: "Tile objective \(objectiveId) is not declared in scenario objectives."
+                    message: "地块目标 \(objectiveId) 未在战局目标列表中声明。"
                 )
             )
         }
@@ -297,7 +336,7 @@ struct DataLoader {
             if let objectiveId = condition.objectiveId, !objectiveIdSet.contains(objectiveId) {
                 errors.append(
                     DataValidationError(
-                        message: "Victory condition \(condition.id) references unknown objective \(objectiveId)."
+                        message: "胜利条件 \(condition.id) 引用了未知目标 \(objectiveId)。"
                     )
                 )
             }
@@ -305,14 +344,14 @@ struct DataLoader {
             for objectiveId in condition.objectiveIds ?? [] where !objectiveIdSet.contains(objectiveId) {
                 errors.append(
                     DataValidationError(
-                        message: "Victory condition \(condition.id) references unknown objective \(objectiveId)."
+                        message: "胜利条件 \(condition.id) 引用了未知目标 \(objectiveId)。"
                     )
                 )
             }
         }
 
         let agentIds = dataSet.generalAgents.map(\.id)
-        appendDuplicateErrors(agentIds, label: "general agent id", to: &errors)
+        appendDuplicateErrors(agentIds, label: "将领代理 id", to: &errors)
 
         if scenario.id == "ardennes_v0" {
             let unitIdSet = Set(unitIds)
@@ -320,7 +359,7 @@ struct DataLoader {
                 for divisionId in agent.assignedDivisionIds where !unitIdSet.contains(divisionId) {
                     errors.append(
                         DataValidationError(
-                            message: "Agent \(agent.id) references unknown division \(divisionId)."
+                            message: "代理 \(agent.id) 引用了未知军队 \(divisionId)。"
                         )
                     )
                 }
@@ -332,12 +371,12 @@ struct DataLoader {
                 if assignedDivisionIds != germanUnitIds {
                     errors.append(
                         DataValidationError(
-                            message: "guderian.assignedDivisionIds must exactly cover German initial units."
+                            message: "旧剧本东路代理配置必须完整覆盖东路初始军队。"
                         )
                     )
                 }
             } else {
-                errors.append(DataValidationError(message: "Scenario is missing guderian agent configuration."))
+                errors.append(DataValidationError(message: "旧战局缺少东路代理配置。"))
             }
         }
 
@@ -357,16 +396,26 @@ struct DataLoader {
         var tiles: [HexCoord: HexTile] = [:]
         var supplySources: [SupplySource] = []
         var objectives: [Objective] = []
+        let featureMarkers = scenario.keyLocations.map { location in
+            MapFeatureMarker(
+                id: location.id,
+                name: location.name,
+                kind: MapFeatureKind(rawValue: location.kind),
+                coord: HexCoord(q: location.coord.q, r: location.coord.r),
+                faction: location.faction.flatMap(Faction.init(rawValue:)),
+                objectiveId: location.objectiveId
+            )
+        }
 
         for tileDefinition in scenario.map.tiles {
             let coord = HexCoord(q: tileDefinition.q, r: tileDefinition.r)
             guard tiles[coord] == nil else {
-                errors.append(DataValidationError(message: "Duplicate tile coordinate \(coord.q),\(coord.r)."))
+                errors.append(DataValidationError(message: "重复地块坐标 \(coord.q),\(coord.r)。"))
                 continue
             }
 
             guard let terrain = BaseTerrain(rawValue: tileDefinition.terrain) else {
-                errors.append(DataValidationError(message: "Unknown terrain \(tileDefinition.terrain) at \(coord.q),\(coord.r)."))
+                errors.append(DataValidationError(message: "地块 \(coord.q),\(coord.r) 使用未知地形 \(tileDefinition.terrain)。"))
                 continue
             }
 
@@ -401,7 +450,7 @@ struct DataLoader {
 
         for objectiveDefinition in scenario.objectives {
             guard let type = ObjectiveType(rawValue: objectiveDefinition.kind) else {
-                errors.append(DataValidationError(message: "Unknown objective type \(objectiveDefinition.kind)."))
+                errors.append(DataValidationError(message: "未知目标类型 \(objectiveDefinition.kind)。"))
                 continue
             }
             objectives.append(
@@ -423,7 +472,8 @@ struct DataLoader {
             height: scenario.map.height,
             tiles: tiles,
             supplySources: supplySources,
-            objectives: objectives
+            objectives: objectives,
+            featureMarkers: featureMarkers
         )
     }
 
@@ -447,9 +497,10 @@ struct DataLoader {
     private func assignGenerals(
         to deploymentState: WarDeploymentState,
         map: MapState,
-        regionData: RegionDataSet
+        regionData: RegionDataSet,
+        registry: GeneralRegistry? = nil
     ) -> WarDeploymentState {
-        let registry = (try? loadGeneralRegistry()) ?? .empty
+        let registry = registry ?? (try? loadGeneralRegistry()) ?? .empty
         let seedAssignments = Dictionary(uniqueKeysWithValues: regionData.regions.compactMap { definition in
             definition.assignedGeneralId.map { (definition.id, $0) }
         })
@@ -460,12 +511,15 @@ struct DataLoader {
         )
     }
 
-    private func makeDivisions(from definitions: [InitialUnitDefinition]) throws -> [Division] {
-        let templates = (try? loadUnitTemplates()) ?? []
+    private func makeDivisions(
+        from definitions: [InitialUnitDefinition],
+        templates: [UnitTemplateDefinition]? = nil
+    ) throws -> [Division] {
+        let templates = templates ?? ((try? loadUnitTemplates()) ?? [])
         var errors: [DataValidationError] = []
         let divisions = definitions.compactMap { definition -> Division? in
             guard let faction = Faction(rawValue: definition.faction) else {
-                errors.append(DataValidationError(message: "Unknown unit faction \(definition.faction)."))
+                errors.append(DataValidationError(message: "军队 \(definition.id) 使用未知势力 \(definition.faction)。"))
                 return nil
             }
 
@@ -480,7 +534,7 @@ struct DataLoader {
             }
 
             guard !components.isEmpty else {
-                errors.append(DataValidationError(message: "Unit \(definition.id) references unknown template \(definition.templateId)."))
+                errors.append(DataValidationError(message: "军队 \(definition.id) 引用了未知模板 \(definition.templateId)。"))
                 return nil
             }
 
@@ -512,6 +566,18 @@ struct DataLoader {
             return [DivisionComponent(type: .motorizedInfantry, weight: 1.0)]
         case "artillery_division":
             return [DivisionComponent(type: .artillery, weight: 1.0)]
+        case "suitang_cavalry_column":
+            return [DivisionComponent(type: .cavalry, weight: 0.82), DivisionComponent(type: .infantry, weight: 0.18)]
+        case "suitang_archer_camp":
+            return [DivisionComponent(type: .archer, weight: 0.55), DivisionComponent(type: .infantry, weight: 0.45)]
+        case "suitang_siege_train":
+            return [DivisionComponent(type: .siegeEngine, weight: 0.65), DivisionComponent(type: .infantry, weight: 0.35)]
+        case "suitang_garrison":
+            return [DivisionComponent(type: .guard, weight: 0.50), DivisionComponent(type: .infantry, weight: 0.30), DivisionComponent(type: .archer, weight: 0.20)]
+        case "suitang_frontier_raiders":
+            return [DivisionComponent(type: .cavalry, weight: 0.86), DivisionComponent(type: .militia, weight: 0.14)]
+        case "suitang_infantry_host":
+            return [DivisionComponent(type: .infantry, weight: 0.78), DivisionComponent(type: .archer, weight: 0.12), DivisionComponent(type: .cavalry, weight: 0.10)]
         default:
             return [DivisionComponent(type: .infantry, weight: 1.0)]
         }
@@ -612,7 +678,7 @@ struct DataLoader {
         }
 
         for duplicate in duplicates.sorted() {
-            errors.append(DataValidationError(message: "Duplicate \(label): \(duplicate)."))
+            errors.append(DataValidationError(message: "\(label) 重复：\(duplicate)。"))
         }
     }
 }

@@ -44,6 +44,20 @@ enum TerrainStyle {
             return SKColor(red: 0.23, green: 0.24, blue: 0.25, alpha: 1)
         case .allies:
             return SKColor(red: 0.12, green: 0.36, blue: 0.68, alpha: 1)
+        case .tang:
+            return SKColor(red: 0.55, green: 0.10, blue: 0.10, alpha: 1)
+        case .luoyangSui:
+            return SKColor(red: 0.42, green: 0.20, blue: 0.56, alpha: 1)
+        case .wagang:
+            return SKColor(red: 0.14, green: 0.45, blue: 0.28, alpha: 1)
+        case .xia:
+            return SKColor(red: 0.10, green: 0.42, blue: 0.48, alpha: 1)
+        case .qinXue:
+            return SKColor(red: 0.60, green: 0.32, blue: 0.12, alpha: 1)
+        case .liuWuzhou:
+            return SKColor(red: 0.70, green: 0.42, blue: 0.10, alpha: 1)
+        case .tujue:
+            return SKColor(red: 0.34, green: 0.38, blue: 0.38, alpha: 1)
         }
     }
 
@@ -53,6 +67,20 @@ enum TerrainStyle {
             return SKColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1)
         case .allies:
             return SKColor(red: 0.04, green: 0.18, blue: 0.36, alpha: 1)
+        case .tang:
+            return SKColor(red: 0.26, green: 0.04, blue: 0.04, alpha: 1)
+        case .luoyangSui:
+            return SKColor(red: 0.20, green: 0.08, blue: 0.30, alpha: 1)
+        case .wagang:
+            return SKColor(red: 0.04, green: 0.22, blue: 0.12, alpha: 1)
+        case .xia:
+            return SKColor(red: 0.03, green: 0.20, blue: 0.24, alpha: 1)
+        case .qinXue:
+            return SKColor(red: 0.28, green: 0.13, blue: 0.04, alpha: 1)
+        case .liuWuzhou:
+            return SKColor(red: 0.36, green: 0.18, blue: 0.04, alpha: 1)
+        case .tujue:
+            return SKColor(red: 0.14, green: 0.16, blue: 0.16, alpha: 1)
         }
     }
 
@@ -70,6 +98,12 @@ enum TerrainStyle {
             return SKColor(red: 0.20, green: 0.85, blue: 0.45, alpha: 1)
         case (.allies, .garrisonUnit):
             return SKColor(red: 0.42, green: 0.38, blue: 0.95, alpha: 1)
+        case (_, .frontUnit):
+            return unitFillColor(for: faction)
+        case (_, .depthUnit):
+            return unitFillColor(for: faction).withAlphaComponent(0.78)
+        case (_, .garrisonUnit):
+            return unitStrokeColor(for: faction).withAlphaComponent(0.85)
         }
     }
 
@@ -79,6 +113,20 @@ enum TerrainStyle {
             return SKColor(red: 0.08, green: 0.08, blue: 0.08, alpha: 1)
         case .allies:
             return SKColor(red: 0.04, green: 0.20, blue: 0.62, alpha: 1)
+        case .tang:
+            return SKColor(red: 0.62, green: 0.12, blue: 0.10, alpha: 1)
+        case .luoyangSui:
+            return SKColor(red: 0.44, green: 0.18, blue: 0.58, alpha: 1)
+        case .wagang:
+            return SKColor(red: 0.12, green: 0.45, blue: 0.25, alpha: 1)
+        case .xia:
+            return SKColor(red: 0.08, green: 0.42, blue: 0.48, alpha: 1)
+        case .qinXue:
+            return SKColor(red: 0.64, green: 0.30, blue: 0.10, alpha: 1)
+        case .liuWuzhou:
+            return SKColor(red: 0.72, green: 0.40, blue: 0.10, alpha: 1)
+        case .tujue:
+            return SKColor(red: 0.32, green: 0.36, blue: 0.36, alpha: 1)
         case nil:
             return SKColor(red: 0.88, green: 0.82, blue: 0.45, alpha: 1)
         }

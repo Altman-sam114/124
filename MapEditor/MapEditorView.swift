@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 
 struct MapEditorView: View {
     @StateObject private var viewModel = MapEditorViewModel()
+    private let editableFactions = Faction.suitangTurnOrder
 
     var body: some View {
         NavigationSplitView {
@@ -79,13 +80,13 @@ struct MapEditorView: View {
             Toggle("道路", isOn: $viewModel.paintRoad)
             Toggle("补给站", isOn: $viewModel.paintSupply)
             Picker("补给阵营", selection: $viewModel.supplyFaction) {
-                ForEach(Faction.allCases, id: \.self) { faction in
+                ForEach(editableFactions, id: \.self) { faction in
                     Text(faction.chineseName).tag(faction)
                 }
             }
             Picker("控制方", selection: controllerBinding) {
                 Text("中立").tag(Optional<Faction>.none)
-                ForEach(Faction.allCases, id: \.self) { faction in
+                ForEach(editableFactions, id: \.self) { faction in
                     Text(faction.chineseName).tag(Optional(faction))
                 }
             }
@@ -104,14 +105,14 @@ struct MapEditorView: View {
 
     private var regionPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("省份模式")
+            Text("州郡模式")
                 .font(.headline)
-            TextField("省份名称", text: $viewModel.newRegionText)
-            Button("准备新省份", systemImage: "square.and.pencil", action: viewModel.prepareNewRegion)
-            Picker("当前省份", selection: regionBinding) {
+            TextField("州郡名称", text: $viewModel.newRegionText)
+            Button("准备新州郡", systemImage: "square.and.pencil", action: viewModel.prepareNewRegion)
+            Picker("当前州郡", selection: regionBinding) {
                 Text("未选择").tag(Optional<RegionId>.none)
                 ForEach(viewModel.document.regions.values.sorted { $0.id.rawValue < $1.id.rawValue }) { region in
-                    Text("\(region.name) · \(region.id.rawValue)").tag(Optional(region.id))
+                    Text(viewModel.displayName(for: region.id)).tag(Optional(region.id))
                 }
             }
             Toggle("橡皮擦", isOn: $viewModel.eraseRegionMembership)
@@ -123,17 +124,17 @@ struct MapEditorView: View {
 
     private var theaterPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("战区模式")
+            Text("方面模式")
                 .font(.headline)
-            TextField("战区名称", text: $viewModel.newTheaterText)
-            Button("准备新战区", systemImage: "square.and.pencil", action: viewModel.prepareNewTheater)
-            Picker("当前战区", selection: theaterBinding) {
+            TextField("方面名称", text: $viewModel.newTheaterText)
+            Button("准备新方面", systemImage: "square.and.pencil", action: viewModel.prepareNewTheater)
+            Picker("当前方面", selection: theaterBinding) {
                 Text("未选择").tag(Optional<TheaterId>.none)
                 ForEach(viewModel.document.theaters.values.sorted { $0.id.rawValue < $1.id.rawValue }) { theater in
-                    Text("\(theater.name) · \(theater.id.rawValue)").tag(Optional(theater.id))
+                    Text(viewModel.displayName(for: theater.id)).tag(Optional(theater.id))
                 }
             }
-            Text("待加入省份：\(viewModel.pendingTheaterRegions.count)")
+            Text("待加入州郡：\(viewModel.pendingTheaterRegions.count)")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -141,18 +142,20 @@ struct MapEditorView: View {
 
     private var unitPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("部队模式")
+            Text("军队模式")
                 .font(.headline)
             Picker("阵营", selection: $viewModel.selectedUnitFaction) {
-                ForEach(Faction.allCases, id: \.self) { faction in
+                ForEach(editableFactions, id: \.self) { faction in
                     Text(faction.chineseName).tag(faction)
                 }
             }
             Picker("模板", selection: $viewModel.selectedUnitTemplateId) {
-                Text("步兵师").tag("infantry_division")
-                Text("装甲师").tag("panzer_division")
-                Text("摩托化师").tag("motorized_division")
-                Text("重炮主力").tag("artillery_division")
+                Text("府兵步军").tag("suitang_infantry_host")
+                Text("骑军行营").tag("suitang_cavalry_column")
+                Text("弓弩营").tag("suitang_archer_camp")
+                Text("攻城器械队").tag("suitang_siege_train")
+                Text("城关守军").tag("suitang_garrison")
+                Text("边骑游军").tag("suitang_frontier_raiders")
             }
             Stepper("兵力 \(viewModel.selectedUnitHP)", value: $viewModel.selectedUnitHP, in: 1...20)
             Picker("朝向", selection: $viewModel.selectedUnitFacing) {
@@ -160,7 +163,7 @@ struct MapEditorView: View {
                     Text(direction.chineseName).tag(direction)
                 }
             }
-            TextField("部队名称", text: $viewModel.newUnitNameText)
+            TextField("军队名称", text: $viewModel.newUnitNameText)
             Toggle("橡皮擦", isOn: $viewModel.eraseUnits)
             Text("待部署：\(viewModel.pendingUnitHexes.count)，已部署：\(viewModel.document.initialUnits.count)")
                 .font(.footnote)
@@ -186,7 +189,7 @@ struct MapEditorView: View {
                     .keyboardShortcut("m", modifiers: [])
                 Button("取消", systemImage: "xmark", action: viewModel.cancelEditing)
             }
-            Text("右侧地图：左键点击/拖拽编辑，右键/中键/Option+左键拖拽平移，滚轮缩放。快捷键 N 添加，M 完成。")
+            Text("右侧地图：左键点击或拖拽编辑，右键、中键或按住修饰键拖拽平移，滚轮缩放。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -194,18 +197,17 @@ struct MapEditorView: View {
 
     private var dataPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("游戏资源")
+            Text("战役资料")
                 .font(.headline)
-            Button("读取默认游戏资源", action: viewModel.loadDefaultGameResources)
+            Button("读取默认隋唐资源", action: viewModel.loadDefaultGameResources)
             Button("覆盖保存为游戏资源", action: viewModel.overwriteDefaultGameResources)
                 .buttonStyle(.borderedProminent)
-            Button("导出 JSON 到内存") {
+            Button("预览当前战役") {
                 _ = viewModel.export()
             }
-            Text(MapEditorGameResourceBridge.gameDataDirectory.path)
+            Text("默认资源已连接")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .textSelection(.enabled)
         }
     }
 
@@ -229,16 +231,15 @@ struct MapEditorView: View {
                 .foregroundStyle(.secondary)
             Stepper("缩放 \(viewModel.backgroundScale, format: .number.precision(.fractionLength(2)))", value: $viewModel.backgroundScale, in: 0.05...20, step: 0.05)
             HStack {
-                TextField("X", value: $viewModel.backgroundOffsetX, format: .number)
-                TextField("Y", value: $viewModel.backgroundOffsetY, format: .number)
+                TextField("横向偏移", value: $viewModel.backgroundOffsetX, format: .number)
+                TextField("纵向偏移", value: $viewModel.backgroundOffsetY, format: .number)
             }
             .textFieldStyle(.roundedBorder)
             Button("应用底图参数", systemImage: "checkmark.circle", action: viewModel.updateBackgroundImageSettings)
-            if let path = viewModel.document.backgroundImage?.filePath {
-                Text(path)
+            if viewModel.document.backgroundImage?.filePath != nil {
+                Text("底图：已导入")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
             }
         }
         .onChange(of: viewModel.backgroundOpacity) { _, _ in viewModel.updateBackgroundImageSettings() }
@@ -253,24 +254,50 @@ struct MapEditorView: View {
                 .font(.headline)
             if let coord = viewModel.inspectedCoord,
                let hex = viewModel.document.hexes[coord] {
-                Text("坐标：\(coord.mapEditorKey)")
+                Text("位置：\(viewModel.displayPosition(for: coord))")
                 Text("地形：\(hex.terrain.chineseName)")
                 Text("道路：\(hex.hasRoad ? "有" : "无")")
                 if let regionId = hex.regionId {
-                    Text("省份 ID：\(regionId.rawValue)")
-                    TextField("省份名称", text: $viewModel.inspectedRegionName)
+                    Text("州郡：\(viewModel.displayName(for: regionId))")
+                    TextField("州郡名称", text: $viewModel.inspectedRegionName)
                     if let theaterId = viewModel.document.regionTheaterAssignments[regionId] {
-                        Text("战区 ID：\(theaterId.rawValue)")
-                        TextField("战区名称", text: $viewModel.inspectedTheaterName)
+                        Text("方面：\(viewModel.displayName(for: theaterId))")
+                        TextField("方面名称", text: $viewModel.inspectedTheaterName)
                     } else {
-                        Text("战区：未分配")
+                        Text("方面：未分配")
                             .foregroundStyle(.secondary)
                     }
                     Button("保存信息", systemImage: "square.and.arrow.down", action: viewModel.saveInspectedInfo)
                         .buttonStyle(.borderedProminent)
                 } else {
-                    Text("省份：未分配")
+                    Text("州郡：未分配")
                         .foregroundStyle(.secondary)
+                }
+
+                Divider()
+
+                Text("地点")
+                    .font(.subheadline.bold())
+                Text(viewModel.inspectedKeyLocationExists ? "记录：已设置" : "记录：未设置")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                TextField("地点名称", text: $viewModel.inspectedKeyLocationName)
+                Picker("类型", selection: $viewModel.inspectedKeyLocationKind) {
+                    ForEach(viewModel.keyLocationKindOptions, id: \.self) { kind in
+                        Text(kind.mapEditorKeyLocationTitle).tag(kind)
+                    }
+                }
+                Picker("势力", selection: keyLocationFactionBinding) {
+                    Text("无").tag(Optional<Faction>.none)
+                    ForEach(editableFactions, id: \.self) { faction in
+                        Text(faction.chineseName).tag(Optional(faction))
+                    }
+                }
+                TextField("胜负地点标记", text: $viewModel.inspectedKeyLocationObjectiveId)
+                HStack {
+                    Button("保存地点", systemImage: "mappin.and.ellipse", action: viewModel.saveInspectedKeyLocation)
+                        .buttonStyle(.borderedProminent)
+                    Button("删除地点", systemImage: "trash", action: viewModel.deleteInspectedKeyLocation)
                 }
             } else {
                 Text("右键点击右侧地块查看信息。")
@@ -297,7 +324,7 @@ struct MapEditorView: View {
     }
 
     private var paintableTerrains: [BaseTerrain] {
-        [.plain, .city, .forest, .mountain, .hill]
+        [.plain, .city, .fortress, .forest, .mountain, .hill]
     }
 
     private var controllerBinding: Binding<Faction?> {
@@ -318,6 +345,13 @@ struct MapEditorView: View {
         Binding(
             get: { viewModel.selectedTheaterId },
             set: { viewModel.selectedTheaterId = $0 }
+        )
+    }
+
+    private var keyLocationFactionBinding: Binding<Faction?> {
+        Binding(
+            get: { viewModel.inspectedKeyLocationFaction },
+            set: { viewModel.inspectedKeyLocationFaction = $0 }
         )
     }
 
@@ -437,9 +471,9 @@ private extension BaseTerrain {
         case .hill:
             return "丘陵"
         case .city:
-            return "城市"
+            return "城池"
         case .fortress:
-            return "要塞"
+            return "关隘"
         }
     }
 }
@@ -448,9 +482,23 @@ private extension Faction {
     var chineseName: String {
         switch self {
         case .germany:
-            return "德军"
+            return "历史势力"
         case .allies:
-            return "盟军"
+            return "历史盟友"
+        case .tang:
+            return "唐"
+        case .luoyangSui:
+            return "洛阳隋"
+        case .wagang:
+            return "瓦岗"
+        case .xia:
+            return "夏"
+        case .qinXue:
+            return "薛秦"
+        case .liuWuzhou:
+            return "刘武周"
+        case .tujue:
+            return "东突厥"
         }
     }
 }
@@ -470,6 +518,31 @@ private extension HexDirection {
             return "西南"
         case .southEast:
             return "东南"
+        }
+    }
+}
+
+private extension String {
+    var mapEditorKeyLocationTitle: String {
+        switch self {
+        case "capital":
+            return "都城"
+        case "city":
+            return "城池"
+        case "fortress":
+            return "关隘"
+        case "pass":
+            return "关口"
+        case "granary", "supply":
+            return "粮仓"
+        case "ferry":
+            return "渡口"
+        case "port":
+            return "港口"
+        case "harbor":
+            return "海港"
+        default:
+            return "其他地点"
         }
     }
 }

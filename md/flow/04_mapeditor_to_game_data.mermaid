@@ -1,17 +1,19 @@
 flowchart TD
-    DOC["MapEditorDocument<br/>hexes / regions / theaters / assignments / units"]:::editor
+    DOC["MapEditorDocument<br/>hexes / regions / theaters / assignments / units<br/>keyLocations / suppressed location coords"]:::editor
     MODE1["地块模式<br/>terrain / road / controller / supply"]:::editor
-    MODE2["省份模式<br/>hex -> regionId"]:::editor
-    MODE3["战区模式<br/>regionId -> theaterId"]:::editor
-    MODE4["部队模式<br/>initialUnits"]:::editor
+    MODE2["州郡模式<br/>hex -> regionId"]:::editor
+    MODE3["方面模式<br/>regionId -> theaterId"]:::editor
+    MODE4["军队模式<br/>initialUnits"]:::editor
+    MODE5["右键信息面板<br/>keyLocations 名称 / 类型 / 势力 / objectiveId<br/>删除派生地点写入坐标抑制"]:::editor
     EXPORT["MapEditorExporter.export"]:::loader
     CHECK{"导出校验<br/>所有 hex 有 region<br/>region 非空"}:::decision
     ERR["导出失败<br/>unassignedHex / missingRegion / emptyRegion"]:::stop
-    SCEN["ScenarioDefinition<br/>tiles / objectives / initialUnits"]:::data
+    SCEN["ScenarioDefinition<br/>tiles / keyLocations / objectives / initialUnits"]:::data
     REG["RegionDataSet<br/>hexToRegion / regions / edges / theaterId"]:::data
     NEI["从真实 hex 邻接推导<br/>region neighbors / RegionEdge"]:::derived
     BRIDGE["MapEditorGameResourceBridge<br/>overwriteDefaultGameResources"]:::loader
-    FILES["WWIIHexV0/Data<br/>ardennes_v0_scenario.json<br/>ardennes_v02_regions.json"]:::data
+    META["MapEditorExportMetadata<br/>保留胜负/回合/势力/objective/dataNotes<br/>keyLocationsAreAuthoritative=false 时兜底地点<br/>内存导出与覆盖默认资源同口径"]:::loader
+    FILES["WWIIHexV0/Data<br/>wude_618_scenario.json<br/>wude_618_regions.json"]:::data
     LOAD["DataLoader.loadGameState"]:::loader
     MAP["MapState<br/>tiles + hexToRegion + RegionGraph"]:::state
     THEATER["TheaterState<br/>initialSnapshot + regionToTheater + hexToTheater seed"]:::state
@@ -23,14 +25,15 @@ flowchart TD
     DOC --> MODE2 --> EXPORT
     DOC --> MODE3 --> EXPORT
     DOC --> MODE4 --> EXPORT
+    DOC --> MODE5 --> EXPORT
+    BRIDGE --> META --> EXPORT
     EXPORT --> CHECK
     CHECK -->|失败| ERR
     CHECK -->|通过| SCEN
     CHECK -->|通过| REG
     REG --> NEI --> REG
-    SCEN --> BRIDGE
-    REG --> BRIDGE
-    BRIDGE --> FILES
+    SCEN --> FILES
+    REG --> FILES
     FILES --> LOAD --> MAP --> THEATER --> FRONT --> DEPLOY --> GAME
 
     NOTE["注意：MapEditor 的 theater assignment<br/>只定义初始战区，不是运行时动态推进脚本"]:::warn

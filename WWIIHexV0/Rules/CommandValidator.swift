@@ -17,6 +17,12 @@ struct CommandValidator {
             return validateRecoveryCommand(divisionId: divisionId, in: state)
         case .queueProduction(let kind):
             return validateProduction(kind: kind, in: state)
+        case .governRegion(let regionId, let policy):
+            return validateRegionGovernance(regionId: regionId, policy: policy, in: state)
+        case .updateDiplomacy(let issuer, let target, let status):
+            return validateDiplomacyUpdate(issuer: issuer, target: target, status: status, in: state)
+        case .resolveSubmissionHandoff(let submitted, let recipient):
+            return validateSubmissionHandoff(submitted: submitted, recipient: recipient, in: state)
         case .endTurn:
             return validateEndTurn(in: state)
         }
@@ -64,7 +70,7 @@ struct CommandValidator {
             return .invalid(.targetNotFound)
         }
 
-        guard target.faction != attacker.faction else {
+        guard state.diplomacyState.canAttack(attacker.faction, target.faction) else {
             return .invalid(.invalidTargetFaction)
         }
 
@@ -135,12 +141,119 @@ struct CommandValidator {
         return .valid
     }
 
+    private func validateRegionGovernance(
+        regionId: RegionId,
+        policy: RegionGovernancePolicy,
+        in state: GameState
+    ) -> CommandValidation {
+        guard phaseAllowsCommands(in: state) else {
+            return .invalid(.wrongPhase)
+        }
+
+        guard let region = state.map.region(id: regionId), region.isPassable else {
+            return .invalid(.regionNotFound)
+        }
+
+        guard region.controller == state.activeFaction,
+              hasControlledHex(in: region, faction: state.activeFaction, state: state) else {
+            return .invalid(.wrongFaction)
+        }
+
+        guard policy.canApply(to: region) else {
+            return .invalid(.governanceLimitReached)
+        }
+
+        guard state.economyState
+            .ledger(for: state.activeFaction)
+            .stockpile
+            .canAfford(policy.cost) else {
+            return .invalid(.insufficientResources)
+        }
+
+        return .valid
+    }
+
+    private func validateDiplomacyUpdate(
+        issuer: Faction,
+        target: Faction,
+        status: DiplomaticStatus,
+        in state: GameState
+    ) -> CommandValidation {
+        guard phaseAllowsCommands(in: state) else {
+            return .invalid(.wrongPhase)
+        }
+
+        guard issuer == state.activeFaction else {
+            return .invalid(.wrongFaction)
+        }
+
+        guard issuer != target else {
+            return .invalid(.invalidDiplomaticTarget)
+        }
+
+        guard !state.diplomacyState.countries(for: issuer).isEmpty,
+              !state.diplomacyState.countries(for: target).isEmpty else {
+            return .invalid(.targetNotFound)
+        }
+
+        return .valid
+    }
+
+    private func validateSubmissionHandoff(
+        submitted: Faction,
+        recipient: Faction,
+        in state: GameState
+    ) -> CommandValidation {
+        guard phaseAllowsCommands(in: state) else {
+            return .invalid(.wrongPhase)
+        }
+
+        guard recipient == state.activeFaction else {
+            return .invalid(.wrongFaction)
+        }
+
+        guard recipient != submitted else {
+            return .invalid(.invalidDiplomaticTarget)
+        }
+
+        guard !state.diplomacyState.countries(for: recipient).isEmpty,
+              !state.diplomacyState.countries(for: submitted).isEmpty else {
+            return .invalid(.targetNotFound)
+        }
+
+        guard state.diplomacyState.canResolveSubmissionHandoff(
+            submitted: submitted,
+            recipient: recipient
+        ) else {
+            return .invalid(.submissionNotAccepted)
+        }
+
+        guard hasSubmissionPresence(submitted, in: state) else {
+            return .invalid(.noSubmissionPresence)
+        }
+
+        return .valid
+    }
+
+    private func hasControlledHex(in region: RegionNode, faction: Faction, state: GameState) -> Bool {
+        region.displayHexes.contains { hex in
+            state.map.tile(at: hex)?.controller == faction
+        }
+    }
+
+    private func hasSubmissionPresence(_ faction: Faction, in state: GameState) -> Bool {
+        state.divisions.contains { $0.faction == faction && !$0.isDestroyed } ||
+            state.map.tiles.values.contains { $0.controller == faction && $0.isPassable }
+    }
+
     private func phaseAllowsCommands(in state: GameState) -> Bool {
         switch state.phase {
         case .germanAI:
             return state.activeFaction == .germany
         case .alliedPlayer:
             return state.activeFaction == .allies
+        case .playerCommand, .aiCommand:
+            return true
         case .resolution:
             return false
         }

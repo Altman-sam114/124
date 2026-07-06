@@ -7,83 +7,81 @@ struct UnitInspectorView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Unit Details")
+            Text("军队详情")
                 .font(.headline)
 
             if let division {
                 unitDetails(division)
             } else {
-                Text("No unit selected.")
+                Text("未选择军队。")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .padding(12)
-        .background(PlatformStyles.systemBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .suitangPanel()
     }
 
     private func unitDetails(_ division: Division) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(division.name)
+            Text(displayDivisionName(division))
                 .font(.subheadline.weight(.semibold))
 
-            LabeledContent("Faction") {
-                Text(division.faction.displayName)
+            LabeledContent("势力") {
+                Text(displayFactionName(division.faction))
             }
 
-            LabeledContent("Mode") {
-                Text(division.faction == playerFaction ? "Player" : "Read-only")
+            LabeledContent("操控") {
+                Text(division.faction == playerFaction ? "可下令" : "不可下令")
             }
 
             if let strategicState {
-                LabeledContent("Hex") {
-                    Text("\(strategicState.coord.q),\(strategicState.coord.r)")
+                LabeledContent("地块") {
+                    Text(strategicState.regionId == nil ? "未编入州郡" : "州郡内地块")
                 }
 
-                LabeledContent("Region") {
-                    Text(strategicState.regionId?.rawValue ?? "None")
+                LabeledContent("州郡") {
+                    Text(displayOptionalMapName(strategicState.regionId?.rawValue, fallback: "州郡"))
                 }
 
-                LabeledContent("Dynamic Theater") {
-                    Text(strategicState.dynamicTheaterId?.rawValue ?? "None")
+                LabeledContent("当前方面") {
+                    Text(displayOptionalMapName(strategicState.dynamicTheaterId?.rawValue, fallback: "当前方面"))
                 }
 
-                LabeledContent("FrontZone") {
-                    Text(strategicState.frontZoneId?.rawValue ?? "None")
+                LabeledContent("行军防区") {
+                    Text(displayOptionalMapName(strategicState.frontZoneId?.rawValue, fallback: "行军防区"))
                 }
 
-                LabeledContent("Deploy") {
+                LabeledContent("部署") {
                     Text(strategicState.deploymentRole.displayName)
                 }
 
-                LabeledContent("FrontLine") {
+                LabeledContent("前线") {
                     Text(frontLineSummary(strategicState.frontLineIds))
                         .multilineTextAlignment(.trailing)
                 }
             }
 
-            LabeledContent("Strength") {
+            LabeledContent("兵力") {
                 Text(division.inspectorStrengthText)
             }
 
-            LabeledContent("Retreat Mode") {
+            LabeledContent("退守") {
                 Text(division.retreatMode.displayName)
             }
 
-            LabeledContent("Supply") {
+            LabeledContent("粮道") {
                 Text(division.supplyState.displayName)
             }
 
-            LabeledContent("Has Acted") {
-                Text(division.hasActed ? "Yes" : "No")
+            LabeledContent("已行动") {
+                Text(division.hasActed ? "是" : "否")
             }
 
-            LabeledContent("Status") {
+            LabeledContent("状态") {
                 Text(division.inspectorStatusText)
             }
 
-            LabeledContent("Components") {
+            LabeledContent("兵种") {
                 Text(componentSummary(for: division))
                     .multilineTextAlignment(.trailing)
             }
@@ -92,32 +90,140 @@ struct UnitInspectorView: View {
 
     private func componentSummary(for division: Division) -> String {
         division.components
-            .map { "\($0.type.displayCode) \(Int(($0.weight * 100).rounded()))%" }
-            .joined(separator: " / ")
+            .map { "\($0.type.displayName) \(Int(($0.weight * 100).rounded()))%" }
+            .joined(separator: "、")
+    }
+
+    private func displayDivisionName(_ division: Division) -> String {
+        displayUnitName(division.name, fallbackKind: division.unitKindDisplayName, faction: division.faction)
+    }
+
+    private func displayOptionalMapName(_ name: String?, fallback: String) -> String {
+        guard let name else {
+            return "无"
+        }
+        return displayMapName(name, fallback: fallback)
+    }
+
+    private func displayFactionName(_ faction: Faction) -> String {
+        switch faction {
+        case .germany, .allies:
+            return "旧剧本势力"
+        default:
+            return faction.displayName
+        }
+    }
+
+    private func displayMapName(_ name: String, fallback: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return fallback
+        }
+
+        let sanitized = sanitizeRawMapIdentifier(in: trimmed)
+            .replacingOccurrences(of: "巴斯托涅", with: "旧战局要地")
+            .replacingOccurrences(of: "圣维特", with: "旧战局要地")
+            .replacingOccurrences(of: "色当", with: "旧战局要地")
+            .replacingOccurrences(of: "阿登", with: "旧战局")
+            .replacingOccurrences(of: "Ardennes", with: "旧战局")
+            .replacingOccurrences(of: "ardennes", with: "旧战局")
+            .replacingOccurrences(of: "Bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "St. Vith", with: "旧战局要地")
+            .replacingOccurrences(of: "St Vith", with: "旧战局要地")
+            .replacingOccurrences(of: "st. vith", with: "旧战局要地")
+            .replacingOccurrences(of: "st vith", with: "旧战局要地")
+            .replacingOccurrences(of: "Sedan", with: "旧战局要地")
+            .replacingOccurrences(of: "sedan", with: "旧战局要地")
+            .replacingOccurrences(of: "德军", with: "旧剧本")
+            .replacingOccurrences(of: "盟军", with: "旧剧本")
+            .replacingOccurrences(of: "防区", with: "行军防区")
+
+        return sanitized.isEmpty ? fallback : sanitized
+    }
+
+    private func sanitizeRawMapIdentifier(in name: String) -> String {
+        name
+            .replacingOccurrences(
+                of: #"\bregion_[A-Za-z0-9_\-]+\b"#,
+                with: "相关州郡",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\btheater_[A-Za-z0-9_\-]+\b"#,
+                with: "相关方面",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\bfront_zone_[A-Za-z0-9_\-]+\b"#,
+                with: "相关防区",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\bhex_[A-Za-z0-9_\-]+\b"#,
+                with: "相关地块",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"\b(germany|france|allied|axis)_[A-Za-z0-9_\-]+\b"#,
+                with: "相关旧战局",
+                options: .regularExpression
+            )
+    }
+
+    private func displayUnitName(_ name: String, fallbackKind: String, faction: Faction) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return "\(displayFactionName(faction))\(fallbackKind)"
+        }
+
+        let sanitized = sanitizeRawUnitIdentifier(in: trimmed)
+            .replacingOccurrences(of: "德军", with: "旧剧本")
+            .replacingOccurrences(of: "盟军", with: "旧剧本")
+            .replacingOccurrences(of: "装甲", with: "甲骑")
+            .replacingOccurrences(of: "摩托化", with: "骑军")
+            .replacingOccurrences(of: "炮兵", with: "弓弩")
+            .replacingOccurrences(of: "步兵", with: "步卒")
+            .replacingOccurrences(of: "反甲骑", with: "拒马弩")
+            .replacingOccurrences(of: "反装甲", with: "拒马弩")
+            .replacingOccurrences(of: "师", with: "军")
+            .replacingOccurrences(of: "Ardennes", with: "旧战局")
+            .replacingOccurrences(of: "Bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "St. Vith", with: "旧战局要地")
+
+        return sanitized.isEmpty ? "\(displayFactionName(faction))\(fallbackKind)" : sanitized
+    }
+
+    private func sanitizeRawUnitIdentifier(in name: String) -> String {
+        name.replacingOccurrences(
+            of: #"\b(division|unit)_[A-Za-z0-9_\-]+\b"#,
+            with: "相关军队",
+            options: .regularExpression
+        )
     }
 
     private func frontLineSummary(_ ids: [FrontLineId]) -> String {
-        ids.isEmpty ? "None" : ids.map(\.rawValue).joined(separator: ", ")
+        ids.isEmpty ? "无" : "\(ids.count) 条接战线"
     }
 }
 
 private extension Division {
     var inspectorStrengthText: String {
-        "\(strength) / \(maxStrength)"
+        "兵力 \(strength)，上限 \(maxStrength)"
     }
 
     var inspectorStatusText: String {
         var statuses: [String] = []
 
         if isRetreating {
-            statuses.append("Retreating")
+            statuses.append("退却中")
         }
 
         if isDestroyed {
-            statuses.append("Destroyed")
+            statuses.append("溃散")
         }
 
-        return statuses.isEmpty ? "Ready" : statuses.joined(separator: ", ")
+        return statuses.isEmpty ? "待命" : statuses.joined(separator: "、")
     }
 }
 
@@ -125,37 +231,9 @@ private extension RetreatMode {
     var displayName: String {
         switch self {
         case .retreatable:
-            return "Retreatable"
+            return "可退"
         case .hold:
-            return "Hold"
-        }
-    }
-}
-
-private extension ComponentType {
-    var displayCode: String {
-        switch self {
-        case .tank:
-            return "ARM"
-        case .motorizedInfantry:
-            return "MOT"
-        case .infantry:
-            return "INF"
-        case .artillery:
-            return "ART"
-        }
-    }
-}
-
-private extension SupplyState {
-    var displayName: String {
-        switch self {
-        case .supplied:
-            return "Supplied"
-        case .lowSupply:
-            return "Low Supply"
-        case .encircled:
-            return "Encircled"
+            return "固守"
         }
     }
 }
@@ -164,11 +242,11 @@ private extension UnitDeploymentRole {
     var displayName: String {
         switch self {
         case .frontUnit:
-            return "FRONT"
+            return "前线"
         case .depthUnit:
-            return "DEPTH"
+            return "纵深"
         case .garrisonUnit:
-            return "GARRISON"
+            return "驻守"
         }
     }
 }
@@ -177,26 +255,7 @@ private extension Set where Element == HexDirection {
     var displaySummary: String {
         HexDirection.ordered
             .filter { contains($0) }
-            .map(\.displayCode)
-            .joined(separator: ", ")
-    }
-}
-
-private extension HexDirection {
-    var displayCode: String {
-        switch self {
-        case .east:
-            return "E"
-        case .northEast:
-            return "NE"
-        case .northWest:
-            return "NW"
-        case .west:
-            return "W"
-        case .southWest:
-            return "SW"
-        case .southEast:
-            return "SE"
-        }
+            .map(\.displayName)
+            .joined(separator: "、")
     }
 }

@@ -7,6 +7,7 @@ struct CombatDamage: Equatable {
 
 struct CombatRules {
     let movementRules = MovementRules()
+    private let supplyRules = SupplyRules()
 
     func terrainDefenseBonus(for defender: Division, attackedBy attacker: Division, in state: GameState) -> Int {
         guard let defenderTile = state.map.tile(at: defender.coord) else {
@@ -26,6 +27,9 @@ struct CombatRules {
            defender.isInfantryHeavy,
            defenderTile.baseTerrain.supportsInfantryDefenseBonus {
             baseDefense = max(1, Int((Double(baseDefense) * 1.3).rounded()))
+        }
+        if supplyRules.isBesieged(defender, in: state) {
+            baseDefense = max(1, Int((Double(baseDefense) * 0.85).rounded()))
         }
         guard defender.retreatMode == .hold else {
             return baseDefense
@@ -60,11 +64,14 @@ struct CombatRules {
         }
 
         var multiplier = 1.0
-        if attacker.isArmor && defenderTile.baseTerrain == .plain {
+        if attacker.hasCavalryShock && defenderTile.baseTerrain == .plain {
             multiplier += 0.2
         }
-        if attacker.isArmor && defenderTile.baseTerrain.armorSlowdownCost > 0 {
+        if attacker.hasCavalryShock && defenderTile.baseTerrain.armorSlowdownCost > 0 {
             multiplier -= 0.1
+        }
+        if attacker.hasSiegeCapability && defenderTile.isFortifiedSettlement {
+            multiplier += 0.25
         }
 
         return max(1, Int((Double(attacker.attack) * multiplier).rounded()))
@@ -122,5 +129,14 @@ struct CombatRules {
             return 1
         }
         return Double(strengthDamage) / Double(defender.strength)
+    }
+}
+
+private extension HexTile {
+    var isFortifiedSettlement: Bool {
+        baseTerrain == .city ||
+            baseTerrain == .fortress ||
+            cityName != nil ||
+            fortressName != nil
     }
 }

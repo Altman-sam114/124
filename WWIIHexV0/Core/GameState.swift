@@ -5,6 +5,7 @@ struct GameState: Codable, Equatable {
     var turn: Int
     var maxTurns: Int
     var activeFaction: Faction
+    var playerFaction: Faction
     var phase: GamePhase
     var map: MapState
     var theaterState: TheaterState
@@ -24,6 +25,7 @@ struct GameState: Codable, Equatable {
         turn: Int,
         maxTurns: Int,
         activeFaction: Faction,
+        playerFaction: Faction = .allies,
         phase: GamePhase,
         map: MapState,
         theaterState: TheaterState = .empty,
@@ -42,6 +44,7 @@ struct GameState: Codable, Equatable {
         self.turn = turn
         self.maxTurns = maxTurns
         self.activeFaction = activeFaction
+        self.playerFaction = playerFaction
         self.phase = phase
         self.map = map
         self.theaterState = theaterState
@@ -65,59 +68,60 @@ struct GameState: Codable, Equatable {
             turn: 1,
             maxTurns: 8,
             activeFaction: .germany,
+            playerFaction: .allies,
             phase: .germanAI,
             map: map,
             theaterState: .empty,
             frontLineState: .empty,
             warDeploymentState: .empty,
             economyState: .empty,
-            diplomacyState: DiplomacyState.initial(for: Faction.allCases, turn: 1),
+            diplomacyState: DiplomacyState.initial(for: Faction.legacyCombatants, turn: 1),
             divisions: [
                 .panzer(
                     id: "ger_panzer_1",
-                    name: "1st Panzer Division",
+                    name: "旧战局东路甲骑第1军",
                     faction: .germany,
                     coord: HexCoord(q: 9, r: 3)
                 ),
                 .motorized(
                     id: "ger_motorized_1",
-                    name: "2nd Motorized Division",
+                    name: "旧战局东路骑军第1军",
                     faction: .germany,
                     coord: HexCoord(q: 9, r: 4)
                 ),
                 .infantry(
                     id: "ger_infantry_1",
-                    name: "26th Infantry Division",
+                    name: "旧战局东路步卒第1军",
                     faction: .germany,
                     coord: HexCoord(q: 10, r: 5)
                 ),
                 .artillery(
                     id: "ger_artillery_1",
-                    name: "7th Artillery Division",
+                    name: "旧战局东路弓弩第1军",
                     faction: .germany,
                     coord: HexCoord(q: 10, r: 3)
                 ),
                 .infantry(
                     id: "all_infantry_1",
-                    name: "101st Infantry Division",
+                    name: "旧战局西路步卒第1军",
                     faction: .allies,
                     coord: HexCoord(q: 4, r: 5)
                 ),
                 .infantry(
                     id: "all_anti_tank_1",
-                    name: "9th Anti-Tank Battalion",
+                    name: "旧战局西路拒马第1营",
                     faction: .allies,
                     coord: HexCoord(q: 5, r: 5)
                 ),
                 .artillery(
                     id: "all_artillery_1",
-                    name: "4th Allied Artillery Group",
+                    name: "旧战局西路弓弩第1群",
                     faction: .allies,
                     coord: HexCoord(q: 3, r: 5)
                 ),
                 .infantry(
                     id: "all_garrison_1",
-                    name: "Bastogne Garrison",
+                    name: "旧战局要地守军",
                     faction: .allies,
                     coord: HexCoord(q: 5, r: 6)
                 )
@@ -129,7 +133,7 @@ struct GameState: Codable, Equatable {
                     turn: 1,
                     faction: .germany,
                     phase: .germanAI,
-                    message: "Ardennes V0 scenario initialized."
+                    message: "旧战局 fallback 已初始化。"
                 )
             ]
         )
@@ -140,6 +144,7 @@ struct GameState: Codable, Equatable {
         case turn
         case maxTurns
         case activeFaction
+        case playerFaction
         case phase
         case map
         case theaterState
@@ -157,11 +162,22 @@ struct GameState: Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let scenarioId = try container.decode(String.self, forKey: .scenarioId)
+        let activeFaction = try container.decode(Faction.self, forKey: .activeFaction)
+        var storedPlayerFaction: Faction?
+        if let rawPlayerFaction = try? container.decodeIfPresent(String.self, forKey: .playerFaction) {
+            storedPlayerFaction = rawPlayerFaction.flatMap(Faction.init(rawValue:))
+        }
         self.init(
-            scenarioId: try container.decode(String.self, forKey: .scenarioId),
+            scenarioId: scenarioId,
             turn: try container.decode(Int.self, forKey: .turn),
             maxTurns: try container.decode(Int.self, forKey: .maxTurns),
-            activeFaction: try container.decode(Faction.self, forKey: .activeFaction),
+            activeFaction: activeFaction,
+            playerFaction: storedPlayerFaction ??
+                Self.defaultPlayerFaction(
+                    scenarioId: scenarioId,
+                    activeFaction: activeFaction
+                ),
             phase: try container.decode(GamePhase.self, forKey: .phase),
             map: try container.decode(MapState.self, forKey: .map),
             theaterState: try container.decodeIfPresent(TheaterState.self, forKey: .theaterState) ?? .empty,
@@ -176,6 +192,13 @@ struct GameState: Codable, Equatable {
             warDirectiveRecords: try container.decodeIfPresent([WarDirectiveRecord].self, forKey: .warDirectiveRecords) ?? [],
             playerCommandState: try container.decodeIfPresent(PlayerCommandState.self, forKey: .playerCommandState) ?? .empty
         )
+    }
+
+    private static func defaultPlayerFaction(scenarioId: String, activeFaction: Faction) -> Faction {
+        if activeFaction.usesDefaultHumanControl {
+            return activeFaction
+        }
+        return scenarioId.hasPrefix("wude_618") ? .tang : .allies
     }
 
     func division(id: String) -> Division? {

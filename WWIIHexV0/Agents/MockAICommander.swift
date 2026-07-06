@@ -74,7 +74,7 @@ struct MockAICommander {
             turn: state.turn,
             directives: directives,
             commanderAgentId: issuerId,
-            theaterContext: "\(faction.displayName): \(directives.count) mock directive(s)."
+            theaterContext: "\(faction.displayName)：本地模拟总管生成 \(directives.count) 条方面军令。"
         )
     }
 
@@ -92,12 +92,23 @@ struct MockAICommander {
     private static func defaultConfig(for zone: FrontZone) -> ZoneCommanderAgentConfig {
         ZoneCommanderAgentConfig(
             id: "mock_\(zone.id.rawValue)",
-            name: "Mock Commander (\(zone.id.rawValue))",
+            name: "本地模拟总管（\(displayZoneName(zone))）",
             faction: zone.faction,
             assignedZoneId: zone.id,
             skills: [],
             commandStyle: .balanced
         )
+    }
+
+    private static func displayZoneName(_ zone: FrontZone) -> String {
+        guard !zone.name.isEmpty,
+              !zone.name.contains("_"),
+              !zone.name.hasPrefix("theater"),
+              !zone.name.hasPrefix("front"),
+              zone.name != zone.id.rawValue else {
+            return "\(zone.faction.displayName)方面"
+        }
+        return zone.name
     }
 
     private func attackIntensity(for zone: FrontZone, state: GameState) -> AttackIntensity {

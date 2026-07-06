@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "wude_618_guanzhong_luoyang",
+  "profiles": [
+    {
+      "id": "power_tang",
+      "faction": "tang",
+      "displayName": "唐",
+      "ruler": "李渊",
+      "capitalRegionId": "region_changan",
+      "startingMandate": 74,
+      "strategicAims": [
+        "hold_changan",
+        "secure_tongguan",
+        "take_luoyang",
+        "control_granaries"
+      ],
+      "aiRole": "player_recommended"
+    },
+    {
+      "id": "power_luoyang_sui",
+      "faction": "luoyangSui",
+      "displayName": "洛阳隋",
+      "ruler": "王世充",
+      "capitalRegionId": "region_luoyang",
+      "startingMandate": 62,
+      "strategicAims": [
+        "hold_luoyang",
+        "hold_hulao",
+        "contest_luokou",
+        "break_tongguan"
+      ],
+      "aiRole": "central_rival"
+    },
+    {
+      "id": "power_wagang",
+      "faction": "wagang",
+      "displayName": "瓦岗",
+      "ruler": "李密",
+      "capitalRegionId": "region_wagang_camp",
+      "startingMandate": 58,
+      "strategicAims": [
+        "hold_luokou",
+        "pressure_luoyang",
+        "raid_supply_lines"
+      ],
+      "aiRole": "granary_insurgent"
+    },
+    {
+      "id": "power_xia",
+      "faction": "xia",
+      "displayName": "夏",
+      "ruler": "窦建德",
+      "capitalRegionId": "region_mingzhou",
+      "startingMandate": 65,
+      "strategicAims": [
+        "hold_hebei",
+        "hold_liyang",
+        "intervene_heluo"
+      ],
+      "aiRole": "hebei_power"
+    },
+    {
+      "id": "power_qin_xue",
+      "faction": "qinXue",
+      "displayName": "薛秦",
+      "ruler": "薛仁杲",
+      "capitalRegionId": "region_qianshuiyuan",
+      "startingMandate": 48,
+      "strategicAims": [
+        "pressure_guanzhong",
+        "hold_longyou"
+      ],
+      "aiRole": "western_pressure"
+    },
+    {
+      "id": "power_liu_wuzhou",
+      "faction": "liuWuzhou",
+      "displayName": "刘武周",
+      "ruler": "刘武周",
+      "capitalRegionId": "region_liu_wuzhou_camp",
+      "startingMandate": 45,
+      "strategicAims": [
+        "pressure_taiyuan",
+        "link_tujue"
+      ],
+      "aiRole": "northern_raider"
+    },
+    {
+      "id": "power_tujue",
+      "faction": "tujue",
+      "displayName": "东突厥",
+      "ruler": "始毕可汗",
+      "capitalRegionId": "region_tujue_south_camp",
+      "startingMandate": 40,
+      "strategicAims": [
+        "raid_border",
+        "extract_tribute",
+        "support_proxy"
+      ],
+      "aiRole": "off_map_pressure"
+    }
+  ]
+}

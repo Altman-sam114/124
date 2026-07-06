@@ -72,6 +72,23 @@ enum HexDirection: String, Codable, Hashable, CaseIterable {
         .southEast
     ]
 
+    var displayName: String {
+        switch self {
+        case .east:
+            return "东"
+        case .northEast:
+            return "东北"
+        case .northWest:
+            return "西北"
+        case .west:
+            return "西"
+        case .southWest:
+            return "西南"
+        case .southEast:
+            return "东南"
+        }
+    }
+
     func relation(toFacing facing: HexDirection) -> AttackFacingRelation {
         let diff = (orderedIndex - facing.orderedIndex + Self.ordered.count) % Self.ordered.count
 

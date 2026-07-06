@@ -10,6 +10,7 @@ struct BoardRenderState: Equatable {
     let attackHighlights: Set<HexCoord>
     let mapDisplayLayer: MapDisplayLayer
     let observerModeEnabled: Bool
+    let recentDirectiveRecords: [WarDirectiveRecord]
 
     var displayAdapter: MapDisplayAdapter {
         MapDisplayAdapter(state: gameState, revealAll: observerModeEnabled)
@@ -27,8 +28,16 @@ enum BoardSceneAdapter {
             movementHighlights: container.movementHighlights,
             attackHighlights: container.attackHighlights,
             mapDisplayLayer: container.mapDisplayLayer,
-            observerModeEnabled: container.observerModeEnabled
+            observerModeEnabled: container.observerModeEnabled,
+            recentDirectiveRecords: recentDirectiveRecords(from: container)
         )
+    }
+
+    private static func recentDirectiveRecords(from container: AppContainer) -> [WarDirectiveRecord] {
+        let source = container.lastWarDirectiveRecords.isEmpty
+            ? container.gameState.warDirectiveRecords
+            : container.lastWarDirectiveRecords
+        return Array(source.suffix(12))
     }
 
     static func regionId(for hex: HexCoord, in state: GameState) -> RegionId? {

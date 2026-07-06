@@ -45,12 +45,12 @@ enum AgentCommandMappingError: Error, Equatable, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingDestination(let divisionId):
-            return "Move order for \(divisionId) is missing destination."
-        case .missingRegionDestination(let divisionId):
-            return "Move order for \(divisionId) is missing toRegionId."
-        case .missingTarget(let divisionId):
-            return "Attack order for \(divisionId) is missing targetDivisionId."
+        case .missingDestination:
+            return "行军命令缺少目标地块。"
+        case .missingRegionDestination:
+            return "行军命令缺少目标州郡。"
+        case .missingTarget:
+            return "进攻命令缺少目标军队。"
         case .regionMappingFailed(let detail):
             return detail
         }
@@ -97,14 +97,14 @@ struct AgentCommandMapper {
             let command = try adapter.makeHexCommand(from: regionCommand, in: state)
             return IssuedCommand(command: command, issuedBy: .agent(agentId: agentId))
         } catch {
-            throw AgentCommandMappingError.regionMappingFailed(error.localizedDescription)
+            throw AgentCommandMappingError.regionMappingFailed(mappingDetail(for: error))
         }
     }
 
     func mapToRegionCommand(_ order: AgentOrder, state: GameState) throws -> RegionCommand {
         guard let division = state.division(id: order.divisionId) else {
             throw AgentCommandMappingError.regionMappingFailed(
-                CommandIntentAdapterError.divisionNotFound(divisionId: order.divisionId).localizedDescription
+                mappingDetail(for: CommandIntentAdapterError.divisionNotFound(divisionId: order.divisionId))
             )
         }
 
@@ -112,7 +112,7 @@ struct AgentCommandMapper {
         do {
             from = try adapter.regionId(for: division, in: state)
         } catch {
-            throw AgentCommandMappingError.regionMappingFailed(error.localizedDescription)
+            throw AgentCommandMappingError.regionMappingFailed(mappingDetail(for: error))
         }
 
         switch order.type {
@@ -123,7 +123,7 @@ struct AgentCommandMapper {
                         let legacyRegion = try adapter.regionId(for: legacyHex, in: state.map)
                         return .move(divisionId: order.divisionId, from: from, to: legacyRegion)
                     } catch {
-                        throw AgentCommandMappingError.regionMappingFailed(error.localizedDescription)
+                        throw AgentCommandMappingError.regionMappingFailed(mappingDetail(for: error))
                     }
                 }
                 throw AgentCommandMappingError.missingRegionDestination(divisionId: order.divisionId)
@@ -148,5 +148,14 @@ struct AgentCommandMapper {
         case .resupply:
             return .resupply(divisionId: order.divisionId, regionId: from)
         }
+    }
+
+    private func mappingDetail(for error: Error) -> String {
+        if let localizedError = error as? LocalizedError,
+           let description = localizedError.errorDescription,
+           !description.isEmpty {
+            return description
+        }
+        return "无法把军议目标匹配到当前战局。"
     }
 }

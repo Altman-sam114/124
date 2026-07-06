@@ -23,10 +23,12 @@ MapEditor / JSON 数据
   -> MarshalAgent / TheaterDirective JSON
   -> TheaterDirectiveDecoder
   -> TheaterDirectiveCompiler
+  -> CourtAgent / RulerAgent 朝堂塑形与审计
   -> ZoneCommanderAgent fallback / 手写 ZoneDirective
   -> WarCommandExecutor
   -> RuleEngine
   -> CommandExecutor
+  -> VictoryRules
   -> StrategicStateSynchronizer
   -> UI overlay / 日志 / WarDirectiveRecord
 ```
@@ -54,9 +56,311 @@ MapEditor / JSON 数据
 - `hexToFrontZone` 是部署层动态归属权威。
 - `EconomyState` 是 faction 级经济总账；收入来自受控 region、城市、工厂、基础设施和补给值，但战术占领仍以 hex 为准。
 - 玩家、AI、后续聊天命令最终都必须经过 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`，不能直接改 `GameState`。
-- v0.5 默认战争 AI 上游是 `MarshalAgent -> TheaterDirective JSON -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler`，下游执行收口到 `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
-- 统治者层只作为后续方向预留；当前 v0.5 主链路不调用 `RulerAgent`，也不写统治者决策记录。
+- v3.4 默认战争 AI 上游是 `MarshalAgent -> TheaterDirective JSON -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent`，下游执行收口到 `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
+- 朝堂层只塑形和审计 `DirectiveEnvelope`，写入 `RulerDecisionRecord` / `CourtDecisionRecord`；它不直接生成底层 `Command`，也不直接修改 hex、单位、战区、部署或外交关系。
 - 协作验证层以 `main` 直推和 GitHub Actions 结果包为准；本机默认只跑轻量检查，Agent C 不再只凭文字汇报验收。
+
+### 0.1 v3.0-v3.7-preflight.91 隋唐迁移状态
+
+当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录、v3.7-preflight 胜负闭环记录、v3.7-preflight.2 本地存档记录、v3.7-preflight.3 引导/设置/发布前检查记录、v3.7-preflight.4 水路地点标识记录、v3.7-preflight.5 AI 计划箭头记录、v3.7-preflight.6 前线墨线记录、v3.7-preflight.7 存档错误反馈记录、v3.7-preflight.8 发布说明与资产边界记录、v3.7-preflight.9 外交议和/纳降命令记录、v3.7-preflight.10 州郡经营/太守命令记录、v3.7-preflight.11 AI 太守主动经营记录、v3.7-preflight.12 AI 使者主动外交记录、v3.7-preflight.13 归附事件记录链、v3.7-preflight.14 归附空势力轮转收口、v3.7-preflight.15 归附实体盘点、v3.7-preflight.16 归附实体交接命令、v3.7-preflight.17 归附交接审计记录、v3.7-preflight.18 AI 归附实体交接、v3.7-preflight.19 归附善后压力记录、v3.7-preflight.20 AI 善后太守优先治理记录、v3.7-preflight.21 善后处置审计记录、v3.7-preflight.22 善后处置进度摘要、v3.7-preflight.23 AI 善后未处置优先治理、v3.7-preflight.24 善后完成状态提示、v3.7-preflight.25 发布检查门禁拆分、v3.7-preflight.26 AI 太守跳过诊断、v3.7-preflight.27 AI 使者/交接跳过诊断、v3.7-preflight.28 MapEditor 默认隋唐资源桥、v3.7-preflight.29 MapEditor 地点字段化编辑、v3.7-preflight.30 发布候选静态门禁快照、v3.7-preflight.31 玩家可见旧英文兜底收口、v3.7-preflight.32 玩家可见调试文案收口、v3.7-preflight.33 玩家可见外交/朝堂文案收口、v3.7-preflight.34 玩家可见 AI 诊断文案收口、v3.7-preflight.35 战报与总管预览文案收口、v3.7-preflight.36 战报源头事件文案收口、v3.7-preflight.37 App/UI 边界文案收口、v3.7-preflight.38 剩余 UI 文案抽样收口、v3.7-preflight.39 UI 文案复扫收口、v3.7-preflight.40 本局执掌势力选择、v3.7-preflight.41 MapEditor 可见文案收口、v3.7-preflight.42 默认数据说明与补给战报中文化、v3.7-preflight.43 AI 元帅/方面军令摘要中文化、v3.7-preflight.44 Legacy MockAI 与元帅解析诊断中文化、v3.7-preflight.45 Legacy JSON 可见文本收口、v3.7-preflight.46 Legacy 将领档案可见文本收口、v3.7-preflight.47 Agent 诊断与错误兜底文案收口、v3.7-preflight.48 自动回合与元帅诊断兜底文案收口、v3.7-preflight.49 数据加载与导出说明可见文案收口、v3.7-preflight.50 复核面板与记录摘要可见文案收口、v3.7-preflight.51 MapEditor 与主游戏 raw id 可见文案复扫收口、v3.7-preflight.52 命令错误与源头战报可见文案收口、v3.7-preflight.53 总管与将领档案防区展示名 raw id 收口、v3.7-preflight.54 legacy fallback 数据展示文案收口、v3.7-preflight.55 legacy fallback 单位与防区展示文案收口、v3.7-preflight.56 legacy static fallback 目标兼容与展示文案收口、v3.7-preflight.57 legacy LLM prompt 语言收口、v3.7-preflight.58 外交面板名称与记录净化收口、v3.7-preflight.59 战报意图屏蔽与中文分类收口、v3.7-preflight.60 MapEditor 导出元数据 fallback 收口、v3.7-preflight.61 AI 诊断净化口径对齐、v3.7-preflight.62 legacy 总管配置中文兜底、v3.7-preflight.63 legacy prompt 内部编号分层收口、v3.7-preflight.64 legacy prompt 直通文本净化、v3.7-preflight.65 legacy prompt 决策者身份净化、v3.7-preflight.66 legacy MockAI stance 文案收口、v3.7-preflight.67 legacy prompt 工程说明词收口、v3.7-preflight.68 模拟元帅输出纯 JSON 收口、v3.7-preflight.69 UI/战报/外交记录净化 helper 对齐、v3.7-preflight.70 legacy 将领与朝堂记录可见文案复扫、v3.7-preflight.71 CommandPanel 命令消息展示净化收口、v3.7-preflight.72 单位详情与提示 legacy 单位名展示收口、v3.7-preflight.73 州郡详情 legacy 地名与目标名展示收口、v3.7-preflight.74 将领与总管面板 legacy 文案复扫收口、v3.7-preflight.75 MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、v3.7-preflight.76 MapEditor 选择器与状态消息 legacy 文案收口、v3.7-preflight.77 AppContainer 交互日志与存档反馈 legacy 文案收口、v3.7-preflight.78 GameLogEntry 源头战报 legacy 文案收口、v3.7-preflight.79 legacy LocalLLM prompt 临时编号别名收口、v3.7-preflight.80 legacy fallback 行军总管配置收口、v3.7-preflight.81 朝堂/外交实际记录 id 展示净化收口、v3.7-preflight.82 行军总管可见称谓净化收口、v3.7-preflight.83 源头 legacy 中文势力/国家/地名展示净化收口、v3.7-preflight.84 将领档案/总管军令称谓净化对齐、v3.7-preflight.85 fallback JSON 可见数据文本收口、v3.7-preflight.86 源码层 legacy 可见兜底文本收口、v3.7-preflight.87 静态 fallback 源码可见文本收口、v3.7-preflight.88 legacy objective lookup 字面量收口、v3.7-preflight.89 RegionVictoryRules 隋唐胜负摘要对齐、v3.7-preflight.90 共享隋唐胜负 evaluator 收口和 v3.7-preflight.91 指令结果语义化固守判定收口：
+
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/prompt/v3.0-隋唐迁移/v3.0_audit_and_contract.md`
+- `md/prompt/v3.0-隋唐迁移/v3.1_powers_diplomacy_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.2_scenario_map_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.3_war_rules_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.4_agent_court_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.5_player_command_ux_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.6_ui_art_polish_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_victory_runtime_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_lifecycle_save_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_onboarding_settings_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_waterway_markers_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_plan_arrows_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_front_ink_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_save_feedback_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_release_notes_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_diplomacy_command_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_region_governance_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_governor_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_diplomat_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_event_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_turn_order_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_presence_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_handoff_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_handoff_audit_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_ai_handoff_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_governor_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_governance_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_governance_progress_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_ungoverned_priority_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_completion_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_release_gate_split_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_governor_skip_diagnostics_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_diplomat_skip_diagnostics_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_suitang_bridge_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_key_locations_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_release_static_gate_snapshot_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_legacy_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_debug_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_diplomacy_court_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_ai_diagnostics_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_battle_report_command_preview_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_event_source_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_app_ui_boundary_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_remaining_ui_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_visible_ui_followup_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_player_faction_selection_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_visible_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_data_notes_visible_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_marshal_directive_summary_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_mockai_diagnostics_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_json_visible_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_general_profile_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_agent_diagnostic_error_fallback_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_auto_turn_marshal_diagnostic_fallback_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_data_loader_mapeditor_export_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_review_panel_ui_record_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_main_ui_raw_id_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_command_error_visible_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_zone_display_name_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_data_display_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_unit_region_display_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_static_fallback_objective_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_llm_prompt_language_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_diplomacy_panel_name_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_event_log_intent_category_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_export_metadata_fallback_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_agent_panel_diagnostic_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_general_agent_config_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_prompt_internal_id_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_prompt_passthrough_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_prompt_agent_identity_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_mockai_stance_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_prompt_schema_wording_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_marshal_pure_json_output_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ui_record_sanitizer_helper_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_general_court_visible_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_command_panel_message_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_unit_detail_tooltip_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_region_detail_location_objective_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_general_panel_record_summary_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_map_display_adapter_spritekit_legacy_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_selector_status_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_appcontainer_interaction_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_event_log_source_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_agent_prompt_alias_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_marshal_fallback_config_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_court_diplomacy_record_id_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_marshal_visible_title_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_source_legacy_chinese_text_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_general_panel_title_sanitizer_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_fallback_json_visible_data_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_source_fallback_visible_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_static_fallback_source_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_objective_lookup_text_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_region_victory_suitang_alignment_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_shared_victory_evaluator_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_command_result_semantic_kind_record.md`
+
+这表示项目已完成 v3.0 文档合同，并在 v3.1 做了最小代码迁移：`Faction` 现在可 Codable 表达唐、洛阳隋、瓦岗、夏、薛秦、刘武周、东突厥；`GamePhase` 新增 `playerCommand` / `aiCommand`；核心敌对判断新增 `DiplomacyState.isHostile` / `canAttack`，生产主路径不再直接依赖 `.opponent`。
+
+v3.2 已新增 `wude_618_guanzhong_luoyang` 默认剧本数据，并让主游戏启动优先加载 `wude_618_scenario` / `wude_618_regions`。该数据包含 90 个 hex、36 个 region、7 个隋唐势力、19 支初始军队，以及隋唐 unit template、general registry、power profile 和 terrain rule 文件。若新数据加载失败，`DataLoader` 仍 fallback 到阿登路径，避免破坏旧调试入口。
+
+v3.3 已做最小战争规则和显示迁移：`ComponentType` 可直接表达骑军、弓弩、攻城器械、亲军、水师、乡兵；`suitang_unit_templates.json` 已改用新 component rawValue；`SupplyRules.isBesieged` 从城池/关隘、敌邻接和粮道状态派生围城；战术、HUD、军队/州郡/经济/AI 面板显示改为隋唐口径。围城仍不是独立权威状态，不会绕过 hex 占领或 `RuleEngine`。
+
+v3.4 已把朝堂 AI 分层接入战争 AI directive 上游：`CourtAgent` 调用 `RulerAgent` 选择君主姿态并调整 `DirectiveEnvelope`，同时记录君主、谋主、太守、行军总管、将领和使者步骤。`TurnManager` 在 `.marshalDirective` 和 `.zoneDirective` 路径都会写入 `RulerDecisionRecord` 与 `CourtDecisionRecord`。这些记录先用于塑形、审计和 UI 展示；v3.7-preflight.11/.12 起，太守和使者记录会在 AI 回合被保守转化为 `Command.governRegion` 或 `Command.updateDiplomacy`，仍经 `RuleEngine` 执行。
+
+v3.5 已做玩家信息闭环最小迁移：战报面板聚合朝堂姿态、AI 意图、方面军令执行/拒绝统计和重点事件；外交面板显示中文关系、朝堂和使者摘要；州郡面板显示粮仓、征发、前线压力、敌军和胜负要点；军令面板和主要交互日志改为中文。该版本仍只读取现有状态和记录，不新增内政或外交执行器。
+
+v3.6 已完成发布级 UI 收口的第一步：`SuitangDesignTokens` 与 `View.suitangPanel(_:)` 提供统一绢帛、墨色、朱印、铜色、青绿和水色基底；HUD、图层选择、军情入口、常用面板和将领档案改用统一 panel 样式；`NEW GAME`、`Observer`、`[ INFO ]`、地图图层英文和将领档案英文标题等显眼玩家文案已中文化。`HexNode` 已用代码绘制最小城池、关隘和粮仓标识，并移除旧 `FORT`、`SUP A`、`SUP G` 调试标签。`BoardScene` 已用现有 `SupplyRules` 和可见单位 placement 绘制最小粮道虚线与围城圈。该版本仍不新增规则、外部素材或大规模 SpriteKit 地图重绘。
+
+v3.7-preflight 已把 `wude_618_guanzhong_luoyang` 的核心胜利条件接入运行时：`VictoryRules` 会按 objective id 读取长安、洛阳、洛口仓和潼关的 hex 控制者；唐控制洛阳与洛口仓即胜，洛阳隋夺取潼关即胜，终局最后一个势力行动结束后按长安控制权结算。HUD 的胜负字段会显示胜者和中文胜利原因。旧阿登胜利规则仍保留 legacy 分支。
+
+v3.7-preflight.2 已补上本地自动存档和局势生命周期入口：`GameSaveStore` 使用 Documents 下的 JSON 文件保存 `GameState`；`AppContainer.bootstrap()` 优先读取本地存档，失败时 fallback 默认剧本；玩家命令、总管 `ZoneDirective` 和 AI 回合结算后自动保存；HUD 与 macOS 菜单提供新局、继续和重置。该层只保存/加载 `GameState`，不直接修改 hex、单位、战区、部署或规则。
+
+v3.7-preflight.3 已补上最小发布候选前置 UI：HUD “筹备”菜单可打开开局引导、基础设置和发布前检查面板；开局引导只读当前剧本/回合/势力并提示第一回合操作顺序；基础设置复用现有观战模式和地图图层 setter，不写入存档；发布前检查面板列出已接入事项、仍待授权验证事项和 `天命开唐 Agent · v3.7-preflight.3` 版本说明。该层不新增规则，不直接修改 `GameState`。
+
+v3.7-preflight.4 已把 scenario `keyLocations` 转为 `MapState.featureMarkers`，并对 `ferry`、`port`、`harbor` 绘制最小渡船/帆船图标；`wude_618` 新增蒲津渡、孟津渡、黎阳津和洛口津。`featureMarkers` 是显示数据，旧存档缺字段时默认空数组，不参与水战、移动、补给或胜负规则。
+
+v3.7-preflight.5 已把最近 AI `WarDirectiveRecord` 通过 `BoardRenderState.recentDirectiveRecords` 传入地图；`BoardScene` 会把最近 6 条非玩家 directive 画成势力色虚线箭头或防守圈。该层只读 directive 记录，不改变 AI 决策、执行器或规则。
+
+v3.7-preflight.6 已在普通地图层叠加最小前线墨线：`BoardScene` 从 `FrontLineState` 经 `MapLayerOverlayCalculator.frontLineChains()` 读取接触线，在非 `.frontLine` 图层绘制墨色线、单点接触标记，以及包围/崩溃态朱色警示虚线。该层只读前线派生状态，不改变战区、部署、单位、占领或规则。
+
+v3.7-preflight.7 已补上最小本地存档错误反馈：`GameSaveStatus` 表达保存/读取/删除的成功、提示或失败状态，`AppContainer.saveStatus` 在启动读取、继续、自动保存和重置删除时更新；HUD 只在失败时显示 `SaveStatusBanner`，基础设置和发布前检查面板显示完整存档反馈。该层不改变存档 JSON schema，不改变 `GameState` 规则语义。
+
+v3.7-preflight.8 已把发布说明、资产边界和验证口径收进发布前检查面板：`ReleaseChecklistView` 显示首发定位、当前入口、本机轻量检查 / 运行时重测边界，并明确城池、关隘、粮仓、渡口、港口、AI 箭头和前线墨线仍是代码绘制或派生显示。该层不引入外部素材或 asset catalog，不改变地图、命令、AI、存档、胜负、补给、移动或战斗规则。
+
+v3.7-preflight.9 已把最小外交议和/纳降动作接入统一命令管线：`Command.updateDiplomacy` 由 `CommandValidator` 校验当前行动势力和双方 country profile，再由 `CommandExecutor` 更新 `DiplomacyState.relations` 并写入 `.diplomacy` 战报；`DiplomacyPanelView` 的“议和 / 纳降”按钮通过 `AppContainer.submit` 进入 `RuleEngine`。该层只改变外交关系，不直接转移 hex、region、unit、theater 或 deploy 权威。
+
+v3.7-preflight.10 已把最小州郡经营动作接入统一命令管线：`Command.governRegion` 支持修道、屯田和安民，由 `CommandValidator` 校验当前行动势力、己方实际控制州郡、府库资源和经营上限，再由 `CommandExecutor` 扣除府库并更新 `RegionNode.infrastructure`、`supplyValue` 或 `occupationState`；`RegionInspectorView` 的“太守”动作区通过 `AppContainer.submit` 进入 `RuleEngine`。该层只改变 region 战略字段和 `EconomyState` 府库，不直接改变 hex controller、unit、theater、front 或 deploy 权威。
+
+v3.7-preflight.11 已把 AI 太守主动经营接入 AI 回合：`TurnManager.executeDirectiveEnvelope` 在朝堂记录写入后、`endTurn` 前，为 AI/观战自动回合最多生成一条 `Command.governRegion`。候选州郡优先使用 `CourtDecisionRecord` 太守步骤关注点，再按粮仓、道路、治安和己方驻军评分排序；政策仍使用 v3.7-preflight.10 的修道、屯田、安民，并交给 `commandHandler.execute` / `RuleEngine` 校验和执行。该层不直接修改 region、hex、unit、theater、front 或 deploy，只通过命令结果进入 `AgentDecisionRecord`。
+
+v3.7-preflight.12 已把 AI 使者主动外交接入 AI 回合：`TurnManager.executeDirectiveEnvelope` 在 AI 太守经营后、`endTurn` 前，为 AI/观战自动回合最多生成一条 `Command.updateDiplomacy`。使者只在保守条件下行动：敌方已经无存活军队且无可通行受控州郡时标记 `submitted`；己方战力、州郡或战意明显不足时向压力最高的敌对势力提出 `truce`。该层只更新 `DiplomacyState` 关系并记录命令结果，不直接转移 hex、region、unit、theater、front 或 deploy 权威。
+
+v3.7-preflight.13 已把最小归附事件记录链接入外交命令：`CommandExecutor.executeDiplomacyUpdate` 更新关系后会追加 `DiplomacyEventRecord`，并把 `.diplomacy` 战报的 `relatedRecordId` 指向该记录。`DiplomacyPanelView` 会展示最近外交事件和边界说明。该层仍只记录关系事件，不直接转移 hex、region、unit、theater、front 或 deploy 权威。
+
+v3.7-preflight.14 已把归附空势力轮转收口接入通用回合顺序：`CommandExecutor.turnOrder(in:)` 会过滤已经作为 `submitted` 目标记录、且没有存活军队、没有可通行受控 hex 的势力。该层只影响 turn order，不直接转移 hex、region、unit、theater、front 或 deploy 权威。
+
+v3.7-preflight.15 已把归附目标判定收口到 `DiplomacyState.isSubmittedTarget(_:)` / `submittedTargetFactions()`：有新事件记录时只按 `DiplomacyEventRecord.target` 判断归附目标，旧存档缺事件记录时才 fallback 到 `.submitted` 关系状态。`AppContainer.submissionPresenceSummaries` 只读统计归附目标的存活军队和可通行受控 hex，`DiplomacyPanelView` 展示这些实体是否会让归附势力继续进入回合轮转。该层只做盘点和说明，不直接转移 hex、region、unit、theater、front 或 deploy 权威。
+
+v3.7-preflight.16 已把最小归附实体交接接入统一命令管线：`Command.resolveSubmissionHandoff` 由 `CommandValidator` 校验当前行动接收方、外交归附关系和残余实体存在，再由 `CommandExecutor` 把归附目标未毁灭军队与可通行受控 hex 交给接收方，并刷新 region / theater / front / deploy 派生层。该层不删除外交档案、关系或事件记录，不处理贡赋、忠诚、叛乱、俘虏或安置。
+
+v3.7-preflight.17 已把归附实体交接结果写入结构化审计记录：`DiplomacyState` 保存 `SubmissionHandoffRecord`，`CommandExecutor.executeSubmissionHandoff` 完成交接后追加记录并把外交战报 `relatedRecordId` 指向该记录，`DiplomacyPanelView` 展示最近交接摘要、回合、影响州郡数量和边界说明。该层只审计已完成交接，不新增忠诚、叛乱、贡赋、俘虏、安置或交接后治理。
+
+v3.7-preflight.18 已把 AI 归附实体交接接入 AI 自动回合：`TurnManager.executeDirectiveEnvelope` 在 AI 太守经营和 AI 使者外交后、`.endTurn` 前，最多生成一条 `Command.resolveSubmissionHandoff`。候选目标必须已归附当前 AI 势力，且仍有未毁灭军队或可通行受控 hex；命令仍由 `CommandValidator -> RuleEngine -> CommandExecutor` 校验执行，结果进入 `AgentDecisionRecord.commandResults`。该层不做批量交接、忠诚、叛乱、贡赋、俘虏、安置或交接后治理。
+
+v3.7-preflight.19 已把归附交接后的善后压力写入只读记录：`DiplomacyState` 保存 `SubmissionAftermathRecord`，`CommandExecutor.executeSubmissionHandoff` 在追加交接审计记录后追加善后压力记录，并写入一条 `.diplomacy` 日志；`DiplomacyPanelView` 展示最近善后压力、回合、影响州郡数量和边界说明。该层只提示后续安民、整军或道路粮仓治理优先级，不触发忠诚、叛乱、贡赋、俘虏、安置、资源扣减或额外归属转移。
+
+v3.7-preflight.20 已把归附善后压力接入 AI 太守经营优先级：`TurnManager.governorCommand` 会读取最新 `SubmissionAftermathRecord`，当当前 AI 势力是接收方且压力等级为高或需安抚时，把受影响州郡排在普通朝堂太守关注点之前；候选州郡仍必须由当前势力控制且有实际受控 hex，命令仍是每回合最多一条 `Command.governRegion` 并经 `RuleEngine` 校验执行。善后州郡优先尝试安民，府库不足或经营上限不满足时回到既有屯田/修道择优；该层不新增忠诚、叛乱、贡赋、俘虏、安置或额外交接效果。
+
+v3.7-preflight.21 已把善后治理结果写入结构化处置审计：`DiplomacyState` 保存 `SubmissionAftermathGovernanceRecord`，`CommandExecutor.executeRegionGovernance` 在既有 `Command.governRegion` 成功执行后，若治理州郡属于最新善后压力记录且当前势力是接收方，就追加处置记录并写入外交日志；`DiplomacyPanelView` 会展示当前善后是否已有本次处置。该层只审计既有州郡经营命令，不清零善后压力，不新增忠诚、叛乱、贡赋、俘虏、安置、资源变化或额外交接效果。
+
+v3.7-preflight.22 已把善后处置记录汇总为只读进度摘要：`DiplomacyState` 可按善后记录筛选 `SubmissionAftermathGovernanceRecord`，并按受影响州郡统计已处置数量；`DiplomacyPanelView` 在“善后”区展示本次处置进度，例如 `1/3 处`。该层只改善复盘可读性，不清零善后压力，不新增规则效果、额外资源变化、命令类型或 AI 行动次数。
+
+v3.7-preflight.23 已把处置进度反馈给 AI 太守候选排序：`DiplomacyState` 可按最新善后记录区分已处置 / 未处置受影响州郡，`TurnManager.aftermathGovernorRegionIds` 会把未处置州郡排在已处置州郡之前。AI 仍每回合最多提交一条既有 `Command.governRegion`，仍经 `RuleEngine` 执行；该层只影响候选顺序，不新增命令类型、忠诚、叛乱、贡赋、俘虏、安置、资源变化或额外行动次数。
+
+v3.7-preflight.24 已把最新善后记录的待处置数量和完成状态补进外交面板：`DiplomacyState` 可统计未处置州郡数量，并判断本次善后是否所有受影响州郡都有处置记录；`TurnManager.aftermathGovernorRegionIds` 在本次善后已全部处置后不再把该记录作为特殊优先来源。该层只改善复盘和候选队列收口，不清零善后压力，不删除审计记录，不新增忠诚、叛乱、贡赋、俘虏、安置、资源变化或命令效果。
+
+v3.7-preflight.25 已把发布前检查面板拆成更明确的发布门禁视图：`ReleaseChecklistView` 显示 `代码状态：候选接入` 和 `运行时门禁：未授权`，并把清单分为“代码已接入”“运行时未验证”和“后续功能”。该层只改 UI 和文档，不改变规则、命令、AI、存档、地图数据或运行时验证结论。
+
+v3.7-preflight.26 已把 AI 太守未生成经营命令时的静默空结果改为确定性诊断：当朝堂存在太守步骤，或存在未完成的高/需安抚善后上下文，但 `TurnManager.governorCommand` 没有返回 `Command.governRegion` 时，`AgentDecisionRecord.errors` 会记录跳过原因，例如没有可治理州郡、没有可用或可负担政策、对应善后记录仍有多少州郡未处置。该层只补诊断，不新增命令类型，不增加 AI 行动次数，不改变州郡经营校验、消耗或效果。
+
+v3.7-preflight.27 已把 AI 使者和归附交接未生成命令时的静默空结果改为确定性诊断：当朝堂存在使者步骤，但 `TurnManager.diplomatCommand` 没有返回 `Command.updateDiplomacy` 时，`AgentDecisionRecord.errors` 会记录缺少国家档案、无敌对目标、无可归附目标或未达到停战阈值等原因；当存在已归附目标上下文但没有生成 `Command.resolveSubmissionHandoff` 时，会记录目标不属于当前接收方或没有残余军队/受控可通行 hex 等原因。该层只补诊断，不新增外交状态，不增加 AI 行动次数，不改变外交或交接命令的校验、消耗或执行效果。
+
+v3.7-preflight.28 已把 MapEditor 默认资源桥从阿登 JSON 切到 `wude_618_scenario` / `wude_618_regions`：编辑器读取和覆盖保存默认指向隋唐剧本，导出器新增 `MapEditorExportMetadata`，覆盖默认资源时保留既有势力列表、回合配置、胜负条件、objective 点数、渡口/港口 `keyLocations` 和 data notes；编辑器默认文档、模式标题、州郡/方面/军队面板、隋唐单位模板和城池/关隘命名也同步收口。该层只迁移默认桥和最小编辑器口径，不新增水路地点编辑字段，不改变 JSON schema、主游戏加载、规则或动态战区权威。
+
+v3.7-preflight.29 已把 scenario `keyLocations` 变成 MapEditor 文档字段：默认读取 `wude_618` 时会还原城池、关隘、粮仓、渡口、港口和海港地点；右键信息面板可编辑名称、类型、势力和 objectiveId；导出时以文档地点字段优先，旧文档缺字段时仍用 `.28` metadata 保护兜底。该层只改变 MapEditor 文档、UI 和导出语义，不新增水战、渡河、港口补给、移动、战斗、胜负规则或运行时验证结论。
+
+v3.7-preflight.30 已把发布前检查面板升级为静态门禁快照：`ReleaseChecklistView` 会只读当前 `GameState`、本地存档状态和 `GameSaveStatus`，显示剧本、回合阶段、行动势力、胜负状态、地图/地点/军队/前线/方面/防区计数、外交与审计记录、善后记录、战报数量和存档反馈。该层不启动 app、不跑 AI 回合、不执行 Xcode / 模拟器验证、不下载 CI artifact，也不改变规则、命令、存档 schema、地图数据或运行时验证结论。
+
+v3.7-preflight.31 已收口一组玩家可见旧英文兜底：`Faction.displayName` 对 legacy 势力显示为 `德军（旧）` / `盟军（旧）`；`GamePhase.displayName` 去掉 legacy 阶段的“旧剧本”玩家可见标签；`VictoryReason.displayName` 把德军/盟军/巴斯托涅等旧胜负原因改成泛化旧剧本中文兜底；`HexDirection.displayName` 给军队详情提供中文方向；`EconomyRules` 的征发、府库结算、补员和部署事件日志改为中文。该层不改 enum rawValue、存档 schema、规则数值、AI 决策或地图数据，内部类型名和 legacy 数据仍按历史兼容保留。
+
+v3.7-preflight.32 已收口第一批玩家可见调试文案：`AppContainer` 的本地模拟 AI 来源、AI 空转摘要、总管军令提交、州郡选择和归附实体盘点不再显示 `MockAI`、raw directive type、raw zone id、raw region id 或英文 hex；`StrategicStateBootstrapper` 的初始化战报改为中文；`AgentPanelView` 的 Agent/Order/global/diagnostic 兜底、指令类型和无数据 raw JSON 占位改为玩家语义；将领技能 id 在总管军令和将领档案面板显示为中文特性名。该层只改显示文案，不改命令、AI 决策、规则执行、存档字段或地图数据。
+
+v3.7-preflight.33 已继续收口玩家可见外交/朝堂文案：`DiplomacyPanelView` 的势力、盟从、关系、君主和谋主区不再直出 country/bloc/front zone raw id、`Agent` 标签或 agent id；`DiplomacyState` 与 `RulerAgent` 写入的外交摘要、归附交接、善后压力和君主决策 rationale 中文化；州郡要地状态、军队操控状态、前线摘要、地图图层名、地图 accessibility、未知将领技能 fallback 和朝堂决策标题继续改为玩家语义。该层只改显示文案和记录摘要，不改外交关系、命令结构、AI 决策策略、规则执行、存档字段或地图数据。
+
+v3.7-preflight.34 已继续收口玩家可见 AI 诊断文案：`TurnManager` 的 AI 失败、空军令、命令拒绝、太守/使者/归附交接跳过和部署诊断中文化；`CommandValidationError.displayName` 成为统一中文校验错误出口；`RuleEngine`、`AgentDecisionRecord`、`Command.displayName`、legacy Agent D 解析/映射错误和 `AgentPanelView` 展示层不再默认直出英文命令格式、provider suffix、raw agent id、front zone id、region id 或 enum rawValue。该层只改展示文案和可见诊断，不改命令结构、AI 决策策略、规则执行、存档字段或地图数据。
+
+v3.7-preflight.35 已继续收口战报与总管预览文案：`EventLogView` 的战报 metadata 不再直出 `relatedRecordId`，军议意图和战报重点摘要会对 legacy intent、工程词和常见审计 id 做中文或泛化展示；`GeneralCommandPanelView` 的预备军令不再显示 region/front zone raw id 或斜线工程格式。该层只改展示层文案和 formatter，不改日志 schema、命令结构、AI 决策策略、规则执行、存档字段或地图数据。
+
+v3.7-preflight.36 已继续收口战报源头事件文案：`CommandExecutor`、`WarCommandExecutor`、`StrategicStateSynchronizer` 和 `EconomyRules` 写入事件日志的行军、战斗、军令拒绝、州郡控制权、动态方面、前线、府库初始化和生产部署事件改为中文玩家语义，默认不再写入 validation rawValue、region/theater raw id、英文战斗工程词或生产展示名调试编号。该层只改源头事件文案和展示名，不改命令结构、规则执行、战斗/经济数值、日志 schema、存档字段或地图数据。
+
+v3.7-preflight.37 已继续收口 App/UI 边界文案：`AppContainer` 的存档失败、自动回合、命令面板和新局交互日志不再直出系统错误、provider 或 scenario raw id；`ReleaseChecklistView` 的发布检查文案改用玩家语义；`MapDisplayAdapter` 为详情面板提供州郡名、方面名和防区名，并让地图颜色派生保持 tile/hex 优先，`RegionInspectorView` / `UnitInspectorView` 不再显示相关 raw id。该层只改展示文案和只读 UI state，不改存档 schema、内部审计 id、命令结构、规则执行、AI 决策、地图数据或运行时验证结论。
+
+v3.7-preflight.38 已继续抽样收口剩余 UI 文案：`FirstTurnGuideView`、`HUDView`、`AppContainer` 和 `ReleaseChecklistView` 不再显示 AI / Xcode / 发布测试词、调试剧本 fallback、草稿口径或未知 scenario raw id；`ReleaseCandidateMenu` / `ReleaseChecklistView` 的发布候选入口改为战局复核；`AgentPanelView` 不再展开显示 raw JSON，context / command result / error 文案统一净化；`EconomyPanelView`、`EventLogView`、`DiplomacyPanelView`、`RegionInspectorView`、`UnitInspectorView`、`GeneralCommandPanelView` 的摘要文案改用中文标点；`UnitTooltipView` 的 VoiceOver 兵力读法改为“兵力 N，上限 M”，`GeneralProfileView` 不再从 raw 英文 id 生成画像缩写。该层只改展示层字符串和辅助读法，不改存档 schema、内部审计 id、命令结构、规则执行、AI 决策、地图数据或运行时验证结论。
+
+v3.7-preflight.39 已按并发子 agent 复扫结果继续收口 UI 文案：`ReleaseChecklistView` 的发布验收口径改为战局说明、当前可用、待继续观察和局势快照；`AppContainer` 的默认剧本、命令结果、规则校验和规则结算反馈改为当前战局、军令结果和战局判定；`DiplomacyPanelView` 不再直出 `boundaryNote`，旧剧本 fallback 改为历史势力或当前战局角色；战报 metadata、州郡摘要、兵种摘要、单位提示、将领所属军队和地图单位短标继续收口斜线、横线和 `N/M` 显示。该层只改展示层字符串、formatter 和辅助读法，不改存档 schema、内部审计 id、命令结构、规则执行、AI 决策、地图数据或运行时验证结论。
+
+v3.7-preflight.40 已补齐最小本局执掌势力选择：`GameState.playerFaction` 进入运行时状态和本地存档，旧存档缺字段或字段 rawValue 异常时按 scenario / active faction 兼容默认，继续存档会规范到当前局势可选势力；`DataLoader` 从 scenario `playerFaction` 初始化，`wude_618` 冷启动默认唐；基础设置可选择当前局势内可玩的势力，HUD 和战局复核显示执掌势力；通用回合推进按 `state.playerFaction` 判定 `.playerCommand` / `.aiCommand`。该层不重排当前回合顺序，不做完整多势力平衡，不绕过 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
+
+v3.7-preflight.41 已继续收口 MapEditor 可见文案：默认隋唐编辑入口的势力 Picker 改用 `Faction.suitangTurnOrder` 隐藏 legacy 势力选项，州郡/方面/地点/资源/导出/错误反馈改为中文产品语义，路径显示简化，地图单位短标改为中文。该层只改 MapEditor 展示文案、状态反馈、错误说明和短标，不改 JSON schema、rawValue、导出 key、资源文件名、主游戏规则或运行时验证结论。
+
+v3.7-preflight.42 已继续收口默认数据说明与补给战报：`DataLoader` 的 MapEditor 兼容数据加载初始战报改为中文，`wude_618_scenario.json` 与 MapEditor 导出 metadata 的 dataNotes 改为中文，派生补给地点名从 `Supply q,r` 改为 `粮仓 q,r`，`SupplyRules` 的补员、撤退、撤退失败、围困损耗和退却整顿事件改为中文战报。该层只改数据说明、导出说明和事件文案，不改 JSON schema、rawValue、加载顺序、胜负条件、地图数据或规则数值。
+
+v3.7-preflight.43 已继续收口 AI 元帅/方面军令摘要：`ZoneCommanderAgent` 中模拟元帅 rationale、`TheaterDirectiveEnvelope.summary`、`strategicIntent` 字符串、编译后 `theaterContext`、方面军令数量摘要和元帅 fallback 诊断改为中文。该层只改 `MarshalAgent / TheaterDirective -> WarDirectiveRecord / AgentDecisionRecord -> AgentPanelView / EventLogView` 可能消费的可见摘要和审计文案，不改 AI 决策、JSON schema、rawValue、解析合同、命令执行或规则管线。
+
+v3.7-preflight.44 已继续收口 legacy MockAI 与元帅解析诊断：`MockAICommander` 的本地模拟方面军令摘要和默认总管名称中文化，`MockAIClient` 的 legacy intent/reason 中文化，`TheaterDirectiveDecoderError` 改为中文错误说明，`EventLogView` 的诊断净化表补齐 rawJSON、provider、legacy pipeline、directive 等工程词。该层只改旧 Agent D / MockAI 和元帅解析失败路径的可见诊断与审计文案，不改 legacy AI 启发式、stance rawValue、JSON schema、解析合同、命令执行或规则管线。
+
+v3.7-preflight.45 已继续收口 legacy fallback JSON 可见文本：`ardennes_v0_scenario.json` 和 `ardennes_v02_regions.json` 的旧 MapEditor 场景名、dataNotes、城邑/补给点展示名改为中文，`unit_templates.json` 的 legacy 单位模板 displayName 改为中文。该层只改旧 fallback 数据展示字段，不改 JSON key、id、rawValue、加载顺序、默认隋唐入口、MapEditor 导出合同、命令执行或规则管线。
+
+v3.7-preflight.46 已继续收口 legacy 将领档案可见文本：`generals.json` 的旧将领军衔和履历改为中文，`GeneralData.commanderConfig` 优先使用 `localizedName` 作为总管展示名，`GeneralCommandPanelView` 和 `GeneralProfileView` 补齐当前隋唐与 legacy 将领技能 raw id 的中文映射。该层只改展示字段和展示映射，不改 JSON schema、id、技能 rawValue、AI prompt、加载顺序、命令执行或规则管线。
+
+v3.7-preflight.47 已继续收口 Agent 诊断与错误兜底文案：`AgentRole.displayName` 改为中文，`AgentPanelView` 和 `EventLogView` 的诊断净化补齐 legacy 角色、古德里安、schema/model/fallback/directive/diagnostic 等工程词，legacy Agent D 映射失败、解析失败和数据加载校验失败的常见错误描述改为中文。该层只改展示层和错误包装，不改 prompt、JSON schema、rawValue、record id、AI 决策、命令执行或规则管线。
+
+v3.7-preflight.48 已继续收口自动回合与元帅诊断兜底文案：`MarshalAgentConfig.automatic` 的 legacy 元帅展示名和旧剧本/隋唐势力 personality 改为中文，`MarshalAgent.run` 的元帅解析或编译失败诊断改用中文原因兜底，`TurnManager` 的 legacy 映射失败路径和诊断净化补齐元帅、行军总管、君主、schema/provider/fallback/directive/diagnostic/breakthrough 等工程词替换。该层只改展示配置和错误包装，不改 prompt、JSON schema、rawValue、record id、AI 决策、命令执行或规则管线。
+
+v3.7-preflight.49 已继续收口数据加载与导出说明可见文案：`DataLoader` 的 MapEditor 兼容数据加载初始战报改用剧本展示名，`MapEditorExporter` 导出的州郡数据集标题改为中文，`wude_618_scenario.json` 和 `ardennes_v0_scenario.json` 的 dataNotes 去掉 `component rawValue`、版本工程口径和 `hex` 英文词。该层只改可见日志、导出标题和说明文案，不改 JSON schema、id、rawValue、资源文件名、加载顺序、胜负条件、地图数据、规则数值或命令管线。
+
+v3.7-preflight.50 已继续收口复核面板与记录摘要可见文案：战局复核面板、MapEditor 资源面板、战报面板、朝堂面板和外交面板减少“已接入、结构化、只读、审计、诊断、保底、导出到内存、资源目录、真实模型”等工程口径；历史外交/善后/朝堂摘要展示前会做可见文本净化。该层只改展示字符串和展示净化，不改内部 id、schema、rawValue、资源文件名、导出结构、AI 决策、命令执行或规则管线。
+
+v3.7-preflight.51 已继续收口 MapEditor 与主游戏 raw id 可见文案：MapEditor 底图、信息、地点、状态和导出错误不再直出 raw 坐标、文件名、目录名、raw objective id 或“内存”工程词，州郡/方面缺省名不再回落到 raw id；主游戏选择日志、州郡详情和军队详情不再直出 q/r 坐标，方面/行军防区展示名遇到 raw id 时回落为玩家语义，战报、朝堂和外交记录摘要补齐通用 raw id 净化。该层只改展示字符串和展示净化，不改内部 id、schema、rawValue、objectiveId、资源文件名、导出结构、AI 决策、命令执行或规则管线。
+
+v3.7-preflight.52 已继续收口命令错误与源头战报可见文案：命令展示名、州郡命令展示名、RuleEngine 成功消息、命令意图适配错误、元帅军令解码错误、legacy 映射错误、行军/撤退/推进/拒绝/控制权变化战报、总管防区展示和诊断 raw agent id 净化都改为玩家语义，不再直出 raw 坐标、raw id、英文工程词或底层解析详情。该层只改展示字符串和展示净化，不改命令结构、record id、schema、rawValue、AI 决策、规则数值或执行语义。
+
+v3.7-preflight.53 已继续收口总管与将领档案防区展示名：`MockAICommander` 和 `TheaterCommanderPool` 的自动总管配置展示名不再拼接 `zone.id.rawValue`，`GeneralProfileView` 的“所属防区”不再直接显示 `zone.name`，遇到 raw 防区名时回落为玩家语义。该层只改展示名 fallback，不改内部 id、assigned zone、front zone schema、AI 决策、命令结构、规则数值或执行语义。
+
+v3.7-preflight.54 已继续收口 legacy fallback 数据展示文案：`ardennes_v0_scenario.json` 的场景展示名、dataNotes、keyLocations 和 tile `cityName` 去掉草稿名与坐标式命名，`ardennes_v02_regions.json` 的数据集名、region name 和 city name 去掉“旧剧本/新省份/城邑坐标”口径，`generals.json` 的 legacy 将领履历去掉“旧剧本总管/装甲总管/集团军总管”并修正博克展示名。该层只改 JSON 展示字段，不改 id、rawValue、coord、faction、templateId、objective kind、schema、加载顺序、规则或命令管线。
+
+v3.7-preflight.55 已继续收口 legacy fallback 单位与防区展示文案：`ardennes_v0_scenario.json` 的初始单位名按阵营和兵种改为中文展示，legacy 场景展示名和 dataNotes 使用阿登战局口径，`ardennes_v02_regions.json` 的 region / city 名称改为阿登防区语义。该层只改 JSON 展示字段，不改 id、rawValue、coord、faction、templateId、schema、加载顺序、规则或命令管线。
+
+v3.7-preflight.56 已继续收口 legacy static fallback 目标兼容与展示文案：静态 `MapState.ardennesV0()`、`GameState.initial()`、legacy 胜负原因和 MockAI 目标选择使用中文展示名；阿登目标判断优先按 objective id 查找，再兼容中文和英文展示名。该层只改展示文案和 legacy 兼容查找，不改 objective id、胜负阈值、行动策略、存档字段或命令管线。
+
+v3.7-preflight.57 已继续收口 legacy LLM prompt 语言：`AgentPromptBuilder` 的 system/user prompt、JSON 示例值和 `guderianFallback` 展示配置改为中文，并要求 `intent`、`reason`、`stance` 摘要使用中文。该层保留 JSON schema、command type、agent id、rawValue、解析合同、AI 决策结构、规则和命令管线。
+
+v3.7-preflight.58 已收口外交面板势力与盟从列表中的数据层英文名称直出风险：势力和盟从列表统一走展示 helper，未知英文 fallback 回落到势力中文展示名；外交记录摘要净化补齐 intent、reason、source、command、directive、RuleEngine、MockAI、model、Guderian 和常见审计 id。该层只改 `DiplomacyPanelView` 展示 helper 和 formatter，不改外交关系、命令结构、record id、存档 schema、AI 决策或规则执行。
+
+v3.7-preflight.59 已收口战报面板的结构化意图和中文战报分类：`displayedIntent` 会屏蔽 v3.x 版本诊断和复合 snake_case intent，审计 record id 净化前移到统一 sanitizer，常见 raw id 前缀补齐，旧二战专名和工程口径进一步转为玩家语义；`.event` fallback 分类补齐中文撤退、补员、围困、战斗和粮道关键词。该层只改 `EventLogView` 展示 helper 和分类兜底，不改日志 schema、事件来源、record id、AI 决策、命令结构或规则执行。
+
+v3.7-preflight.60 已收口 MapEditor 普通导出 metadata fallback：`MapEditorExportMetadata.inferred(for:)` 只有在文档 id 或展示名明确含 legacy / Ardennes / WWII / 阿登 / 旧战局时才返回 `.legacyArdennes`，未知自定义文档默认使用 `.suitangDraft`，避免普通新地图误导出旧阵营、旧 phase 或旧 dataNotes。该层只改 metadata 推断口径，不改 MapEditor 文档 schema、keyLocations 合并规则、主游戏加载、运行时规则或命令管线。
+
+v3.7-preflight.61 已收口 AI 诊断净化口径：`TurnManager.userFacingDiagnostic` 和 `AgentPanelView` 将 `model`、`legacy pipeline`、`RuleEngine`、`Guderian` 等内部词与战报面板统一为军议来源、备用军议路径、军令校验和历史总管，并补齐常见审计 id 正则净化。该层只改源头诊断与 AI 面板展示 helper，不改记录 schema、AI 决策、prompt、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.62 已收口 legacy 总管配置中文兜底：`general_agents.json` 中 `guderian` 的展示名和 personality prompt 改为中文，`GameAgent(definition:)` 对旧 bundle 或旧数据继续提供“古德里安”和中文作战偏好的窄口径兜底，`breakthrough` 仅在 traits 展示层映射为“突破”。该层不改 JSON schema、id、rawValue、command style、辖下单位 id、命令解析合同、AI 决策、规则执行或运行时状态。
+
+v3.7-preflight.63 已收口 legacy prompt 内部编号分层：`AgentPromptBuilder` 的战场摘要改为中文名称优先，解析必须使用的 `divisionId`、`targetDivisionId`、`toRegionId` 单独列入内部编号小节，schema 示例占位改为中文说明，同时保留 `type` 的 `move`、`attack`、`hold`、`resupply` rawValue 合同。该层只改 legacy LocalLLM prompt 文案结构，不改解析合同、命令结构、AI 决策、规则执行或运行时状态。
+
+v3.7-preflight.64 已收口 legacy prompt 直通文本净化：`AgentPromptBuilder` 会先净化近期战报和玩家意图再拼入 legacy LocalLLM prompt，自由文本区覆盖常见审计 id、raw 地块/州郡/方面/军队/命令 id 和 `RuleEngine`、`MockAI`、`local-model`、`rawJSON` 等工程词；内部编号表和 JSON schema 不参与净化。该层只改 legacy prompt 自由文本入口，不改展示 sanitizer、解析合同、命令结构、AI 决策、规则执行或运行时状态。
+
+v3.7-preflight.65 已收口 legacy prompt 决策者身份净化：`AgentPromptBuilder.systemPrompt` 的“决策者”不再直出 raw `context.agentId`，`guderian` 显示为“古德里安”，其他内部 id 泛化为“本地军议决策者”；“性格”改走 prompt-local 净化，`GameAgent.sample` 默认 personality 也改为中文。该层保留 JSON schema 中的 raw `agentId` 以满足 parser 校验，不改解析合同、命令结构、AI 决策、规则执行或运行时状态。
+
+v3.7-preflight.66 已收口 legacy MockAI stance 文案：`MockAIClient` 生成的 `AgentOrder.stance` 从英文标签改为中文短语，覆盖整补、火力支援、突破、推进、固守、前线行动、纵深驰援、驻防和战役预备等姿态。该层只改 `stance` 自由文本，不改 `AgentOrderType`、内部 id、目标选择、决策排序、规则执行或运行时状态。
+
+v3.7-preflight.67 已收口 legacy prompt 工程说明词：`AgentPromptBuilder` 面向 LocalLLM 的系统提示和格式说明把 `hex`、`schema`、`Markdown`、`JSON schema` 等工程说明转为六角格、结构化输出、排版标记和结构化军令口径。该层保留 `responseFormat: "json_object"`、JSON 字段名、schema version、agent id、turn、内部编号、`move`、`attack`、`hold`、`resupply` 和 parser / mapper 合同，不改 AI 决策、规则执行或运行时状态。
+
+v3.7-preflight.68 已收口模拟元帅输出格式：`SimulatedMarshalLLMClient` 编码 `TheaterDirectiveEnvelope` 后直接返回纯 JSON 字符串，不再主动包裹 Markdown 代码围栏；`TheaterDirectiveDecoder` 仍兼容 fenced JSON 和纯 JSON。该层只改内置模拟客户端输出包装，不改 `TheaterDirectiveEnvelope` / `TheaterDirective` schema、decoder 校验、元帅策略、fallback、命令编译、规则执行或运行时状态。
+
+v3.7-preflight.69 已收口 UI/战报/外交记录净化 helper：`AgentPanelView`、`EventLogView` 和 `DiplomacyPanelView` 均先清理 raw id，再替换工程词、模型词和记录词；三处词表补齐 `AI`、`LLM`、模型品牌词、`rawJson`、`raw JSON`、`Provider`、`Schema`、`record`、`Legacy Pipeline` 和裸 `pipeline` 等展示兜底。该层只改展示 helper，不改 UI 布局、记录 schema、日志来源、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.70 已收口 legacy 将领与朝堂记录可见文案：legacy `guderian` 配置和 fallback prompt 去掉“装甲突破 / 装甲部队”展示口径，`armor_expert` / `armor_theory` 显示为“突击战法”，朝堂使者 rationale 去掉“AI 自动回合”，结构化军令记录标题去掉 `JSON` 字样，外交记录净化词表补齐旧军语和 legacy 将领名。该层只改自由文本和展示 helper，不改内部 id、rawValue、`rawJSON` 字段、记录 schema、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.71 已收口 CommandPanel 命令消息展示净化：`CommandPanelView` 显示 `lastCommandMessage` 前先清理常见 raw id，再替换 `Command`、`RuleEngine`、`JSON`、`schema`、`pipeline`、`AI/LLM`、模型品牌词和 hex 工程词。该层只改命令面板展示 helper，不改 `AppContainer.lastCommandMessage` 存储、交互日志、`Command` case、`CommandResult` schema、校验逻辑、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.72 已收口单位详情与提示 legacy 单位名展示：`UnitInspectorView` 和 `UnitTooltipView` 显示单位名前先做局部展示净化，把旧 fallback 的“德军 / 盟军 / 装甲 / 摩托化 / 炮兵 / 步兵 / 师”和常见单位 raw id 转为发布前置口径；tooltip 的 VoiceOver label 同步使用同一展示名。该层只改两个单位面板的展示 helper，不改 `Division.name` 存储、JSON、templateId、rawValue、存档 schema、兵种显示权威、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.73 已收口州郡详情 legacy 地名与目标名展示：`RegionInspectorView` 的州郡名、城邑名、方面名、防区名、要地名和驻军列表显示前先做局部展示净化，清理常见地名 / 目标 raw id 与 legacy 地名。该层只改州郡详情展示 helper，不改 region / hex / objective / division 存储、JSON、id、rawValue、objectiveId、keyLocations、胜负规则、地图数据、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.74 已收口将领与总管面板 legacy 文案：`GeneralProfileView` 和 `GeneralCommandPanelView` 的将领名、军衔、履历、防区名、所属军队、目标州郡和 accessibility 文案显示前先做局部展示净化，清理常见将领 / 防区 / 州郡 / 军队 raw id 与 legacy 将领、旧地名、旧兵种词。该层只改两个面板的展示 helper，不改 `GeneralData`、`GeneralAssignment`、`FrontZone`、`Division.name`、`PlayerPlannedOperation`、JSON、rawValue、存档、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.75 已收口 MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案：`MapDisplayAdapter` 在 `HexDisplayState.cityName` / `fortressName` 和 `RegionInspectorState.objectiveNames` 进入地图标签或详情面板前做局部展示净化；`RegionInspectorView` / `UnitInspectorView` 对既有 region / theater / front zone id 与 legacy faction display 做局部兜底，避免为展示名扩展 inspector state 合同。该层只改展示值，不改 `HexDisplayState`、`RegionInspectorState`、`UnitInspectorStrategicState` 字段结构、地图 JSON、objective id、keyLocations、`RegionNode` / `HexTile` / `Objective` 存储、动态方面 / 防区权威、AI 决策、命令结构、规则执行或运行时状态。
+
+v3.7-preflight.76 已收口 MapEditor 选择器与状态消息 legacy 文案：`MapEditorView` 的“当前州郡”“当前方面”下拉项显示前先走 `MapEditorViewModel.displayName(for:)`，创建州郡、创建方面、保存地点、删除地点状态消息中的名称也先做局部展示净化。该层只改 MapEditor 可见展示值，不改 `MapEditorDocument`、导出 JSON、id / rawValue、默认资源桥、MapEditor 存储 schema、主游戏数据加载、地图规则、AI、命令或运行时状态。
+
+v3.7-preflight.77 已收口 AppContainer 交互日志与存档反馈 legacy 文案：`AppContainer` 的存档载入、继续、自动保存、新局、切换执掌势力、军队点击、州郡经营拒绝、地图选择、总管防区提交和 fallback 总管名称显示前先走局部展示 helper；外交 / 归附命令标题在 AppContainer 展示层净化，不改 `Command.displayName` 合同。该层只改可见展示值，不改 `GameState`、存档 schema、`GameLogEntry`、`Command`、`Division.name`、`RegionNode.name`、`FrontZone.name`、JSON、id / rawValue、AI 决策、命令结构或规则执行。
+
+v3.7-preflight.78 已收口 GameLogEntry 源头战报 legacy 文案：`GameLogEntry.init(...)` 会在保存 `message` 前净化常见审计 id、raw id、legacy 势力名、旧地名和旧题材单位词，覆盖 Rules / Commands / Data / Core 等 `appendEvent` 与直接 `GameLogEntry(...)` 构造路径。该层只改玩家可见日志消息，不改 `GameState.eventLog` 字段结构、`GameLogEntry` schema、`relatedRecordId` 合同、规则数值、命令执行、数据层名称、JSON、AI 决策或存档格式。
+
+v3.7-preflight.79 已收口 legacy LocalLLM prompt 临时编号别名：`AgentPromptBuilder` 会在 prompt 中净化势力、目标、军队、州郡和编号旁说明名，并用“军队一 / 敌军一 / 州郡一 / 本地决策者”等临时编号替代真实 id；`LocalLLMDecisionProvider` 解析后用同一本别名表回填真实 id。该层只改旧 LocalLLM prompt 与解析后适配，不改 `AgentDecisionEnvelope` / `AgentOrder` schema、JSON 字段名、type rawValue、parser / mapper、命令结构、默认战争 AI 主链路、规则或存档格式。
+
+v3.7-preflight.80 已收口 legacy fallback 行军总管配置：`GameAgent.guderian(from:)` 和 `guderianFallback` 不再把旧 Guderian / Germany / `ger_*` 默认单位作为可见 fallback 指挥官配置；`MarshalAgentConfig.automatic` 的 legacy `.germany` / `.allies` 分支改为中性“旧剧本势力行军总管”；模拟军议 directive id 前缀从 `marshal_` 改为 `command_`。该层只改 fallback 配置和可见诊断口径，不改 marshal / directive schema、Faction enum、JSON 数据、命令管线、规则或存档格式。
+
+v3.7-preflight.81 已收口朝堂/外交实际记录 id 展示净化：`TurnManager` 在 `courtRecord.summary` 进入 parsedIntent、战报事件和朝堂步骤展示文本前先做展示净化；`AgentPanelView`、`DiplomacyPanelView`、`EventLogView`、`CommandPanelView`、`GameLogEntry` 和 `AgentPromptBuilder` 补齐真实 `ruler_*_turn_*`、`court_*_turn_*`、`court_<turn>_*`、`diplomacy_<turn>_*` 记录 id 的展示净化；`DiplomacyState.summary(for:)` 把“敌对关系 N 条”修正为“敌对国家 N 个”。该层只改展示文案和 prompt 输入净化，不改记录 id、Codable schema、`relatedRecordId`、外交判定、命令管线、规则或存档。
+
+v3.7-preflight.82 已收口行军总管可见称谓净化：`AgentPanelView` 的 `MarshalDirective` 来源显示从“元帅军议”改为“军议”，`AgentPanelView`、`EventLogView`、`DiplomacyPanelView` 的 `Field Marshal` 展示净化统一为“行军总管”，`DiplomacyPanelView` 的裸 `Guderian` 改为“历史总管”，`CommandPanelView` / `EventLogView` 补齐 `directive_*command_*`、`order_*` 和朝堂 agent 前缀记录净化，`AgentRole.fieldMarshal.displayName` 改为“行军总管”。该层只改展示文案和展示净化，不改 rawValue、provider suffix、record id、schema、命令管线、规则或存档。
+
+v3.7-preflight.83 已收口源头 legacy 中文势力/国家/地名展示净化：`TurnManager` 的自动回合失败、方面军令诊断和错误兜底补齐旧中文势力、旧国家、旧地名、旧单位词和英文势力词净化；`DiplomacyState` 外交事件、归附交接、善后压力和善后处置摘要改走展示 helper；`GameLogEntry` 源头战报补齐英文角色、势力和工程词净化。该层只改源头展示文本与净化词表，不改数据、rawValue、record id、Codable schema、命令管线、规则或存档。
+
+v3.7-preflight.84 已收口将领档案/总管军令称谓净化对齐：`GeneralProfileView` 与 `GeneralCommandPanelView` 的 `Field Marshal` 展示统一为“行军总管”，`Guderian / 古德里安` 展示统一为“历史总管”，空单位名 fallback 先净化 legacy 势力显示。该层只改将领相关面板展示净化，不改 `GeneralData`、`Division.name`、`AgentRole` rawValue、JSON、命令管线、规则或存档。
+
+v3.7-preflight.85 已收口 fallback JSON 可见数据文本：`ardennes_v0_scenario.json` 的场景名、dataNotes、初始单位名、地点名、粮站名和 map `cityName` 改为中性旧战局口径；`ardennes_v02_regions.json` 的数据集名、region 名和 city 名补齐中性展示；`unit_templates.json` 与 `generals.json` 的 legacy 模板展示名、将领可见名、军衔和履历改为迁移期中性称谓。该层只改 fallback JSON 可见字段，不改 JSON key、id、rawValue、schema、坐标、faction、templateId、加载顺序、命令管线、规则或存档。
+
+v3.7-preflight.86 已收口源码层 legacy 可见兜底文本：`Faction.displayName` 的旧势力展示改为“旧剧本东路势力 / 旧剧本西路势力”；`VictoryReason.displayName` 的 legacy 胜负原因改为中性旧战局目标、主力和断粮口径；`DataLoader` 的旧战局补给源和代理配置校验错误改为中性描述。该层只改展示文案和错误描述，不改 enum rawValue、JSON schema、id、兼容查找、胜负判定、加载顺序、命令管线、规则或存档。
+
+v3.7-preflight.87 已收口静态 fallback 源码可见文本：`GameState.initial()` 的最后兜底单位名和初始化战报改为中性旧战局口径；`MapState.ardennesV0()` 的最后兜底城邑、要塞和 objective 展示名改为中性旧战局口径。该层只改静态 fallback 展示名和战报文本，不改 scenario id、objective id、faction、坐标、地形、补给源、胜负规则、加载顺序、命令管线或存档字段。
+
+v3.7-preflight.88 已收口 legacy objective lookup 字面量：`VictoryRules`、`RegionVictoryRules` 和 `MockAIClient` 的旧 fallback 目标查找改为 legacy objective id 优先，并只 fallback 到中性旧战局目标名；私有函数、注释和本轮触及局部变量去旧战役地名口径。该层不改 objective id、胜负阈值、AI 行动策略、`VictoryState` 存档字段、`VictoryReason` case、命令管线或存档格式。
+
+v3.7-preflight.89 已对齐 `RegionVictoryRules` 的隋唐胜负摘要：`RegionRuleSystem.analyze(_:)` 使用的 region 层胜负评估现在按 `scenarioId` 分支，默认 `wude_618_guanzhong_luoyang` 读取洛阳、洛口仓、潼关和长安 objective id；legacy fallback 摘要仍保留旧 objective id 与中性目标名兼容。该层不改主 `VictoryRules.updateVictoryState(in:)` 执行路径、`GameState.victoryState`、胜负阈值、命令管线或存档格式。
+
+v3.7-preflight.90 已抽出共享隋唐胜负 evaluator：`VictoryAssessment` 表达只读评估结果，规则层 `Wude618VictoryEvaluator` 集中维护默认隋唐剧本胜负判断，`VictoryRules` 与 `RegionVictoryRules` 均复用该 evaluator。该层不新增文件，不改 Xcode project，不改 objective id、地图数据、胜负阈值、命令管线、AI 决策或存档格式。
+
+v3.7-preflight.91 已收口指令结果语义化固守判定：`CommandResultSummary` 新增可选 `commandKind` 记录命令语义，`ZoneCommanderAgent.hasRecentStaticDefense` 改为按 `.hold` 语义判断上一轮是否静态防御，不再依赖旧英文 `Hold` 或中文展示名。该层不改 `Command` case、directive schema、AI tactic 阈值、规则执行或 Xcode project。
+
+仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的忠诚/叛乱/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
+
+迁移期间必须继续守住本文既有权威边界：hex 是战术权威，动态 theater/front/deploy 从 hex 与单位位置派生，玩家和 AI 行动仍统一进入 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 
 ---
 
@@ -72,12 +376,14 @@ MapEditor / JSON 数据
 scenarioId
 turn / maxTurns
 activeFaction
+playerFaction
 phase
 map: MapState
 theaterState: TheaterState
 frontLineState: FrontLineState
 warDeploymentState: WarDeploymentState
 economyState: EconomyState
+diplomacyState: DiplomacyState
 divisions: [Division]
 victoryState
 eventLog
@@ -88,13 +394,46 @@ playerCommandState
 状态含义：
 
 - `map` 保存地图、hex、region、补给源和目标点。
+- `playerFaction` 保存本局玩家执掌势力，v3.7-preflight.40 起进入本地存档；旧存档缺字段或字段值异常时按剧本默认唐或 legacy 人控势力回落。
 - `divisions` 保存所有单位。单位当前位置在 `Division.coord`，不是 region 或 theater。
 - `theaterState` 保存初始战区快照与运行时动态战区。
 - `frontLineState` 从动态战区相邻 hex 派生。
 - `warDeploymentState` 从动态战区/前线/单位位置派生，供 AI 调度单位。
 - `economyState` 保存 manpower、industry、supplies、生产队列、上回合收入/维护费/补员消耗，不直接改变战术占领权。
+- `diplomacyState` 保存 faction 到 country / bloc / relation 的映射。v3.1 起，攻击、ZOC、补给通行、region 压力、AI 摘要等敌对判断应优先使用 `DiplomacyState.isHostile` / `canAttack`。
+- v3.7-preflight.9 起，玩家侧议和/纳降用 `Command.updateDiplomacy` 更新 `DiplomacyState.relations`；该命令仍经 `CommandValidator` 和 `RuleEngine`，不会直接改战术占领或单位归属。
+- v3.7-preflight.10 起，玩家侧修道/屯田/安民用 `Command.governRegion` 更新州郡战略字段和府库；该命令仍经 `CommandValidator` 和 `RuleEngine`，不会直接改 hex 占领、单位位置、动态方面或部署归属。
+- v3.7-preflight.11 起，AI/观战自动回合的太守层可在 `endTurn` 前最多提交一条 `Command.governRegion`；该命令仍经 `CommandValidator` 和 `RuleEngine`，不会直接改 hex 占领、单位位置、动态方面或部署归属。
+- v3.7-preflight.12 起，AI/观战自动回合的使者层可在 `endTurn` 前最多提交一条 `Command.updateDiplomacy`；该命令仍经 `CommandValidator` 和 `RuleEngine`，不会直接改 hex 占领、region、军队、动态方面或部署归属。
+- v3.7-preflight.13 起，外交关系变化会追加 `DiplomacyEventRecord` 并关联 `.diplomacy` 战报；归附记录仍只是事件审计，不会直接改 hex 占领、region、军队、动态方面或部署归属。
+- v3.7-preflight.14 起，已归附且无存活军队、无可通行受控 hex 的势力会退出通用隋唐回合轮转；该收口只改变 turn order，不直接改 hex 占领、region、军队、动态方面或部署归属。
+- v3.7-preflight.15 起，归附目标判定统一由 `DiplomacyState` helper 提供；外交面板会只读盘点归附目标的存活军队和受控可通行 hex，说明其是否仍进入回合轮转，不直接执行归属交接。
+- v3.7-preflight.16 起，归附接收方可通过 `Command.resolveSubmissionHandoff` 接管归附目标未毁灭军队和可通行受控 hex；执行后仍由同步器和 bootstrapper 刷新 region、动态方面、前线与部署。
+- v3.7-preflight.17 起，归附交接完成后会追加 `SubmissionHandoffRecord` 并关联外交战报；外交面板只读展示最近交接记录和边界说明。
+- v3.7-preflight.18 起，AI 接收方会在 AI 回合最多提交一条 `Command.resolveSubmissionHandoff`，仍经 `RuleEngine` 执行并进入 AI command results。
+- v3.7-preflight.19 起，归附交接成功后会追加 `SubmissionAftermathRecord` 善后压力只读记录，并关联外交日志供外交面板复盘。
+- v3.7-preflight.20 起，AI 太守会在后续 AI 回合优先考虑最新高/需安抚善后压力记录的受影响州郡，仍只提交既有 `Command.governRegion`。
+- v3.7-preflight.21 起，既有州郡经营命令治理最新善后州郡后会追加 `SubmissionAftermathGovernanceRecord` 处置审计记录。
+- v3.7-preflight.22 起，外交面板会按最新善后记录显示已处置州郡数量和总受影响州郡数量。
+- v3.7-preflight.23 起，AI 太守会优先治理最新善后记录中尚未产生处置记录的受影响州郡。
+- v3.7-preflight.24 起，外交面板会显示最新善后的待处置数量和完成状态，AI 太守在本次善后全部处置后不再特殊优先该记录。
+- v3.7-preflight.25 起，发布前检查面板会区分代码已接入、运行时未验证和后续功能，避免把候选接入状态误写成发布通过。
+- v3.7-preflight.26 起，AI 太守在有朝堂太守步骤或未完成善后上下文但没有生成经营命令时，会写入确定性跳过诊断。
+- v3.7-preflight.27 起，AI 使者在有朝堂使者步骤但没有生成外交命令时会写入确定性跳过诊断；存在已归附目标但没有生成交接命令时，也会写入接收方或残余实体诊断。
+- v3.7-preflight.28 起，MapEditor 默认读取和覆盖保存 `wude_618` 隋唐资源，覆盖默认资源时保留既有场景元数据和水路地点记录。
+- v3.7-preflight.29 起，MapEditor 文档显式保存 `keyLocations`，右键信息面板可编辑地点名称、类型、势力和 objectiveId，导出时以文档地点字段优先。
+- v3.7-preflight.30 起，发布前检查面板显示当前 `GameState` 静态门禁快照，但仍不等同于运行时验证或 CI artifact 验收。
+- v3.7-preflight.31 起，legacy 势力名、旧阶段/胜负原因、军队方向和经济事件日志的玩家可见兜底已中文化。
+- v3.7-preflight.32 起，App/AI 记录、bootstrap 战报、朝堂面板和将领技能显示中的第一批玩家可见调试文案已中文化或隐藏无数据占位。
+- v3.7-preflight.33 起，外交面板、朝堂决策摘要、州郡/军队详情和基础可访问性入口中的一批 raw id、英文 fallback 与工程术语已收口为玩家语义。
+- v3.7-preflight.34 起，AI 决策面板、方面军令诊断、命令结果摘要和 legacy Agent D 失败路径中的一批英文诊断、工程术语、provider suffix、raw agent id / front zone id / region id 和校验 rawValue 已收口为玩家语义。
+- v3.7-preflight.35 起，战报 metadata、战报重点摘要和总管预备军令预览中的一批 raw record id、region/front zone id 和斜线工程格式已收口为玩家语义。
+- v3.7-preflight.40 起，`playerFaction` 是当前玩家执掌势力权威；通用回合阶段推进由 `CommandExecutor` 对比 `state.activeFaction` 和 `state.playerFaction`，基础设置切换只改变本局执掌判定和必要 phase，不直接执行战术命令。
+- v3.7-preflight.87 起，`GameState.initial()` 最后 fallback 的静态单位名和初始化战报只保留中性旧战局展示口径；scenario id、unit id、faction、坐标、加载顺序、规则和存档字段不变。
 - `eventLog` 给 UI 和调试看。
 - `warDirectiveRecords` 记录战争指令执行回放，供 v0.36+ 后续接 LLM / 聊天命令审计。
+
+v3.1 后 `Faction` 同时包含 legacy 二战势力和隋唐势力。legacy `germany/allies`、`germanAI/alliedPlayer` 仍用于旧阿登路径；隋唐新路径应使用 `playerCommand/aiCommand` 和 `DiplomacyState` 关系判断。`Faction.opponent` 只保留为兼容旧代码的 convenience，不再作为新主逻辑入口。
 
 ### 1.2 MapState / Hex
 
@@ -126,6 +465,8 @@ regionId: RegionId?
 ```
 
 当前语义：
+
+- v3.7-preflight.87 起，`MapState.ardennesV0()` 最后 fallback 的静态城邑、要塞和 objective 展示名只保留中性旧战局口径；objective id、坐标、faction、地形、补给源、胜负规则和存档字段不变。
 
 - `HexCoord` 是 axial q/r 坐标，移动、攻击、距离、邻接都基于 hex。
 - `HexTile.controller` 是真实占领权威；中立 hex 的 controller 为 `nil`。
@@ -351,16 +692,39 @@ isCoreZone
 
 这层是 AI 调度能否“看见部队”的关键。历史上的“AI 看起来不动”根因之一就是突破后的单位被误判成 garrison，从 `unitsFront` 调度池消失。现在前线/敌区/敌控 hex 会强制把这种单位归到 front。
 
-### 1.7 后续统治者层预留
+### 1.7 朝堂 AI 审计层
 
-v0.5 当前不接入统治者层。工作树中可能存在 `WWIIHexV0/Core/DiplomacyState.swift`、`WWIIHexV0/Agents/RulerAgent.swift` 等其他版本方向文件，但它们不是本 v0.5 分支的默认战争 AI 主链路，`TurnManager` 当前不调用 `RulerAgent`。
+源码：`WWIIHexV0/Core/DiplomacyState.swift`、`WWIIHexV0/Agents/RulerAgent.swift`、`WWIIHexV0/Turn/TurnManager.swift`
 
-后续若加入统治者层，必须满足这些边界：
+v3.4 起，默认战争 AI directive 路径接入最小朝堂层。它位于元帅/战区 directive 与执行层之间：
 
-- 统治者只能位于元帅上游，输出国家级姿态、优先方向或约束条件。
-- 统治者不得直接生成底层 `Command`，不得绕过 `MarshalAgent` / `ZoneDirective`。
-- 统治者不得直接修改 `HexTile.controller`、`Division.coord`、`regionToTheater`、`hexToTheater` 或 `hexToFrontZone`。
-- 若需要审计记录，必须单独设计数据 schema，并在 `md/flow/*`、`README.md`、`update_log.md` 中同步说明。
+```text
+MarshalAgent / TheaterCommanderPool
+  -> DirectiveEnvelope
+  -> CourtAgent.deliberate
+  -> RulerAgent.adjust
+  -> adjusted DirectiveEnvelope
+  -> WarCommandExecutor
+  -> RuleEngine
+```
+
+`DiplomacyState` 保存两类 AI 审计记录：
+
+```text
+rulerRecords: [RulerDecisionRecord]
+courtRecords: [CourtDecisionRecord]
+```
+
+`RulerDecisionRecord` 记录君主姿态、重点方面、目标州郡、攻击阈值倾向、预备队倾向和理由。`CourtDecisionRecord` 记录朝堂步骤：君主、谋主、太守、行军总管、将领、使者。`AgentPanelView` 读取 `latestCourtRecord` 展示朝堂链路。
+
+当前边界：
+
+- 朝堂层只调整 `DirectiveEnvelope` 中的 `ZoneDirective`，不直接生成底层 `Command`。
+- 朝堂层不能绕过 `WarCommandExecutor` / `RuleEngine`。
+- 朝堂层不能直接修改 `HexTile.controller`、`Division.coord`、`regionToTheater`、`hexToTheater` 或 `hexToFrontZone`。
+- v3.7-preflight.10 后玩家侧太守经营可通过 `Command.governRegion` 执行；v3.7-preflight.11 后 AI 太守会在 AI/观战自动回合最多生成一条 `Command.governRegion`，仍交给 `RuleEngine` 校验执行。
+- v3.7-preflight.9 后玩家侧使者可通过 `Command.updateDiplomacy` 执行议和/纳降；v3.7-preflight.12 后 AI 使者会在保守条件下最多生成一条停战或归附关系命令；v3.7-preflight.13 后外交关系变化会生成 `DiplomacyEventRecord` 并关联战报；v3.7-preflight.14 后已归附且无实体存在的势力会退出通用回合轮转；v3.7-preflight.15 后外交面板会盘点归附目标残余实体；v3.7-preflight.16 后归附接收方可通过 `Command.resolveSubmissionHandoff` 接管残余军队和可通行受控 hex，仍交给 `RuleEngine` 校验执行；v3.7-preflight.17 后交接结果会生成 `SubmissionHandoffRecord` 并关联外交战报；v3.7-preflight.18 后 AI 接收方会在 AI 回合最多执行一条归附实体交接命令；v3.7-preflight.19 后交接成功会生成 `SubmissionAftermathRecord` 善后压力只读记录；v3.7-preflight.20 后 AI 太守会把高/需安抚善后州郡纳入优先经营候选；v3.7-preflight.21 后治理这些善后州郡会生成 `SubmissionAftermathGovernanceRecord` 处置审计记录；v3.7-preflight.22 后外交面板会汇总本次善后处置进度；v3.7-preflight.23 后 AI 太守会优先治理尚未处置的善后州郡；v3.7-preflight.24 后外交面板会显示待处置数量和完成状态，AI 太守在全部处置后不再特殊优先该善后记录；v3.7-preflight.25 后发布检查面板会把代码接入、运行时门禁和后续功能拆开展示；v3.7-preflight.26 后 AI 太守跳过经营时会把原因写入诊断；v3.7-preflight.27 后 AI 使者和归附交接跳过行动时也会把原因写入诊断；v3.7-preflight.28 后 MapEditor 默认资源桥对齐到 `wude_618` 并保留既有场景元数据；v3.7-preflight.29 后 MapEditor 可字段化维护 scenario `keyLocations`；v3.7-preflight.30 后发布检查面板可展示当前 `GameState` 静态门禁快照；v3.7-preflight.31 后部分 legacy 势力名、阶段、胜负原因和事件日志显示兜底已中文化；v3.7-preflight.32 后第一批 App/AI 记录、bootstrap 战报、朝堂面板和将领技能调试文案已中文化；v3.7-preflight.33 后外交/朝堂面板、记录摘要、详情面板和可访问性入口的一批 raw/debug 文案已收口；v3.7-preflight.34 后 AI 诊断、命令结果摘要和 legacy Agent D 失败路径的一批英文/工程词已收口；v3.7-preflight.35 后战报 metadata、战报重点摘要和总管预备军令预览的一批 raw/debug 文案已收口。
+- 元帅 JSON 解码失败时仍先使用 `TheaterCommanderPool` fallback，再进入朝堂层审计和塑形，不执行半成品 JSON。
 
 ### 1.8 EconomyState / EconomyRules
 
@@ -461,7 +825,18 @@ AppContainer.bootstrap()
   -> AppContainer(...)
 ```
 
-`DataLoader.loadInitialGameState()` 当前优先走编辑器兼容 JSON：
+`DataLoader.loadInitialGameState()` 当前优先走 v3.2 隋唐默认 JSON：
+
+```text
+loadGameState(
+  scenarioName: "wude_618_scenario",
+  regionName: "wude_618_regions",
+  unitTemplatesName: "suitang_unit_templates",
+  generalRegistryName: "suitang_generals"
+)
+```
+
+如果 v3.2 数据加载失败，才 fallback 到编辑器兼容阿登 JSON：
 
 ```text
 loadGameState(
@@ -470,7 +845,7 @@ loadGameState(
 )
 ```
 
-如果失败，才 fallback 到老的 `GameState.initial()` + v0.2 region 叠加路径。
+如果阿登 JSON 也失败，最后 fallback 到老的 `GameState.initial()` + v0.2 region 叠加路径。
 
 ### 2.2 loadGameState 的完整链条
 
@@ -493,6 +868,8 @@ loadRegionDataSet(named:)
   -> RegionOccupationRules().mapByAggregatingControllers(in: map)
      - 从 hex controller 派生 region controller
   -> makeDivisions(from: scenario.initialUnits)
+     - 优先使用传入的 unit template resource
+     - 缺失时 fallback 到 legacy component 规则，保证 MapEditor 临时导出仍可加载
   -> makeTheaterState(map, regionData, divisions, turn)
      - 优先使用 regionData.regions[].theaterId
      - 没有 assignment 时使用 TheaterSystem.makeInitialFixedTheaters
@@ -500,6 +877,9 @@ loadRegionDataSet(named:)
      - capture initialSnapshot
   -> FrontLineManager.makeInitialState(...)
   -> WarDeploymentManager.makeInitialState(...)
+  -> assignGenerals(...)
+     - 优先使用传入的 general registry resource
+     - 缺失时 fallback 到 empty registry
   -> GameState(...)
 ```
 
@@ -543,6 +923,9 @@ regions: [RegionId: MapEditorRegionDraft]
 theaters: [TheaterId: MapEditorTheaterDraft]
 regionTheaterAssignments: [RegionId: TheaterId]
 initialUnits: [MapEditorUnitDraft]
+keyLocations: [MapEditorKeyLocationDraft]
+keyLocationsAreAuthoritative: Bool
+suppressedKeyLocationCoordKeys: Set<String>
 backgroundImage
 ```
 
@@ -550,9 +933,9 @@ backgroundImage
 
 ```text
 hexPainter         地块
-regionBuilder      省份
-theaterAssignment  战区
-unitPlanner        部队
+regionBuilder      州郡
+theaterAssignment  方面
+unitPlanner        军队
 ```
 
 编辑动作：
@@ -575,7 +958,10 @@ extend  在已有 hex 邻位扩展稀疏地图
 - `MapEditorDocument.contains(_:)` 判断实际存在的 hex，支持稀疏地图。
 - `addHex(at:)` 只能在已有 hex 邻位扩展，避免凭空造孤岛。
 - `deleteHex(at:)` 会删除该 hex 上初始部队；如果某 region 已无 hex，会删除 region 和 theater assignment。
-- `resize` 会裁剪外部 hex、清理无效 region assignment 和越界单位。
+- `deleteHex(at:)` / `resetHex(at:)` 会删除该 hex 上的独立地点记录，并写入坐标级地点抑制记录。
+- `resize` 会裁剪外部 hex、清理无效 region assignment、越界单位、越界地点记录和越界地点抑制记录。
+- v3.7-preflight.29 起，`keyLocations` 保存 scenario 地点字段；旧文档缺该字段时仍可解码，`keyLocationsAreAuthoritative` 为 false 时导出器会用现有 scenario metadata 兜底。
+- `suppressedKeyLocationCoordKeys` 记录用户删除或重置过的地点坐标，阻止导出器从 metadata 或 city / fortress / supply hex 语义重新补回该坐标。
 - 底图 `backgroundImage` 只存在编辑器文档，不写入游戏 JSON。
 
 ### 3.2 编辑会话
@@ -615,6 +1001,10 @@ extend  在已有 hex 邻位扩展稀疏地图
   - 同一 hex 新 stamp 会先删除原单位。
   - deleting / erase：删除该 hex 上初始单位。
 
+- 右键信息面板
+  - 可改选中 hex 的州郡/方面名称。
+  - v3.7-preflight.29 起，可保存或删除该 hex 的地点名称、类型、势力和 objectiveId。
+
 快捷键：
 
 - `N`：添加。
@@ -643,6 +1033,10 @@ RegionDataSet JSON
 - 每个 `MapEditorHex` 写为 `ScenarioTileDefinition`。
 - terrain / road / controller / city / fortress / supply / objective / regionId。
 - factions、initialTurn、initialPhase、playerFaction、aiFaction。
+- v3.7-preflight.28 起，`MapEditorExportMetadata` 会为默认隋唐导出保留既有 factions、maxTurns、initialPhase、playerFaction、aiFaction、victoryConditions、objectives 点数、`keyLocations` 和 dataNotes。
+- v3.7-preflight.60 起，普通自定义文档未传 metadata 时默认使用隋唐草稿口径；只有明确 legacy / Ardennes / WWII / 阿登 / 旧战局文档才推断为 legacy 阿登 metadata。
+- v3.7-preflight.29 起，`document.keyLocations` 会写入 `ScenarioDefinition.keyLocations` 并作为合并 base；`keyLocationsAreAuthoritative == false` 时再合入 metadata `keyLocations`，旧文档缺字段会解码为 false；city / fortress / supply hex 派生地点始终作为补齐来源，三者按 id / objectiveId / coord 去重。
+- 导出地点时会过滤当前文档不存在的坐标，并跳过 `suppressedKeyLocationCoordKeys` 中的坐标，避免删除派生地点后又被 city / fortress / supply 语义补回。
 - `initialUnits` 从 `MapEditorUnitDraft` 写入。
 - 底图不写入。
 
@@ -678,9 +1072,17 @@ supplySources / objectives:
 默认读写路径：
 
 ```text
-WWIIHexV0/Data/ardennes_v0_scenario.json
-WWIIHexV0/Data/ardennes_v02_regions.json
+WWIIHexV0/Data/wude_618_scenario.json
+WWIIHexV0/Data/wude_618_regions.json
 ```
+
+v3.7-preflight.28 后 MapEditor 默认资源桥已与主游戏默认入口对齐到 `wude_618`。阿登 JSON 仍作为 legacy fallback 和历史回归参考保留，但编辑器“读取默认隋唐资源 / 覆盖保存为游戏资源”不再默认写阿登文件。
+
+覆盖默认隋唐资源时，`MapEditorGameResourceBridge` 会读取现有 `wude_618_scenario.json` 的场景元数据并传给 `MapEditorExporter`。导出器会保留既有势力列表、回合配置、胜负条件、objective 点数和 data notes；v3.7-preflight.29 后若 `keyLocationsAreAuthoritative == false` 才继续用 metadata `keyLocations` 兜底，旧文档缺字段会解码为 false。`document.keyLocations` 始终优先，city / fortress / supply hex 派生地点仍会补齐未显式设置或未抑制的坐标。这样避免保存一次编辑器数据就把 `wude_618` 退回 legacy `alliedPlayer` / `germany` / 空胜负条件口径，同时允许编辑器实际修改渡口/港口等地点记录。
+
+v3.7-preflight.29 后，MapEditor 右栏“导出 JSON 到内存”对 `wude_618` 文档也会通过 `MapEditorGameResourceBridge.exportMetadata(for:)` 传入默认场景 metadata，避免内存导出和覆盖默认资源在胜负条件、objective 点数或地点兜底上分叉。
+
+当前限制：地点字段只影响 scenario `keyLocations` 和 MapEditor 画布标记，不新增水战、渡河、港口补给、移动、战斗或胜负规则。
 
 流程：
 
@@ -693,9 +1095,14 @@ loadDefaultDocument()
      - region definitions -> MapEditorRegionDraft
      - region theaterId -> regionTheaterAssignments
      - scenario initialUnits -> MapEditorUnitDraft
+     - scenario keyLocations -> MapEditorKeyLocationDraft
 
 overwriteDefaultGameResources(document:)
-  -> MapEditorExporter.export(... 固定默认文件名)
+  -> 读取现有 wude_618 scenario 元数据
+  -> MapEditorExporter.export(... 固定默认隋唐文件名, metadata: ...)
+     - document.keyLocations 优先
+     - keyLocationsAreAuthoritative == false 时 metadata.keyLocations 兜底
+     - city / fortress / supply hex 派生地点补齐未显式设置的坐标
   -> 写回 WWIIHexV0/Data
 ```
 
@@ -734,7 +1141,7 @@ mapDisplayLayer
 submit(command)
   -> commandHandler.execute(command, in: gameState)
   -> StrategicStateBootstrapper.bootstrapIfNeeded(result.state)
-  -> lastCommandMessage = result.message
+  -> lastCommandMessage = commandPanelMessage(for: result)
   -> appendInteractionEvent(...)
   -> refreshSelectionAfterStateChange()
   -> runAIIfNeeded()
@@ -761,7 +1168,7 @@ handleBoardTap(coord)
 - 非 observer mode。
 - 单位属于 `playerFaction`。
 - 当前 activeFaction 是 `playerFaction`。
-- 当前 phase 是 `.alliedPlayer`。
+- 当前 phase 允许玩家输入，即 `phase.allowsPlayerInput`。
 - 未行动。
 
 ### 4.2 RootGameView
@@ -771,20 +1178,24 @@ handleBoardTap(coord)
 主界面元素：
 
 - `BoardSceneView`：SpriteKit 地图。
-- `HUDView`：回合、下一步、新游戏。
+- `HUDView`：回合、当前势力、阶段、资源、胜负、局势菜单和结束回合。
+- `GameSaveStore`：本地 JSON 存取 `GameState`；`AppContainer` 在启动、命令执行、总管军令和 AI 结算后调用。
 - `MapDisplayLayer` segmented picker：
-  - `Hex`
-  - `Province`
-  - `Initial`
-  - `Dynamic`
-  - `Front`
-  - `Deploy`
-- `Observer` toggle。
-- `[ INFO ]` 面板，内含：
-  - Unit + Region + Command
-  - Region
-  - Log
-  - AI
+  - 地块
+  - 州郡
+  - 初始方面
+  - 动态方面
+  - 前线
+  - 部署
+- “观战” toggle。
+- “军情 / 收起军情”面板，内含：
+  - 军队
+  - 州郡
+  - 总管
+  - 战报
+  - 粮饷
+  - 外交
+  - 朝堂
 - `UnitTooltipView`。
 
 当前开局不会在 `RootGameView` 自动 `.task { runAIIfNeeded() }`。AI 行动由 `advanceOrRunAI()` 或命令提交后的 `runAIIfNeeded()` 触发。
@@ -820,10 +1231,16 @@ WWIIHexV0Mac
 ```text
 ardennes_v0_scenario.json
 ardennes_v02_regions.json
+wude_618_scenario.json
+wude_618_regions.json
 general_agents.json
 generals.json
+suitang_generals.json
 terrain_rules.json
+suitang_terrain_rules.json
 unit_templates.json
+suitang_unit_templates.json
+suitang_power_profiles.json
 ```
 
 DEBUG 下 `DataLoader` 仍优先读源码目录 `WWIIHexV0/Data/*.json`；bundle resources 是 release / fallback 路径。
@@ -1083,21 +1500,79 @@ SupplyRules.updateSupplyStates
 EconomyRules.resolveFactionTurn(for: activeFaction)
   -> 收入入账
   -> 支付战略补给维护费
-  -> supplies 短缺时 supplied 单位降为 lowSupply
-  -> 安全后方自动补员
+  -> 粮草库存短缺时 supplied 单位降为 lowSupply
+  -> 安全后方自动补员；v3.3 起被围城池/关隘守军不能自动补员
   -> 推进生产队列并部署完成单位
 SupplyRules.advanceRetreats
 SupplyRules.applyEncirclementAttrition
 VictoryRules.updateVictoryState
+  -> wude_618_guanzhong_luoyang:
+     唐控制洛阳 + 洛口仓即胜
+     洛阳隋控制潼关即胜
+     终局最后一个势力行动结束后按长安控制权结算
+  -> legacy Ardennes:
+     Bastogne / St. Vith / eliminated units / German armor supply
 
-activeFaction:
-  germany -> allies, phase alliedPlayer
-  allies -> germany, phase germanAI, turn += 1
+legacy activeFaction:
+  germany + germanAI -> allies + alliedPlayer
+  allies + alliedPlayer -> germany + germanAI, turn += 1
+
+generic activeFaction:
+  playerCommand / aiCommand
+  -> 按当前状态实际势力集合和 Faction.suitangTurnOrder 推进
+  -> tang / allies 默认进入 playerCommand
+  -> 其他势力默认进入 aiCommand
 
 resetActionsForActiveFaction
 StrategicStateBootstrapper.refreshRuntimeState
 appendEvent("Turn advanced ...")
 ```
+
+### 5.4 v3.3 兵种、粮道和围城最小规则
+
+源码：`WWIIHexV0/Core/Division.swift`、`WWIIHexV0/Core/SupplyState.swift`、`WWIIHexV0/Rules/CombatRules.swift`、`WWIIHexV0/Rules/SupplyRules.swift`、`WWIIHexV0/Rules/EconomyRules.swift`
+
+v3.3 起，`ComponentType` 同时保留 legacy 二战 rawValue 和新增隋唐兵种 rawValue。当前可直接表达：
+
+```text
+infantry        -> 步卒
+cavalry         -> 骑军
+archer          -> 弓弩
+siegeEngine     -> 攻城器械
+guard           -> 亲军
+naval           -> 水师
+militia         -> 乡兵
+
+tank / motorizedInfantry / artillery
+  -> legacy rawValue，保留给阿登数据和旧测试兼容
+```
+
+`Division` 仍是源码兼容名，但 UI 显示为军队/兵种；规则通过 helper 判断：
+
+```text
+hasCavalryShock    -> 平原冲击、复杂地形限制、机动排序
+isMobileForce      -> ZoneCommanderAgent / WarCommandExecutor 选择机动单位
+hasRangedSupport   -> 弓弩压制、远程支援评分
+hasSiegeCapability -> 攻城器械对城池/关隘加成
+primaryComponentType / unitKindDisplayName -> UI 军牌和检查器显示
+```
+
+围城是派生判断，不是新的占领权威：
+
+```text
+SupplyRules.isBesieged(division)
+  条件：
+    1. division 所在 hex / region 代表点是城池或关隘
+    2. 该 division 无己方粮道
+    3. 邻接 hex 有外交敌对单位
+  结果：
+    supplyState 归入 encircled
+    写入围城日志
+    CombatRules 下调被围守军防御
+    EconomyRules 不给被围守军自动补员
+```
+
+城池/关隘被围不会直接改变 `HexTile.controller`，也不会直接改变 `RegionNode.controller`、`hexToTheater` 或 `hexToFrontZone`。破城、占领和动态推进仍必须通过 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`，再由 `StrategicStateSynchronizer` 刷新战略层。
 
 ---
 
@@ -1118,10 +1593,13 @@ AppContainer.runAIIfNeeded
   -> SimulatedMarshalLLMClient.completeTheaterDirectiveJSON
   -> TheaterDirectiveDecoder.parse
   -> TheaterDirectiveCompiler.compile
+  -> CourtAgent.deliberate
+  -> RulerAgent.adjust
   -> DirectiveEnvelope / ZoneDirective
   -> WarCommandExecutor.execute(directive, in: state)
   -> RuleEngine.execute(Command)
   -> WarDirectiveRecord
+  -> RulerDecisionRecord / CourtDecisionRecord
   -> RuleEngine.execute(.endTurn)
 ```
 
@@ -1146,7 +1624,7 @@ TheaterDirective
   rationale
 ```
 
-`TheaterDirectiveDecoder` 负责从模拟 LLM 文本中提取 fenced JSON，使用 `JSONDecoder` 解码，并校验 schemaVersion、issuerId、turn、faction、zone 存在性、zone 阵营、region id、target theater/front zone 与 tactic/category 一致性。解码或校验失败时，不执行半成品 JSON，`MarshalAgent` fallback 到 `TheaterCommanderPool`。
+`TheaterDirectiveDecoder` 负责从模拟 LLM 文本中提取纯 JSON 或 fenced JSON，使用 `JSONDecoder` 解码，并校验 schemaVersion、issuerId、turn、faction、zone 存在性、zone 阵营、region id、target theater/front zone 与 tactic/category 一致性。解码或校验失败时，不执行半成品 JSON，`MarshalAgent` fallback 到 `TheaterCommanderPool`。
 
 `TheaterDirectiveCompiler` 把元帅意图降级到现有 `ZoneDirective`：
 
@@ -1154,9 +1632,16 @@ TheaterDirective
 - defense -> `ZoneDirective.defend`，把 reserveBias 转成 targetReserves，把 focus/weighted regions 转成 strongpointRegionIds，把 supportRegionIds 转成 fallbackRegionIds。
 - 某个 zone 没有元帅 directive 或编译失败时，使用 `TheaterCommanderPool` 给该 zone 的旧 directive。
 
-最终执行由 `TurnManager.executeDirectiveEnvelope` 统一完成。`.marshalDirective` 和显式 `.zoneDirective` 共享同一段 WarCommandExecutor 执行、WarDirectiveRecord 记录、endTurn 推进逻辑。
+v3.4 后，`CourtAgent` 在执行前读取 `DirectiveEnvelope` 并写出朝堂审计：
 
-统治者层是后续预留方向，当前 v0.5 主路径不调用 `RulerAgent`，也不在 `DirectiveEnvelope` 与执行层之间插入姿态塑形。
+- 君主层调用 `RulerAgent.adjust`，按姿态调整攻防强度、预备队倾向和部分目标排序，同时保留元帅编译出的 focus/support/convergence/coordinated/maxCommitted/exploit 等字段。
+- 谋主层记录 `TheaterDirectiveEnvelope.strategicIntent` 或 fallback 方面目标。
+- 太守层记录补给、围城和州郡治理关注点；玩家侧经营已由 `Command.governRegion` 执行，AI 太守会在 `TurnManager.executeDirectiveEnvelope` 的朝堂记录之后尝试生成一条 `Command.governRegion`。
+- 行军总管层记录将下发的 `ZoneDirective` 数量和目标。
+- 将领层记录战术偏好，不直接选择底层 `Command`。
+- 使者层记录 `DiplomacyState.summary`；玩家侧外交已由 `Command.updateDiplomacy` 执行，AI 使者会在 `TurnManager.executeDirectiveEnvelope` 的太守经营之后尝试生成一条保守外交关系命令。
+
+最终执行由 `TurnManager.executeDirectiveEnvelope` 统一完成。`.marshalDirective` 和显式 `.zoneDirective` 共享同一段 CourtAgent 塑形、WarCommandExecutor 执行、WarDirectiveRecord 记录、Ruler/Court 审计记录、AI 太守经营命令尝试、AI 使者外交命令尝试和 endTurn 推进逻辑。
 
 Legacy Agent D 仍存在，但只在显式 `.legacyAgentOrder` 分支运行：
 
@@ -1177,6 +1662,7 @@ TurnManager.runAITurn(... pipelineMode: .zoneDirective)
   -> TheaterCommanderPool.envelope
   -> ZoneCommanderAgent.makeDirective
   -> DirectiveEnvelope
+  -> CourtAgent.deliberate
   -> WarCommandExecutor
 ```
 
@@ -1234,20 +1720,20 @@ shouldAttack =
 分类结果：
 
 - offense：
-  - `blitzkrieg`：机动兵力占比高且 adjustedRatio >= 1.65。
-  - `spearhead`：机动兵力可用，adjustedRatio >= 1.35，且有可见敌 region；用于定点矛头。
-  - `breakthrough`：adjustedRatio >= 1.35，向弱点突破。
-  - `fireCoverage`：炮兵/远程支援可用但优势不足，先火力覆盖。
-  - `feint`：优势不足但需要牵制时少量佯攻。
-  - `guerrillaWarfare`：机动兵力可用、敌 region 多、优势有限时袭扰纵深。
-  - `standardAttack`：普通进攻 fallback。
+  - `blitzkrieg` / 疾骑突进：机动兵力占比高且 adjustedRatio >= 1.65。
+  - `spearhead` / 突骑破阵：机动兵力可用，adjustedRatio >= 1.35，且有可见敌 region；用于定点矛头。
+  - `breakthrough` / 破阵：adjustedRatio >= 1.35，向弱点突破。
+  - `fireCoverage` / 弓弩压制：弓弩、投石或其他远程支援可用但优势不足，先火力覆盖。
+  - `feint` / 佯动：优势不足但需要牵制时少量佯攻。
+  - `guerrillaWarfare` / 袭扰截粮：机动兵力可用、敌 region 多、优势有限时袭扰纵深。
+  - `standardAttack` / 正攻：普通进攻 fallback。
 - defense：
-  - `lastStand`：极端劣势、无纵深预备队且压力高时死守。
-  - `defenseInDepth`：有纵深预备队且压力/劣势明显时纵深防御。
-  - `elasticDefense`：压力、补给警告或劣势时弹性防御。
-  - `holdPosition`：普通防御 fallback。
+  - `lastStand` / 死守：极端劣势、无纵深预备队且压力高时死守。
+  - `defenseInDepth` / 守关层防：有纵深预备队且压力/劣势明显时纵深防御。
+  - `elasticDefense` / 诱敌退守：压力、补给警告或劣势时弹性防御。
+  - `holdPosition` / 固守：普通防御 fallback。
 
-`TacticConditionChecker` 不再恒放行：闪电战/游击战要求机动单位，火力覆盖要求炮兵或远程单位，佯攻要求前线单位，纵深防御要求 depth 预备队；不满足条件会降级为 `holdPosition`。
+`TacticConditionChecker` 不再恒放行：疾骑突进/袭扰截粮要求机动单位，弓弩压制要求远程支援单位，佯攻要求前线单位，纵深防御要求 depth 预备队；不满足条件会降级为 `holdPosition`。
 
 进攻 directive：
 
@@ -1712,10 +2198,12 @@ MapEditorGameResourceBridge.loadDefaultDocument
 
 ## 10. 当前已知边界
 
-- 真 LLM 尚未接入；当前只用 `SimulatedMarshalLLMClient` 模拟 fenced JSON 输出和解码流程。
-- 默认 AI 上游已是 `MarshalAgent -> TheaterDirectiveEnvelope -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler`，下游执行必须是 `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
+- 真 LLM 尚未接入；当前只用 `SimulatedMarshalLLMClient` 模拟纯 JSON 输出，decoder 仍兼容 fenced JSON 和纯 JSON。
+- 默认 AI 上游已是 `MarshalAgent -> TheaterDirectiveEnvelope -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent`，下游执行必须是 `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 - 元帅层不能直接输出底层 `Command`，不能直接修改地图、单位、hex controller 或动态战区权威。
-- 统治者层只作为未来方向预留，当前 v0.5 不在主链路调用。
+- 朝堂层塑形和审计 `DirectiveEnvelope`；v3.7-preflight.9 已有玩家侧议和/纳降命令，v3.7-preflight.10 已有玩家侧州郡经营命令，v3.7-preflight.11 已有 AI 太守主动经营，v3.7-preflight.12 已有 AI 使者主动外交，v3.7-preflight.13 已有最小归附事件记录链，v3.7-preflight.14 已有归附空势力轮转收口，v3.7-preflight.15 已有归附实体盘点和事件 target 判定收口，v3.7-preflight.16 已有最小归附实体交接命令，v3.7-preflight.17 已有归附交接审计记录，v3.7-preflight.18 已有 AI 归附实体交接，v3.7-preflight.19 已有归附善后压力只读记录，v3.7-preflight.20 已有 AI 善后太守优先治理，v3.7-preflight.21 已有善后处置审计记录，v3.7-preflight.22 已有善后处置进度摘要，v3.7-preflight.23 已有 AI 善后未处置优先治理，v3.7-preflight.24 已有善后完成状态提示，v3.7-preflight.25 已有发布检查门禁拆分，v3.7-preflight.26 已有 AI 太守跳过诊断，v3.7-preflight.27 已有 AI 使者/归附交接跳过诊断，v3.7-preflight.28 已有 MapEditor 默认隋唐资源桥，v3.7-preflight.29 已有 MapEditor 地点字段化编辑，v3.7-preflight.30 已有发布候选静态门禁快照，v3.7-preflight.31 已有玩家可见旧英文兜底收口，v3.7-preflight.32 已有玩家可见调试文案第一批收口，v3.7-preflight.33 已有玩家可见外交/朝堂文案收口，v3.7-preflight.34 已有玩家可见 AI 诊断文案收口，v3.7-preflight.35 已有战报与总管预览文案收口，但借兵、忠诚/叛乱/安置实际效果、更完整归附后续事件、水战/渡河/港口补给规则仍待后续。
+- v3.5 战报、外交、州郡摘要是信息闭环基础；v3.7-preflight.9 / .10 已分别补上玩家外交和州郡经营的 `Command` / validator / executor 最小闭环。
+- v3.6 只建立 SwiftUI 视觉基底、中文化收口和最小 SpriteKit 城池/关隘/粮仓/粮道/围城标识；v3.7-preflight.4 已补渡口/港口最小图标，v3.7-preflight.5 已补 AI 计划箭头，v3.7-preflight.6 已补普通地图层前线墨线，v3.7-preflight.8 已把这些标识的资产边界写入发布前检查；这些地图叠加层和真实运行时布局仍未重测。
 - 当前工作树存在外交/经济/UI 等非 v0.5 方向残留，合并前需要单独审查文件归属和 public API 冲突。
 - `AttackIntensity.infiltration` 已在 `WarCommandExecutor` 中解释为默认低投入上限；`.limitedCounter` 和 `.allOut` 仍主要依赖 tactic profile 与显式 `maxCommittedUnits`。
 - `TacticConditionChecker` 当前总是允许现有战术。
@@ -1767,7 +2255,7 @@ v1.0 分支名：`v1.0-ui-ai-playtest`。
 GameState / WarDirectiveRecord / EventLog
   -> RootGameView
   -> HUD + Info tabs
-  -> AgentPanelView 展示 raw JSON / command results / zone directives
+  -> AgentPanelView 展示净化后的决策摘要 / command results / zone directives
   -> EventLogView 展示最近 60 条分类日志
 
 BoardScene
@@ -1784,7 +2272,7 @@ Marshal / ZoneDirective
 
 算法变化：
 
-- AI 面板从只展示 `AgentDecisionRecord` 扩展为同时展示 `WarDirectiveRecord`，每条 directive 可看到 zone、attack/defend、tactic、命令成功/拒绝数量和目标 region。
+- AI 面板从只展示 `AgentDecisionRecord` 扩展为同时展示 `WarDirectiveRecord`，每条 directive 可看到 zone、attack/defend、tactic、命令成功/拒绝数量和目标 region；当前展示层会净化 context、command result 和 error 文案，不再展开 raw JSON。
 - 日志面板用 `LogDisplayEntry` 保存 entry + category，避免 body 内对同一条日志重复分类。
 - 单位绘制先缓存 `unitDisplayHex` 再排序，避免 comparator 重复计算。
 - `AttackIntensity.infiltration` 在无显式 `maxCommittedUnits` 时默认只投入约半数前线/纵深候选单位，避免渗透/袭扰全线压上。
@@ -1793,7 +2281,7 @@ Marshal / ZoneDirective
 
 - UI：HUD、Info tabs、Economy、Diplomacy、AI panel 是否可读。
 - 地图：hex/province/initial/dynamic/front/deploy 图层是否清晰。
-- AI：raw JSON、zone directive、diagnostics 是否能解释 AI 回合。
+- AI：净化摘要、zone directive、diagnostics 是否能解释 AI 回合。
 - 规则：玩家和 AI 行动是否仍能追溯到 `CommandResultSummary` / `WarDirectiveRecord`。
 - 性能体感：地图拖动、图层切换、日志面板滚动是否有明显卡顿。
 

@@ -1,0 +1,1863 @@
+{
+  "schemaVersion": 1,
+  "id": "wude_618_guanzhong_luoyang",
+  "displayName": "武德元年：关中河洛争衡",
+  "map": {
+    "width": 10,
+    "height": 9,
+    "coordinateSystem": "axial",
+    "isSparse": false,
+    "tiles": [
+      {
+        "q": 0,
+        "r": 0,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tujue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hetao_border"
+      },
+      {
+        "q": 1,
+        "r": 0,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tujue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hetao_border"
+      },
+      {
+        "q": 2,
+        "r": 0,
+        "terrain": "mountain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_yanmen_mayi"
+      },
+      {
+        "q": 3,
+        "r": 0,
+        "terrain": "mountain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_yanmen_mayi"
+      },
+      {
+        "q": 4,
+        "r": 0,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": "晋阳",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "tang",
+        "objectiveId": "obj_taiyuan",
+        "regionId": "region_yanmen_mayi"
+      },
+      {
+        "q": 5,
+        "r": 0,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jinyang"
+      },
+      {
+        "q": 6,
+        "r": 0,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jinyang"
+      },
+      {
+        "q": 7,
+        "r": 0,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tujue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_tujue_south_camp"
+      },
+      {
+        "q": 8,
+        "r": 0,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tujue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_tujue_south_camp"
+      },
+      {
+        "q": 9,
+        "r": 0,
+        "terrain": "city",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tujue",
+        "cityName": "突厥南营",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "tujue",
+        "objectiveId": null,
+        "regionId": "region_tujue_south_camp"
+      },
+      {
+        "q": 0,
+        "r": 1,
+        "terrain": "mountain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_fenbei_hills"
+      },
+      {
+        "q": 1,
+        "r": 1,
+        "terrain": "mountain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_fenbei_hills"
+      },
+      {
+        "q": 2,
+        "r": 1,
+        "terrain": "city",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": "晋阳南郊",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jinyang_south"
+      },
+      {
+        "q": 3,
+        "r": 1,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jinyang_south"
+      },
+      {
+        "q": 4,
+        "r": 1,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jinyang_south"
+      },
+      {
+        "q": 5,
+        "r": 1,
+        "terrain": "hill",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huoyi_road"
+      },
+      {
+        "q": 6,
+        "r": 1,
+        "terrain": "hill",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huoyi_road"
+      },
+      {
+        "q": 7,
+        "r": 1,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_liu_wuzhou_camp"
+      },
+      {
+        "q": 8,
+        "r": 1,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": "定杨军营",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "liuWuzhou",
+        "objectiveId": null,
+        "regionId": "region_liu_wuzhou_camp"
+      },
+      {
+        "q": 9,
+        "r": 1,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "liuWuzhou",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_liu_wuzhou_camp"
+      },
+      {
+        "q": 0,
+        "r": 2,
+        "terrain": "city",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "qinXue",
+        "cityName": "陇右营",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_longyou_gate"
+      },
+      {
+        "q": 1,
+        "r": 2,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "qinXue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_longyou_gate"
+      },
+      {
+        "q": 2,
+        "r": 2,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_fufeng"
+      },
+      {
+        "q": 3,
+        "r": 2,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": "扶风",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_fufeng"
+      },
+      {
+        "q": 4,
+        "r": 2,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_fufeng"
+      },
+      {
+        "q": 5,
+        "r": 2,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": "蒲坂",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_puban_hedong"
+      },
+      {
+        "q": 6,
+        "r": 2,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_puban_hedong"
+      },
+      {
+        "q": 7,
+        "r": 2,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_taihang_west"
+      },
+      {
+        "q": 8,
+        "r": 2,
+        "terrain": "hill",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_taihang_west"
+      },
+      {
+        "q": 9,
+        "r": 2,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_taihang_west"
+      },
+      {
+        "q": 0,
+        "r": 3,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_weibei_xianyang"
+      },
+      {
+        "q": 1,
+        "r": 3,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_weibei_xianyang"
+      },
+      {
+        "q": 2,
+        "r": 3,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_changan"
+      },
+      {
+        "q": 3,
+        "r": 3,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": "长安",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "tang",
+        "objectiveId": "obj_changan",
+        "regionId": "region_changan"
+      },
+      {
+        "q": 4,
+        "r": 3,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_changan"
+      },
+      {
+        "q": 5,
+        "r": 3,
+        "terrain": "fortress",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": "潼关",
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": "obj_tongguan",
+        "regionId": "region_tongguan"
+      },
+      {
+        "q": 6,
+        "r": 3,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_tongguan"
+      },
+      {
+        "q": 7,
+        "r": 3,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hebei_south_edge"
+      },
+      {
+        "q": 8,
+        "r": 3,
+        "terrain": "hill",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hebei_south_edge"
+      },
+      {
+        "q": 9,
+        "r": 3,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hebei_south_edge"
+      },
+      {
+        "q": 0,
+        "r": 4,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_lantian_wuguan"
+      },
+      {
+        "q": 1,
+        "r": 4,
+        "terrain": "fortress",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": "武关",
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_lantian_wuguan"
+      },
+      {
+        "q": 2,
+        "r": 4,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huayin_hongnong"
+      },
+      {
+        "q": 3,
+        "r": 4,
+        "terrain": "hill",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huayin_hongnong"
+      },
+      {
+        "q": 4,
+        "r": 4,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "tang",
+        "cityName": "弘农",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huayin_hongnong"
+      },
+      {
+        "q": 5,
+        "r": 4,
+        "terrain": "fortress",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": "函谷关",
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hangu_pass"
+      },
+      {
+        "q": 6,
+        "r": 4,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hangu_pass"
+      },
+      {
+        "q": 7,
+        "r": 4,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_liyang_granary"
+      },
+      {
+        "q": 8,
+        "r": 4,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [
+          "west"
+        ],
+        "controller": "xia",
+        "cityName": "黎阳仓",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": "obj_liyang",
+        "regionId": "region_liyang_granary"
+      },
+      {
+        "q": 9,
+        "r": 4,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_liyang_granary"
+      },
+      {
+        "q": 0,
+        "r": 5,
+        "terrain": "city",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "qinXue",
+        "cityName": "浅水原",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "qinXue",
+        "objectiveId": null,
+        "regionId": "region_qianshuiyuan"
+      },
+      {
+        "q": 1,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "qinXue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_qianshuiyuan"
+      },
+      {
+        "q": 2,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_luoyang_west"
+      },
+      {
+        "q": 3,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_luoyang_west"
+      },
+      {
+        "q": 4,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_luoyang_west"
+      },
+      {
+        "q": 5,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_luoyang"
+      },
+      {
+        "q": 6,
+        "r": 5,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "luoyangSui",
+        "cityName": "洛阳",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "luoyangSui",
+        "objectiveId": "obj_luoyang",
+        "regionId": "region_luoyang"
+      },
+      {
+        "q": 7,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [
+          "east"
+        ],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jijun"
+      },
+      {
+        "q": 8,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [
+          "west"
+        ],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jijun"
+      },
+      {
+        "q": 9,
+        "r": 5,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_jijun"
+      },
+      {
+        "q": 0,
+        "r": 6,
+        "terrain": "mountain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "qinXue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_longban"
+      },
+      {
+        "q": 1,
+        "r": 6,
+        "terrain": "mountain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "qinXue",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_longban"
+      },
+      {
+        "q": 2,
+        "r": 6,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hulao"
+      },
+      {
+        "q": 3,
+        "r": 6,
+        "terrain": "fortress",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": "虎牢",
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": "obj_hulao",
+        "regionId": "region_hulao"
+      },
+      {
+        "q": 4,
+        "r": 6,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hulao"
+      },
+      {
+        "q": 5,
+        "r": 6,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": "洛口仓",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "wagang",
+        "objectiveId": "obj_luokou",
+        "regionId": "region_luokou_granary"
+      },
+      {
+        "q": 6,
+        "r": 6,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_luokou_granary"
+      },
+      {
+        "q": 7,
+        "r": 6,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_xingyang"
+      },
+      {
+        "q": 8,
+        "r": 6,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": "荥阳",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_xingyang"
+      },
+      {
+        "q": 9,
+        "r": 6,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_xingyang"
+      },
+      {
+        "q": 0,
+        "r": 7,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_shangluo"
+      },
+      {
+        "q": 1,
+        "r": 7,
+        "terrain": "hill",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "tang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_shangluo"
+      },
+      {
+        "q": 2,
+        "r": 7,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_henan_south_road"
+      },
+      {
+        "q": 3,
+        "r": 7,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_henan_south_road"
+      },
+      {
+        "q": 4,
+        "r": 7,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "luoyangSui",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_henan_south_road"
+      },
+      {
+        "q": 5,
+        "r": 7,
+        "terrain": "hill",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_wagang_camp"
+      },
+      {
+        "q": 6,
+        "r": 7,
+        "terrain": "fortress",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": "瓦岗寨",
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_wagang_camp"
+      },
+      {
+        "q": 7,
+        "r": 7,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_mingzhou"
+      },
+      {
+        "q": 8,
+        "r": 7,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": "洺州",
+        "fortressName": null,
+        "isSupplySource": true,
+        "supplyFaction": "xia",
+        "objectiveId": "obj_mingzhou",
+        "regionId": "region_mingzhou"
+      },
+      {
+        "q": 9,
+        "r": 7,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_mingzhou"
+      },
+      {
+        "q": 0,
+        "r": 8,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huaibei_edge"
+      },
+      {
+        "q": 1,
+        "r": 8,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huaibei_edge"
+      },
+      {
+        "q": 2,
+        "r": 8,
+        "terrain": "forest",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_runan_gate"
+      },
+      {
+        "q": 3,
+        "r": 8,
+        "terrain": "forest",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_runan_gate"
+      },
+      {
+        "q": 4,
+        "r": 8,
+        "terrain": "forest",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_runan_gate"
+      },
+      {
+        "q": 5,
+        "r": 8,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huaiyang"
+      },
+      {
+        "q": 6,
+        "r": 8,
+        "terrain": "city",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "wagang",
+        "cityName": "淮阳",
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_huaiyang"
+      },
+      {
+        "q": 7,
+        "r": 8,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hebei_plain"
+      },
+      {
+        "q": 8,
+        "r": 8,
+        "terrain": "plain",
+        "hasRoad": true,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hebei_plain"
+      },
+      {
+        "q": 9,
+        "r": 8,
+        "terrain": "plain",
+        "hasRoad": false,
+        "riverEdges": [],
+        "controller": "xia",
+        "cityName": null,
+        "fortressName": null,
+        "isSupplySource": false,
+        "supplyFaction": null,
+        "objectiveId": null,
+        "regionId": "region_hebei_plain"
+      }
+    ]
+  },
+  "factions": [
+    "tang",
+    "luoyangSui",
+    "wagang",
+    "xia",
+    "qinXue",
+    "liuWuzhou",
+    "tujue"
+  ],
+  "maxTurns": 24,
+  "initialTurn": 1,
+  "initialPhase": "playerCommand",
+  "playerFaction": "tang",
+  "aiFaction": "luoyangSui",
+  "keyLocations": [
+    {
+      "id": "loc_changan",
+      "name": "长安",
+      "kind": "capital",
+      "coord": {
+        "q": 3,
+        "r": 3
+      },
+      "faction": "tang",
+      "objectiveId": "obj_changan"
+    },
+    {
+      "id": "loc_taiyuan",
+      "name": "晋阳",
+      "kind": "city",
+      "coord": {
+        "q": 4,
+        "r": 0
+      },
+      "faction": "tang",
+      "objectiveId": "obj_taiyuan"
+    },
+    {
+      "id": "loc_luoyang",
+      "name": "洛阳",
+      "kind": "capital",
+      "coord": {
+        "q": 6,
+        "r": 5
+      },
+      "faction": "luoyangSui",
+      "objectiveId": "obj_luoyang"
+    },
+    {
+      "id": "loc_hulao",
+      "name": "虎牢",
+      "kind": "fortress",
+      "coord": {
+        "q": 3,
+        "r": 6
+      },
+      "faction": "luoyangSui",
+      "objectiveId": "obj_hulao"
+    },
+    {
+      "id": "loc_luokou",
+      "name": "洛口仓",
+      "kind": "granary",
+      "coord": {
+        "q": 5,
+        "r": 6
+      },
+      "faction": "wagang",
+      "objectiveId": "obj_luokou"
+    },
+    {
+      "id": "loc_mingzhou",
+      "name": "洺州",
+      "kind": "capital",
+      "coord": {
+        "q": 8,
+        "r": 7
+      },
+      "faction": "xia",
+      "objectiveId": "obj_mingzhou"
+    },
+    {
+      "id": "loc_tongguan",
+      "name": "潼关",
+      "kind": "pass",
+      "coord": {
+        "q": 5,
+        "r": 3
+      },
+      "faction": "tang",
+      "objectiveId": "obj_tongguan"
+    },
+    {
+      "id": "loc_liyang",
+      "name": "黎阳仓",
+      "kind": "granary",
+      "coord": {
+        "q": 8,
+        "r": 4
+      },
+      "faction": "xia",
+      "objectiveId": "obj_liyang"
+    },
+    {
+      "id": "loc_pujin_ferry",
+      "name": "蒲津渡",
+      "kind": "ferry",
+      "coord": {
+        "q": 4,
+        "r": 3
+      },
+      "faction": "tang",
+      "objectiveId": null
+    },
+    {
+      "id": "loc_mengjin_ferry",
+      "name": "孟津渡",
+      "kind": "ferry",
+      "coord": {
+        "q": 6,
+        "r": 4
+      },
+      "faction": "luoyangSui",
+      "objectiveId": null
+    },
+    {
+      "id": "loc_liyang_port",
+      "name": "黎阳津",
+      "kind": "port",
+      "coord": {
+        "q": 7,
+        "r": 4
+      },
+      "faction": "xia",
+      "objectiveId": null
+    },
+    {
+      "id": "loc_luokou_port",
+      "name": "洛口津",
+      "kind": "port",
+      "coord": {
+        "q": 6,
+        "r": 6
+      },
+      "faction": "wagang",
+      "objectiveId": null
+    }
+  ],
+  "objectives": [
+    {
+      "id": "obj_changan",
+      "name": "长安",
+      "kind": "city",
+      "coord": {
+        "q": 3,
+        "r": 3
+      },
+      "points": 6
+    },
+    {
+      "id": "obj_taiyuan",
+      "name": "晋阳",
+      "kind": "city",
+      "coord": {
+        "q": 4,
+        "r": 0
+      },
+      "points": 4
+    },
+    {
+      "id": "obj_luoyang",
+      "name": "洛阳",
+      "kind": "city",
+      "coord": {
+        "q": 6,
+        "r": 5
+      },
+      "points": 6
+    },
+    {
+      "id": "obj_luokou",
+      "name": "洛口仓",
+      "kind": "supply",
+      "coord": {
+        "q": 5,
+        "r": 6
+      },
+      "points": 5
+    },
+    {
+      "id": "obj_hulao",
+      "name": "虎牢",
+      "kind": "fortress",
+      "coord": {
+        "q": 3,
+        "r": 6
+      },
+      "points": 5
+    },
+    {
+      "id": "obj_mingzhou",
+      "name": "洺州",
+      "kind": "city",
+      "coord": {
+        "q": 8,
+        "r": 7
+      },
+      "points": 5
+    },
+    {
+      "id": "obj_tongguan",
+      "name": "潼关",
+      "kind": "fortress",
+      "coord": {
+        "q": 5,
+        "r": 3
+      },
+      "points": 4
+    },
+    {
+      "id": "obj_liyang",
+      "name": "黎阳仓",
+      "kind": "supply",
+      "coord": {
+        "q": 8,
+        "r": 4
+      },
+      "points": 4
+    }
+  ],
+  "initialUnits": [
+    {
+      "id": "tang_li_shimin",
+      "name": "秦王府精骑",
+      "faction": "tang",
+      "templateId": "suitang_cavalry_column",
+      "coord": {
+        "q": 4,
+        "r": 3
+      },
+      "facing": "east",
+      "hp": 10,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_li_shimin"
+    },
+    {
+      "id": "tang_changan_guard",
+      "name": "长安守军",
+      "faction": "tang",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 3,
+        "r": 3
+      },
+      "facing": "east",
+      "hp": 10,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_li_jiancheng"
+    },
+    {
+      "id": "tang_taiyuan_host",
+      "name": "太原军",
+      "faction": "tang",
+      "templateId": "suitang_infantry_host",
+      "coord": {
+        "q": 5,
+        "r": 1
+      },
+      "facing": "east",
+      "hp": 10,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_li_shimin"
+    },
+    {
+      "id": "tang_tongguan_garrison",
+      "name": "潼关镇军",
+      "faction": "tang",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 5,
+        "r": 3
+      },
+      "facing": "east",
+      "hp": 10,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_li_shimin"
+    },
+    {
+      "id": "luoyang_wang_host",
+      "name": "洛阳禁军",
+      "faction": "luoyangSui",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 6,
+        "r": 5
+      },
+      "facing": "west",
+      "hp": 10,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_wang_shichong"
+    },
+    {
+      "id": "luoyang_hangu_guard",
+      "name": "函谷关军",
+      "faction": "luoyangSui",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 5,
+        "r": 4
+      },
+      "facing": "west",
+      "hp": 9,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_wang_shichong"
+    },
+    {
+      "id": "luoyang_hulao_guard",
+      "name": "虎牢守军",
+      "faction": "luoyangSui",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 3,
+        "r": 6
+      },
+      "facing": "northWest",
+      "hp": 9,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_wang_shichong"
+    },
+    {
+      "id": "wagang_li_mi_host",
+      "name": "瓦岗主力",
+      "faction": "wagang",
+      "templateId": "suitang_infantry_host",
+      "coord": {
+        "q": 6,
+        "r": 7
+      },
+      "facing": "west",
+      "hp": 10,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_li_mi"
+    },
+    {
+      "id": "wagang_luokou_guard",
+      "name": "洛口仓军",
+      "faction": "wagang",
+      "templateId": "suitang_archer_camp",
+      "coord": {
+        "q": 5,
+        "r": 6
+      },
+      "facing": "west",
+      "hp": 9,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_li_mi"
+    },
+    {
+      "id": "wagang_xingyang_raiders",
+      "name": "荥阳义军",
+      "faction": "wagang",
+      "templateId": "suitang_cavalry_column",
+      "coord": {
+        "q": 8,
+        "r": 6
+      },
+      "facing": "west",
+      "hp": 8,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_qin_shubao"
+    },
+    {
+      "id": "xia_dou_host",
+      "name": "夏军主力",
+      "faction": "xia",
+      "templateId": "suitang_infantry_host",
+      "coord": {
+        "q": 8,
+        "r": 7
+      },
+      "facing": "west",
+      "hp": 10,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_dou_jiande"
+    },
+    {
+      "id": "xia_liyang_guard",
+      "name": "黎阳仓守军",
+      "faction": "xia",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 8,
+        "r": 4
+      },
+      "facing": "west",
+      "hp": 9,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_dou_jiande"
+    },
+    {
+      "id": "xia_taihang_column",
+      "name": "太行军",
+      "faction": "xia",
+      "templateId": "suitang_cavalry_column",
+      "coord": {
+        "q": 7,
+        "r": 3
+      },
+      "facing": "southWest",
+      "hp": 9,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_dou_jiande"
+    },
+    {
+      "id": "qin_xue_host",
+      "name": "薛秦陇右军",
+      "faction": "qinXue",
+      "templateId": "suitang_cavalry_column",
+      "coord": {
+        "q": 0,
+        "r": 5
+      },
+      "facing": "east",
+      "hp": 10,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_xue_rengao"
+    },
+    {
+      "id": "qin_longyou_guard",
+      "name": "陇右守军",
+      "faction": "qinXue",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 0,
+        "r": 2
+      },
+      "facing": "east",
+      "hp": 8,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_xue_rengao"
+    },
+    {
+      "id": "liu_song_host",
+      "name": "宋金刚军",
+      "faction": "liuWuzhou",
+      "templateId": "suitang_cavalry_column",
+      "coord": {
+        "q": 8,
+        "r": 1
+      },
+      "facing": "west",
+      "hp": 10,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_song_jingang"
+    },
+    {
+      "id": "liu_mayi_guard",
+      "name": "马邑守军",
+      "faction": "liuWuzhou",
+      "templateId": "suitang_garrison",
+      "coord": {
+        "q": 3,
+        "r": 0
+      },
+      "facing": "southEast",
+      "hp": 8,
+      "retreatMode": "hold",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_song_jingang"
+    },
+    {
+      "id": "tujue_border_raid",
+      "name": "突厥边骑",
+      "faction": "tujue",
+      "templateId": "suitang_frontier_raiders",
+      "coord": {
+        "q": 9,
+        "r": 0
+      },
+      "facing": "southWest",
+      "hp": 9,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_tujue_shibi_khan"
+    },
+    {
+      "id": "tujue_hetao_guard",
+      "name": "河套骑军",
+      "faction": "tujue",
+      "templateId": "suitang_frontier_raiders",
+      "coord": {
+        "q": 1,
+        "r": 0
+      },
+      "facing": "southEast",
+      "hp": 8,
+      "retreatMode": "retreatable",
+      "supplyState": "supplied",
+      "assignedAgentId": "general_tujue_shibi_khan"
+    }
+  ],
+  "victoryConditions": [
+    {
+      "id": "vc_tang_hold_changan",
+      "type": "holdObjective",
+      "faction": "tang",
+      "objectiveId": "obj_changan",
+      "objectiveIds": null,
+      "targetFaction": null,
+      "targetTemplateIds": null,
+      "turns": null,
+      "turn": 24,
+      "count": null,
+      "status": "active",
+      "description": "唐在终局仍控制长安。"
+    },
+    {
+      "id": "vc_tang_take_luoyang_luokou",
+      "type": "controlObjectives",
+      "faction": "tang",
+      "objectiveId": null,
+      "objectiveIds": [
+        "obj_luoyang",
+        "obj_luokou"
+      ],
+      "targetFaction": null,
+      "targetTemplateIds": null,
+      "turns": null,
+      "turn": null,
+      "count": null,
+      "status": "active",
+      "description": "唐控制洛阳和洛口仓。"
+    },
+    {
+      "id": "vc_luoyang_break_tongguan",
+      "type": "controlObjective",
+      "faction": "luoyangSui",
+      "objectiveId": "obj_tongguan",
+      "objectiveIds": null,
+      "targetFaction": null,
+      "targetTemplateIds": null,
+      "turns": null,
+      "turn": null,
+      "count": null,
+      "status": "active",
+      "description": "洛阳隋夺取潼关，打开关中。"
+    }
+  ],
+  "dataNotes": [
+    "v3.2 起生成的隋唐首发战局数据，后续版本已持续补充胜负、存档、外交、州郡经营、归附和展示层收口。",
+    "地块仍是战术权威；州郡和方面是从地块与军队位置派生的战略聚合层。",
+    "粮仓和关隘沿用补给点、城池、关隘地形与州郡粮草值表达。",
+    "兵种已通过隋唐模板表达步军、骑军、弓弩、攻城器械与守军等语义。"
+  ]
+}

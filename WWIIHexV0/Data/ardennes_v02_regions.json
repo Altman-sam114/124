@@ -1,5 +1,5 @@
 {
-  "displayName" : "MapEditor Scenario Regions",
+  "displayName" : "旧剧本分区",
   "edges" : [
     {
       "from" : "region_10",
@@ -247,7 +247,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City 0,0",
+        "name" : "旧战局要地甲",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -291,7 +291,7 @@
       "id" : "region_1",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份1",
+      "name" : "旧战局要地甲防区",
       "neighbors" : [
         "region_2",
         "region_4",
@@ -347,7 +347,7 @@
       "id" : "region_10",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份10",
+      "name" : "东北防区",
       "neighbors" : [
         "region_4",
         "region_5",
@@ -368,7 +368,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City -2,3",
+        "name" : "旧战局渡口甲",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -452,7 +452,7 @@
       "id" : "region_2",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份2",
+      "name" : "西部防区",
       "neighbors" : [
         "region_1",
         "region_3",
@@ -473,7 +473,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City 1,6",
+        "name" : "旧战局南寨",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -525,7 +525,7 @@
       "id" : "region_3",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份3",
+      "name" : "西南防区",
       "neighbors" : [
         "region_2",
         "region_5",
@@ -546,7 +546,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City 4,0",
+        "name" : "旧战局要地丙",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -578,7 +578,7 @@
       "id" : "region_4",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份4",
+      "name" : "北部防区",
       "neighbors" : [
         "region_1",
         "region_10",
@@ -598,7 +598,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City 2,0",
+        "name" : "旧战局要地乙",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -662,7 +662,7 @@
       "id" : "region_5",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份5",
+      "name" : "中西防区",
       "neighbors" : [
         "region_1",
         "region_10",
@@ -685,7 +685,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City 6,3",
+        "name" : "旧战局南路驿",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -769,7 +769,7 @@
       "id" : "region_6",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份6",
+      "name" : "东部防区",
       "neighbors" : [
         "region_10",
         "region_7",
@@ -790,7 +790,7 @@
     {
       "city" : {
         "isCapital" : false,
-        "name" : "City 4,3",
+        "name" : "旧战局西路驿",
         "victoryPoints" : 0
       },
       "coreOf" : [
@@ -834,7 +834,7 @@
       "id" : "region_7",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份7",
+      "name" : "中部防区",
       "neighbors" : [
         "region_10",
         "region_3",
@@ -896,7 +896,7 @@
       "id" : "region_8",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份8",
+      "name" : "南部防区",
       "neighbors" : [
         "region_3",
         "region_7",
@@ -956,7 +956,7 @@
       "id" : "region_9",
       "infrastructure" : 0,
       "isPassable" : true,
-      "name" : "新省份9",
+      "name" : "东南防区",
       "neighbors" : [
         "region_6",
         "region_7",

@@ -11,11 +11,11 @@ enum AgentRole: String, Codable, Equatable, CaseIterable {
     var displayName: String {
         switch self {
         case .ruler:
-            return "Ruler"
+            return "君主"
         case .fieldMarshal:
-            return "Field Marshal"
+            return "行军总管"
         case .armyCommander:
-            return "Army Commander"
+            return "行军总管"
         }
     }
 }
@@ -62,8 +62,8 @@ extension GameAgent {
             faction: faction,
             role: role,
             personality: AgentPersonality(
-                prompt: "Follow role responsibilities and keep recommendations structured.",
-                traits: ["disciplined"],
+                prompt: "遵守角色职责，保持建议结构清晰。",
+                traits: ["守纪"],
                 aggression: 50,
                 riskTolerance: 50,
                 autonomy: 50

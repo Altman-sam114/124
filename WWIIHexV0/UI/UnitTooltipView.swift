@@ -5,45 +5,81 @@ struct UnitTooltipView: View {
 
     var body: some View {
         if let division {
+            let divisionDisplayName = displayDivisionName(division)
             VStack(alignment: .leading, spacing: 6) {
-                Text(division.name)
+                Text(divisionDisplayName)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
 
                 Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 4) {
                     GridRow {
-                        label("Type")
+                        label("兵种")
                         value(division.tooltipTypeCode)
                     }
                     GridRow {
-                        label("Strength")
-                        value("\(division.strength)/\(division.maxStrength)")
+                        label("兵力")
+                        value("兵力 \(division.strength)，上限 \(division.maxStrength)")
                     }
                     GridRow {
-                        label("Supply")
-                        value(division.supplyState.tooltipDisplayName)
+                        label("粮道")
+                        value(division.supplyState.shortDisplayName)
                     }
                     GridRow {
-                        label("Retreat")
+                        label("退守")
                         value(division.retreatMode.tooltipDisplayName)
                     }
                     GridRow {
-                        label("Acted")
-                        value(division.hasActed ? "Yes" : "No")
+                        label("行动")
+                        value(division.hasActed ? "已" : "待")
                     }
                 }
             }
             .padding(10)
             .frame(width: 220, alignment: .leading)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+            .background(SuitangDesignTokens.panelBackground.opacity(0.94), in: RoundedRectangle(cornerRadius: SuitangDesignTokens.cornerRadius))
             .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(.secondary.opacity(0.35), lineWidth: 1)
+                RoundedRectangle(cornerRadius: SuitangDesignTokens.cornerRadius)
+                    .stroke(SuitangDesignTokens.panelStroke, lineWidth: SuitangDesignTokens.strokeWidth)
             }
             .padding(10)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(division.name), \(division.tooltipTypeCode), strength \(division.strength) of \(division.maxStrength)")
+            .accessibilityLabel("\(divisionDisplayName)，\(division.tooltipTypeCode)，兵力 \(division.strength)，上限 \(division.maxStrength)")
         }
+    }
+
+    private func displayDivisionName(_ division: Division) -> String {
+        displayUnitName(division.name, fallbackKind: division.unitKindDisplayName, faction: division.faction)
+    }
+
+    private func displayUnitName(_ name: String, fallbackKind: String, faction: Faction) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return "\(faction.displayName)\(fallbackKind)"
+        }
+
+        let sanitized = sanitizeRawUnitIdentifier(in: trimmed)
+            .replacingOccurrences(of: "德军", with: "旧剧本")
+            .replacingOccurrences(of: "盟军", with: "旧剧本")
+            .replacingOccurrences(of: "装甲", with: "甲骑")
+            .replacingOccurrences(of: "摩托化", with: "骑军")
+            .replacingOccurrences(of: "炮兵", with: "弓弩")
+            .replacingOccurrences(of: "步兵", with: "步卒")
+            .replacingOccurrences(of: "反甲骑", with: "拒马弩")
+            .replacingOccurrences(of: "反装甲", with: "拒马弩")
+            .replacingOccurrences(of: "师", with: "军")
+            .replacingOccurrences(of: "Ardennes", with: "旧战局")
+            .replacingOccurrences(of: "Bastogne", with: "旧战局要地")
+            .replacingOccurrences(of: "St. Vith", with: "旧战局要地")
+
+        return sanitized.isEmpty ? "\(faction.displayName)\(fallbackKind)" : sanitized
+    }
+
+    private func sanitizeRawUnitIdentifier(in name: String) -> String {
+        name.replacingOccurrences(
+            of: #"\b(division|unit)_[A-Za-z0-9_\-]+\b"#,
+            with: "相关军队",
+            options: .regularExpression
+        )
     }
 
     private func label(_ text: String) -> some View {
@@ -62,16 +98,7 @@ struct UnitTooltipView: View {
 
 private extension Division {
     var tooltipTypeCode: String {
-        if isArtillery {
-            return "ART"
-        }
-        if isArmor {
-            return "ARM"
-        }
-        if components.contains(where: { $0.type == .motorizedInfantry && $0.weight >= 0.40 }) {
-            return "MOT"
-        }
-        return "INF"
+        unitKindDisplayName
     }
 }
 
@@ -79,22 +106,9 @@ private extension RetreatMode {
     var tooltipDisplayName: String {
         switch self {
         case .retreatable:
-            return "Retreatable"
+            return "可退"
         case .hold:
-            return "Hold"
-        }
-    }
-}
-
-private extension SupplyState {
-    var tooltipDisplayName: String {
-        switch self {
-        case .supplied:
-            return "Supplied"
-        case .lowSupply:
-            return "Low"
-        case .encircled:
-            return "Encircled"
+            return "固守"
         }
     }
 }

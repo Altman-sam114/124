@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		010000000000000000000001 /* WWIIHexV0App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000001 /* WWIIHexV0App.swift */; };
 		010000000000000000000002 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000002 /* AppContainer.swift */; };
+		0D000000000000000000010D /* GameSaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D000000000000000000000D /* GameSaveStore.swift */; };
 		010000000000000000000003 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000003 /* GameState.swift */; };
 		010000000000000000000004 /* Faction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000004 /* Faction.swift */; };
 		010000000000000000000005 /* GamePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000005 /* GamePhase.swift */; };
@@ -29,6 +30,12 @@
 		010000000000000000000014 /* terrain_rules.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000016 /* terrain_rules.json */; };
 		010000000000000000000015 /* unit_templates.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000017 /* unit_templates.json */; };
 		010000000000000000000016 /* general_agents.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000018 /* general_agents.json */; };
+		010000000000000000000150 /* wude_618_scenario.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000150 /* wude_618_scenario.json */; };
+		010000000000000000000151 /* wude_618_regions.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000151 /* wude_618_regions.json */; };
+		010000000000000000000152 /* suitang_unit_templates.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000152 /* suitang_unit_templates.json */; };
+		010000000000000000000153 /* suitang_generals.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000153 /* suitang_generals.json */; };
+		010000000000000000000154 /* suitang_power_profiles.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000154 /* suitang_power_profiles.json */; };
+		010000000000000000000155 /* suitang_terrain_rules.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000155 /* suitang_terrain_rules.json */; };
 		010000000000000000000017 /* ScenarioDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000019 /* ScenarioDataTests.swift */; };
 		010000000000000000000018 /* HexDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000001A /* HexDirection.swift */; };
 		010000000000000000000019 /* HexCoord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000001B /* HexCoord.swift */; };
@@ -108,6 +115,10 @@
 		010000000000000000000063 /* InfoPanelToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000065 /* InfoPanelToggle.swift */; };
 		010000000000000000000064 /* UnitTooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000066 /* UnitTooltipView.swift */; };
 		010000000000000000000065 /* NewGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000067 /* NewGameButton.swift */; };
+		0E0000000000000000000101 /* FirstTurnGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000001 /* FirstTurnGuideView.swift */; };
+		0E0000000000000000000102 /* GameSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000002 /* GameSettingsView.swift */; };
+		0E0000000000000000000103 /* ReleaseChecklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000003 /* ReleaseChecklistView.swift */; };
+		0E0000000000000000000104 /* ReleaseCandidateMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000004 /* ReleaseCandidateMenu.swift */; };
 		010000000000000000000066 /* Theater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000068 /* Theater.swift */; };
 		010000000000000000000067 /* TheaterSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000069 /* TheaterSystem.swift */; };
 		010000000000000000000068 /* TheaterSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000006A /* TheaterSystemTests.swift */; };
@@ -282,6 +293,10 @@
 		0C0000000000000000000122 /* InfoPanelToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000065 /* InfoPanelToggle.swift */; };
 		0C0000000000000000000123 /* UnitTooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000066 /* UnitTooltipView.swift */; };
 		0C0000000000000000000124 /* NewGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000067 /* NewGameButton.swift */; };
+		0E0000000000000000000301 /* FirstTurnGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000001 /* FirstTurnGuideView.swift */; };
+		0E0000000000000000000302 /* GameSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000002 /* GameSettingsView.swift */; };
+		0E0000000000000000000303 /* ReleaseChecklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000003 /* ReleaseChecklistView.swift */; };
+		0E0000000000000000000304 /* ReleaseCandidateMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0000000000000000000004 /* ReleaseCandidateMenu.swift */; };
 		0C0000000000000000000125 /* EventLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000A /* EventLogView.swift */; };
 		0C0000000000000000000126 /* CommandPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000030 /* CommandPanelView.swift */; };
 		0C0000000000000000000127 /* AgentPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000031 /* AgentPanelView.swift */; };
@@ -349,6 +364,12 @@
 		0C0000000000000000000165 /* unit_templates.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000017 /* unit_templates.json */; };
 		0C0000000000000000000166 /* general_agents.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000018 /* general_agents.json */; };
 		0C0000000000000000000167 /* ardennes_v02_regions.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000044 /* ardennes_v02_regions.json */; };
+		0C0000000000000000000170 /* wude_618_scenario.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000150 /* wude_618_scenario.json */; };
+		0C0000000000000000000171 /* wude_618_regions.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000151 /* wude_618_regions.json */; };
+		0C0000000000000000000172 /* suitang_unit_templates.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000152 /* suitang_unit_templates.json */; };
+		0C0000000000000000000173 /* suitang_generals.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000153 /* suitang_generals.json */; };
+		0C0000000000000000000174 /* suitang_power_profiles.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000154 /* suitang_power_profiles.json */; };
+		0C0000000000000000000175 /* suitang_terrain_rules.json in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000155 /* suitang_terrain_rules.json */; };
 		0D0000000000000000000101 /* GeneralRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D0000000000000000000001 /* GeneralRegistry.swift */; };
 		0D0000000000000000000102 /* RulerAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D0000000000000000000002 /* RulerAgent.swift */; };
 		0D0000000000000000000103 /* DiplomacyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D0000000000000000000003 /* DiplomacyState.swift */; };
@@ -380,6 +401,7 @@
 		0D000000000000000000030B /* GeneralCommandPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D000000000000000000000B /* GeneralCommandPanelView.swift */; };
 		0D000000000000000000010C /* GeneralProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D000000000000000000000C /* GeneralProfileView.swift */; };
 		0D000000000000000000030C /* GeneralProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D000000000000000000000C /* GeneralProfileView.swift */; };
+		0D000000000000000000030D /* GameSaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D000000000000000000000D /* GameSaveStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -424,6 +446,12 @@
 		020000000000000000000016 /* terrain_rules.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = terrain_rules.json; sourceTree = "<group>"; };
 		020000000000000000000017 /* unit_templates.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = unit_templates.json; sourceTree = "<group>"; };
 		020000000000000000000018 /* general_agents.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = general_agents.json; sourceTree = "<group>"; };
+		020000000000000000000150 /* wude_618_scenario.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = wude_618_scenario.json; sourceTree = "<group>"; };
+		020000000000000000000151 /* wude_618_regions.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = wude_618_regions.json; sourceTree = "<group>"; };
+		020000000000000000000152 /* suitang_unit_templates.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = suitang_unit_templates.json; sourceTree = "<group>"; };
+		020000000000000000000153 /* suitang_generals.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = suitang_generals.json; sourceTree = "<group>"; };
+		020000000000000000000154 /* suitang_power_profiles.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = suitang_power_profiles.json; sourceTree = "<group>"; };
+		020000000000000000000155 /* suitang_terrain_rules.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = suitang_terrain_rules.json; sourceTree = "<group>"; };
 		020000000000000000000019 /* ScenarioDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioDataTests.swift; sourceTree = "<group>"; };
 		02000000000000000000001A /* HexDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexDirection.swift; sourceTree = "<group>"; };
 		02000000000000000000001B /* HexCoord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexCoord.swift; sourceTree = "<group>"; };
@@ -503,6 +531,10 @@
 		020000000000000000000065 /* InfoPanelToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoPanelToggle.swift; sourceTree = "<group>"; };
 		020000000000000000000066 /* UnitTooltipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitTooltipView.swift; sourceTree = "<group>"; };
 		020000000000000000000067 /* NewGameButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameButton.swift; sourceTree = "<group>"; };
+		0E0000000000000000000001 /* FirstTurnGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstTurnGuideView.swift; sourceTree = "<group>"; };
+		0E0000000000000000000002 /* GameSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSettingsView.swift; sourceTree = "<group>"; };
+		0E0000000000000000000003 /* ReleaseChecklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseChecklistView.swift; sourceTree = "<group>"; };
+		0E0000000000000000000004 /* ReleaseCandidateMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseCandidateMenu.swift; sourceTree = "<group>"; };
 		020000000000000000000068 /* Theater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theater.swift; sourceTree = "<group>"; };
 		020000000000000000000069 /* TheaterSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheaterSystem.swift; sourceTree = "<group>"; };
 		02000000000000000000006A /* TheaterSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheaterSystemTests.swift; sourceTree = "<group>"; };
@@ -575,6 +607,7 @@
 		0D000000000000000000000A /* generals.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = generals.json; sourceTree = "<group>"; };
 		0D000000000000000000000B /* GeneralCommandPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralCommandPanelView.swift; sourceTree = "<group>"; };
 		0D000000000000000000000C /* GeneralProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralProfileView.swift; sourceTree = "<group>"; };
+		0D000000000000000000000D /* GameSaveStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSaveStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -649,6 +682,7 @@
 				020000000000000000000001 /* WWIIHexV0App.swift */,
 				0C0000000000000000000008 /* WWIIHexV0MacApp.swift */,
 				020000000000000000000002 /* AppContainer.swift */,
+				0D000000000000000000000D /* GameSaveStore.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -705,6 +739,10 @@
 				020000000000000000000065 /* InfoPanelToggle.swift */,
 				020000000000000000000066 /* UnitTooltipView.swift */,
 				020000000000000000000067 /* NewGameButton.swift */,
+				0E0000000000000000000001 /* FirstTurnGuideView.swift */,
+				0E0000000000000000000002 /* GameSettingsView.swift */,
+				0E0000000000000000000003 /* ReleaseChecklistView.swift */,
+				0E0000000000000000000004 /* ReleaseCandidateMenu.swift */,
 				02000000000000000000000A /* EventLogView.swift */,
 				020000000000000000000030 /* CommandPanelView.swift */,
 				0D000000000000000000000B /* GeneralCommandPanelView.swift */,
@@ -809,6 +847,12 @@
 				020000000000000000000017 /* unit_templates.json */,
 				020000000000000000000018 /* general_agents.json */,
 				0D000000000000000000000A /* generals.json */,
+				020000000000000000000150 /* wude_618_scenario.json */,
+				020000000000000000000151 /* wude_618_regions.json */,
+				020000000000000000000152 /* suitang_unit_templates.json */,
+				020000000000000000000153 /* suitang_generals.json */,
+				020000000000000000000154 /* suitang_power_profiles.json */,
+				020000000000000000000155 /* suitang_terrain_rules.json */,
 				020000000000000000000043 /* RegionDataSet.swift */,
 				020000000000000000000044 /* ardennes_v02_regions.json */,
 			);
@@ -1060,6 +1104,12 @@
 				010000000000000000000015 /* unit_templates.json in Resources */,
 				010000000000000000000016 /* general_agents.json in Resources */,
 				0D000000000000000000010A /* generals.json in Resources */,
+				010000000000000000000150 /* wude_618_scenario.json in Resources */,
+				010000000000000000000151 /* wude_618_regions.json in Resources */,
+				010000000000000000000152 /* suitang_unit_templates.json in Resources */,
+				010000000000000000000153 /* suitang_generals.json in Resources */,
+				010000000000000000000154 /* suitang_power_profiles.json in Resources */,
+				010000000000000000000155 /* suitang_terrain_rules.json in Resources */,
 				010000000000000000000042 /* ardennes_v02_regions.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1094,6 +1144,12 @@
 				0C0000000000000000000165 /* unit_templates.json in Resources */,
 				0C0000000000000000000166 /* general_agents.json in Resources */,
 				0D000000000000000000030A /* generals.json in Resources */,
+				0C0000000000000000000170 /* wude_618_scenario.json in Resources */,
+				0C0000000000000000000171 /* wude_618_regions.json in Resources */,
+				0C0000000000000000000172 /* suitang_unit_templates.json in Resources */,
+				0C0000000000000000000173 /* suitang_generals.json in Resources */,
+				0C0000000000000000000174 /* suitang_power_profiles.json in Resources */,
+				0C0000000000000000000175 /* suitang_terrain_rules.json in Resources */,
 				0C0000000000000000000167 /* ardennes_v02_regions.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1107,6 +1163,7 @@
 			files = (
 				010000000000000000000001 /* WWIIHexV0App.swift in Sources */,
 				010000000000000000000002 /* AppContainer.swift in Sources */,
+				0D000000000000000000010D /* GameSaveStore.swift in Sources */,
 				010000000000000000000003 /* GameState.swift in Sources */,
 				010000000000000000000004 /* Faction.swift in Sources */,
 				010000000000000000000005 /* GamePhase.swift in Sources */,
@@ -1153,6 +1210,10 @@
 				010000000000000000000063 /* InfoPanelToggle.swift in Sources */,
 				010000000000000000000064 /* UnitTooltipView.swift in Sources */,
 				010000000000000000000065 /* NewGameButton.swift in Sources */,
+				0E0000000000000000000101 /* FirstTurnGuideView.swift in Sources */,
+				0E0000000000000000000102 /* GameSettingsView.swift in Sources */,
+				0E0000000000000000000103 /* ReleaseChecklistView.swift in Sources */,
+				0E0000000000000000000104 /* ReleaseCandidateMenu.swift in Sources */,
 				01000000000000000000000A /* EventLogView.swift in Sources */,
 				01000000000000000000002E /* CommandPanelView.swift in Sources */,
 				01000000000000000000002F /* AgentPanelView.swift in Sources */,
@@ -1386,6 +1447,7 @@
 			files = (
 				0C0000000000000000000100 /* WWIIHexV0MacApp.swift in Sources */,
 				0C0000000000000000000101 /* AppContainer.swift in Sources */,
+				0D000000000000000000030D /* GameSaveStore.swift in Sources */,
 				0C0000000000000000000102 /* GameState.swift in Sources */,
 				0C0000000000000000000103 /* Faction.swift in Sources */,
 				0C0000000000000000000104 /* GamePhase.swift in Sources */,
@@ -1432,6 +1494,10 @@
 				0C0000000000000000000122 /* InfoPanelToggle.swift in Sources */,
 				0C0000000000000000000123 /* UnitTooltipView.swift in Sources */,
 				0C0000000000000000000124 /* NewGameButton.swift in Sources */,
+				0E0000000000000000000301 /* FirstTurnGuideView.swift in Sources */,
+				0E0000000000000000000302 /* GameSettingsView.swift in Sources */,
+				0E0000000000000000000303 /* ReleaseChecklistView.swift in Sources */,
+				0E0000000000000000000304 /* ReleaseCandidateMenu.swift in Sources */,
 				0C0000000000000000000125 /* EventLogView.swift in Sources */,
 				0C0000000000000000000126 /* CommandPanelView.swift in Sources */,
 				0C0000000000000000000127 /* AgentPanelView.swift in Sources */,

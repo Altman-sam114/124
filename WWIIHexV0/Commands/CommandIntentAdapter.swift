@@ -10,18 +10,18 @@ enum CommandIntentAdapterError: Error, Equatable, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidRegionForHex(let hex):
-            return "Hex \(hex.q),\(hex.r) does not map to a region."
-        case .regionNotFound(let regionId):
-            return "Region \(regionId.rawValue) was not found."
-        case .divisionNotFound(let divisionId):
-            return "Division \(divisionId) was not found."
-        case .divisionHasNoRegion(let divisionId):
-            return "Division \(divisionId) is not inside a mapped region."
-        case .destinationRegionHasNoUsableHex(let regionId):
-            return "Region \(regionId.rawValue) has no usable tactical hex."
-        case .targetRegionMismatch(let targetDivisionId, let expected, let actual):
-            return "Target \(targetDivisionId) is in \(actual.rawValue), not \(expected.rawValue)."
+        case .invalidRegionForHex:
+            return "所选地块没有关联州郡。"
+        case .regionNotFound:
+            return "找不到目标州郡。"
+        case .divisionNotFound:
+            return "找不到指定军队。"
+        case .divisionHasNoRegion:
+            return "指定军队不在已映射州郡内。"
+        case .destinationRegionHasNoUsableHex:
+            return "目标州郡没有可用地块。"
+        case .targetRegionMismatch:
+            return "目标军队不在指定州郡内。"
         }
     }
 }
@@ -131,4 +131,3 @@ struct CommandIntentAdapter {
         throw CommandIntentAdapterError.destinationRegionHasNoUsableHex(regionId: regionId)
     }
 }
-

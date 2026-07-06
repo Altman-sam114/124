@@ -222,6 +222,8 @@ final class BoardScene: SKScene {
         drawRegionOverlays(renderState: renderState, layout: layout)
         drawRoads(map: state.map, layout: layout)
         drawRivers(map: state.map, layout: layout)
+        drawFrontInkOverlays(renderState: renderState, layout: layout)
+        drawSupplyAndSiegeOverlays(renderState: renderState, layout: layout)
         drawPlannedOperations(renderState: renderState, layout: layout)
         drawUnits(renderState: renderState, layout: layout)
     }
@@ -231,6 +233,9 @@ final class BoardScene: SKScene {
         let supplyByCoord = Dictionary(uniqueKeysWithValues: state.map.supplySources.compactMap { source in
             state.map.controllingFaction(for: source).map { (source.coord, $0) }
         })
+        let featuresByCoord = Dictionary(grouping: state.map.featureMarkers) { marker in
+            marker.coord
+        }
         let adapter = renderState.displayAdapter
 
         for tile in state.map.tiles.values.sorted(by: tileSort) {
@@ -242,6 +247,7 @@ final class BoardScene: SKScene {
                 displayState: displayState,
                 layout: layout,
                 supplySourceFaction: supplyByCoord[tile.coord],
+                featureMarkers: featuresByCoord[tile.coord] ?? [],
                 isSelected: renderState.selectedHex == tile.coord,
                 isMoveHighlighted: renderState.movementHighlights.contains(tile.coord),
                 isAttackHighlighted: renderState.attackHighlights.contains(tile.coord)
@@ -320,6 +326,253 @@ final class BoardScene: SKScene {
         }
     }
 
+    private func drawSupplyAndSiegeOverlays(renderState: BoardRenderState, layout: HexLayout) {
+        guard renderState.mapDisplayLayer != .frontLine else {
+            return
+        }
+
+        let adapter = renderState.displayAdapter
+        let placements = adapter.unitPlacements(viewerFaction: renderState.viewerFaction)
+        let supplyRules = SupplyRules()
+        var drawnSupplyRoutes = Set<SupplyRouteKey>()
+
+        for division in renderState.gameState.divisions where !division.isDestroyed {
+            guard let placement = placements[division.id],
+                  shouldShowSupplyOverlay(for: division, renderState: renderState) else {
+                continue
+            }
+
+            if let source = nearestSuppliedSource(
+                for: division,
+                in: renderState.gameState,
+                supplyRules: supplyRules
+            ) {
+                let routeKey = SupplyRouteKey(unitHex: placement.hex, sourceHex: source.coord)
+                if drawnSupplyRoutes.insert(routeKey).inserted {
+                    drawSupplyRoute(
+                        from: layout.hexToPixel(source.coord),
+                        to: layout.hexToPixel(placement.hex),
+                        faction: division.faction,
+                        layout: layout
+                    )
+                }
+            }
+
+            if supplyRules.isBesieged(division, in: renderState.gameState) {
+                drawSiegeRing(at: layout.hexToPixel(placement.hex), layout: layout)
+            }
+        }
+    }
+
+    private func drawFrontInkOverlays(renderState: BoardRenderState, layout: HexLayout) {
+        guard renderState.mapDisplayLayer != .frontLine else {
+            return
+        }
+
+        let chains = MapLayerOverlayCalculator(state: renderState.gameState).frontLineChains()
+        for chain in chains {
+            drawFrontInkChain(chain, layout: layout)
+        }
+    }
+
+    private func drawFrontInkChain(_ chain: FrontLineOverlaySegment, layout: HexLayout) {
+        let points = chain.points.map { layout.hexToPixel($0) }
+        if points.count == 1, let point = points.first {
+            drawFrontInkContact(at: point, chain: chain, layout: layout)
+            return
+        }
+        guard let path = frontInkPath(points: points) else {
+            return
+        }
+
+        let baseWidth = frontInkWidth(for: chain, layout: layout)
+        let shadow = SKShapeNode(path: path)
+        shadow.strokeColor = SKColor(red: 0.05, green: 0.04, blue: 0.035, alpha: 0.58)
+        shadow.lineWidth = baseWidth + max(2, layout.hexSize * 0.045)
+        shadow.lineCap = .round
+        shadow.lineJoin = .round
+        shadow.zPosition = 21
+        addChild(shadow)
+
+        let line = SKShapeNode(path: path)
+        line.strokeColor = frontInkColor(for: chain)
+        line.lineWidth = baseWidth
+        line.lineCap = .round
+        line.lineJoin = .round
+        line.zPosition = 21.5
+        addChild(line)
+
+        if chain.type == .encirclement || chain.state == .collapsing {
+            drawFrontWarningDashes(points: points, layout: layout)
+        }
+    }
+
+    private func frontInkPath(points: [CGPoint]) -> CGPath? {
+        guard let first = points.first, points.count >= 2 else {
+            return nil
+        }
+        let path = CGMutablePath()
+        path.move(to: first)
+        for point in points.dropFirst() {
+            path.addLine(to: point)
+        }
+        return path
+    }
+
+    private func drawFrontInkContact(at point: CGPoint, chain: FrontLineOverlaySegment, layout: HexLayout) {
+        let radius = max(5, layout.hexSize * 0.18)
+        let marker = SKShapeNode(circleOfRadius: radius)
+        marker.position = point
+        marker.strokeColor = SKColor(red: 0.05, green: 0.04, blue: 0.035, alpha: 0.68)
+        marker.fillColor = frontInkColor(for: chain).withAlphaComponent(0.32)
+        marker.lineWidth = max(2, layout.hexSize * 0.055)
+        marker.zPosition = 21.5
+        addChild(marker)
+    }
+
+    private func drawFrontWarningDashes(points: [CGPoint], layout: HexLayout) {
+        guard points.count >= 2 else {
+            return
+        }
+        for pair in zip(points, points.dropFirst()) {
+            addDashedLine(
+                from: pair.0,
+                to: pair.1,
+                color: SKColor(red: 0.74, green: 0.08, blue: 0.05, alpha: 0.72),
+                width: max(2, layout.hexSize * 0.055),
+                dash: max(7, layout.hexSize * 0.18),
+                gap: max(5, layout.hexSize * 0.13),
+                zPosition: 22
+            )
+        }
+    }
+
+    private func frontInkWidth(for chain: FrontLineOverlaySegment, layout: HexLayout) -> CGFloat {
+        let pressureBoost = CGFloat(chain.pressure) * layout.hexSize * 0.045
+        let base = max(2.8, layout.hexSize * 0.075)
+        if chain.type == .encirclement || chain.state == .collapsing {
+            return base + pressureBoost + 1.4
+        }
+        if chain.type == .breakthrough {
+            return base + pressureBoost + 0.8
+        }
+        return base + pressureBoost
+    }
+
+    private func frontInkColor(for chain: FrontLineOverlaySegment) -> SKColor {
+        let alpha = min(0.86, 0.48 + CGFloat(chain.pressure) * 0.28)
+        if chain.type == .encirclement || chain.state == .collapsing {
+            return SKColor(red: 0.58, green: 0.06, blue: 0.04, alpha: alpha)
+        }
+        if chain.type == .breakthrough {
+            return SKColor(red: 0.50, green: 0.16, blue: 0.08, alpha: alpha)
+        }
+        return SKColor(red: 0.12, green: 0.10, blue: 0.075, alpha: alpha)
+    }
+
+    private func shouldShowSupplyOverlay(for division: Division, renderState: BoardRenderState) -> Bool {
+        renderState.observerModeEnabled || division.faction == renderState.viewerFaction
+    }
+
+    private func nearestSuppliedSource(
+        for division: Division,
+        in state: GameState,
+        supplyRules: SupplyRules
+    ) -> SupplySource? {
+        let candidates = state.map.supplySources(for: division.faction)
+            .map { source in
+                (
+                    source: source,
+                    cost: supplyRules.supplyPathCost(
+                        from: division.coord,
+                        to: source.coord,
+                        for: division.faction,
+                        in: state
+                    )
+                )
+            }
+            .filter { $0.cost <= supplyRules.maxSupplyPathCost }
+
+        return candidates.min { lhs, rhs in
+            if lhs.cost != rhs.cost {
+                return lhs.cost < rhs.cost
+            }
+            let lhsDistance = division.coord.distance(to: lhs.source.coord)
+            let rhsDistance = division.coord.distance(to: rhs.source.coord)
+            if lhsDistance != rhsDistance {
+                return lhsDistance < rhsDistance
+            }
+            if lhs.source.coord.r != rhs.source.coord.r {
+                return lhs.source.coord.r < rhs.source.coord.r
+            }
+            return lhs.source.coord.q < rhs.source.coord.q
+        }?.source
+    }
+
+    private func drawSupplyRoute(from start: CGPoint, to end: CGPoint, faction: Faction, layout: HexLayout) {
+        addDashedLine(
+            from: start,
+            to: end,
+            color: TerrainStyle.controllerColor(for: faction).withAlphaComponent(0.72),
+            width: max(2, layout.hexSize * 0.055),
+            dash: max(6, layout.hexSize * 0.18),
+            gap: max(5, layout.hexSize * 0.14),
+            zPosition: 23
+        )
+    }
+
+    private func drawSiegeRing(at point: CGPoint, layout: HexLayout) {
+        let radius = max(20, layout.hexSize * 0.62)
+        let ring = SKShapeNode(circleOfRadius: radius)
+        ring.position = point
+        ring.strokeColor = SKColor(red: 0.72, green: 0.08, blue: 0.06, alpha: 0.88)
+        ring.fillColor = SKColor(red: 0.72, green: 0.08, blue: 0.06, alpha: 0.10)
+        ring.lineWidth = max(3, layout.hexSize * 0.08)
+        ring.zPosition = 24
+        addChild(ring)
+
+        let inner = SKShapeNode(circleOfRadius: radius * 0.76)
+        inner.position = point
+        inner.strokeColor = SKColor(red: 0.18, green: 0.06, blue: 0.04, alpha: 0.70)
+        inner.fillColor = .clear
+        inner.lineWidth = max(1.5, layout.hexSize * 0.035)
+        inner.zPosition = 24.5
+        addChild(inner)
+    }
+
+    private func addDashedLine(
+        from start: CGPoint,
+        to end: CGPoint,
+        color: SKColor,
+        width: CGFloat,
+        dash: CGFloat,
+        gap: CGFloat,
+        zPosition: CGFloat
+    ) {
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        let length = max(1, hypot(dx, dy))
+        var offset: CGFloat = 0
+
+        while offset < length {
+            let next = min(offset + dash, length)
+            let startRatio = offset / length
+            let endRatio = next / length
+            let dashPath = CGMutablePath()
+            dashPath.move(to: CGPoint(x: start.x + dx * startRatio, y: start.y + dy * startRatio))
+            dashPath.addLine(to: CGPoint(x: start.x + dx * endRatio, y: start.y + dy * endRatio))
+
+            let dashNode = SKShapeNode(path: dashPath)
+            dashNode.strokeColor = color
+            dashNode.lineWidth = width
+            dashNode.lineCap = .round
+            dashNode.zPosition = zPosition
+            addChild(dashNode)
+
+            offset += dash + gap
+        }
+    }
+
     private func drawPlannedOperations(renderState: BoardRenderState, layout: HexLayout) {
         guard renderState.mapDisplayLayer != .frontLine else {
             return
@@ -327,9 +580,6 @@ final class BoardScene: SKScene {
 
         let operations = renderState.gameState.playerCommandState.plannedOperations.filter {
             $0.turn == renderState.gameState.turn && $0.faction == renderState.viewerFaction
-        }
-        guard !operations.isEmpty else {
-            return
         }
 
         for operation in operations {
@@ -358,6 +608,8 @@ final class BoardScene: SKScene {
                 drawOperationHoldMarker(at: sourcePoint)
             }
         }
+
+        drawAIDirectivePlans(renderState: renderState, layout: layout)
     }
 
     private func operationPoint(
@@ -438,6 +690,123 @@ final class BoardScene: SKScene {
         }
     }
 
+    private func drawAIDirectivePlans(renderState: BoardRenderState, layout: HexLayout) {
+        let records = renderState.recentDirectiveRecords
+            .filter { record in
+                record.issuerId != "player" &&
+                    record.zoneId != nil &&
+                    record.directiveType != nil
+            }
+            .suffix(6)
+
+        for record in records {
+            guard let zoneId = record.zoneId,
+                  let directiveType = record.directiveType,
+                  let sourcePoint = operationPoint(
+                    regionId: nil,
+                    zoneId: zoneId,
+                    state: renderState.gameState,
+                    layout: layout
+                  ) else {
+                continue
+            }
+
+            if directiveType == .attack,
+               let targetRegionId = directiveTargetRegionId(for: record),
+               let targetPoint = operationPoint(
+                regionId: targetRegionId,
+                zoneId: zoneId,
+                state: renderState.gameState,
+                layout: layout
+               ) {
+                drawAIDirectiveArrow(
+                    from: sourcePoint,
+                    to: targetPoint,
+                    type: directiveType,
+                    faction: record.faction
+                )
+            } else {
+                drawAIDirectiveHoldMarker(
+                    at: sourcePoint,
+                    type: directiveType,
+                    faction: record.faction
+                )
+            }
+        }
+    }
+
+    private func directiveTargetRegionId(for record: WarDirectiveRecord) -> RegionId? {
+        if case .region(let regionId) = record.commandTarget {
+            return regionId
+        }
+        return record.targetRegionIds.first
+    }
+
+    private func drawAIDirectiveArrow(from start: CGPoint, to end: CGPoint, type: DirectiveType, faction: Faction) {
+        let color = aiDirectiveColor(for: type, faction: faction)
+        addDashedLine(
+            from: start,
+            to: end,
+            color: color,
+            width: 3,
+            dash: 10,
+            gap: 6,
+            zPosition: 25.5
+        )
+
+        let angle = atan2(end.y - start.y, end.x - start.x)
+        let arrowLength: CGFloat = 12
+        let spread: CGFloat = .pi / 7
+        let left = CGPoint(
+            x: end.x - cos(angle - spread) * arrowLength,
+            y: end.y - sin(angle - spread) * arrowLength
+        )
+        let right = CGPoint(
+            x: end.x - cos(angle + spread) * arrowLength,
+            y: end.y - sin(angle + spread) * arrowLength
+        )
+        let headPath = CGMutablePath()
+        headPath.move(to: end)
+        headPath.addLine(to: left)
+        headPath.move(to: end)
+        headPath.addLine(to: right)
+
+        let head = SKShapeNode(path: headPath)
+        head.strokeColor = color
+        head.lineWidth = 3
+        head.lineCap = .round
+        head.zPosition = 26
+        addChild(head)
+    }
+
+    private func drawAIDirectiveHoldMarker(at point: CGPoint, type: DirectiveType, faction: Faction) {
+        let color = aiDirectiveColor(for: type, faction: faction)
+        let marker = SKShapeNode(circleOfRadius: 15)
+        marker.position = point
+        marker.strokeColor = color
+        marker.fillColor = color.withAlphaComponent(0.10)
+        marker.lineWidth = 3
+        marker.zPosition = 25.5
+        addChild(marker)
+
+        let inner = SKShapeNode(circleOfRadius: 9)
+        inner.position = point
+        inner.strokeColor = color.withAlphaComponent(0.74)
+        inner.fillColor = .clear
+        inner.lineWidth = 2
+        inner.zPosition = 26
+        addChild(inner)
+    }
+
+    private func aiDirectiveColor(for type: DirectiveType, faction: Faction) -> SKColor {
+        switch type {
+        case .attack:
+            return TerrainStyle.controllerColor(for: faction).withAlphaComponent(0.78)
+        case .defend:
+            return TerrainStyle.unitStrokeColor(for: faction).withAlphaComponent(0.78)
+        }
+    }
+
     private func drawUnits(renderState: BoardRenderState, layout: HexLayout) {
         guard renderState.mapDisplayLayer != .frontLine else {
             return
@@ -508,7 +877,7 @@ final class BoardScene: SKScene {
         field.position = CGPoint(x: size.width / 2, y: size.height / 2)
         addChild(field)
 
-        let title = SKLabelNode(text: "Ardennes V0 Board")
+        let title = SKLabelNode(text: "战役地图")
         title.fontName = "AvenirNext-DemiBold"
         title.fontSize = 24
         title.fontColor = .white
@@ -522,4 +891,9 @@ final class BoardScene: SKScene {
         }
         return lhs.coord.r < rhs.coord.r
     }
+}
+
+private struct SupplyRouteKey: Hashable {
+    let unitHex: HexCoord
+    let sourceHex: HexCoord
 }

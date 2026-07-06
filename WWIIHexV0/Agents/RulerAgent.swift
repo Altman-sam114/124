@@ -100,7 +100,13 @@ struct RulerAgent {
                 attack: AttackParameters(
                     targetTheaterId: attack.targetTheaterId,
                     weightedRegions: prioritizedRegions(attack.weightedRegions, snapshot: snapshot),
-                    intensity: .allOut
+                    intensity: .allOut,
+                    focusRegionId: attack.focusRegionId,
+                    supportRegionIds: attack.supportRegionIds,
+                    convergenceRegionId: attack.convergenceRegionId,
+                    coordinatedZoneIds: attack.coordinatedZoneIds,
+                    maxCommittedUnits: attack.maxCommittedUnits,
+                    exploitDepth: attack.exploitDepth
                 ),
                 category: directive.category,
                 tactic: directive.tactic,
@@ -117,7 +123,14 @@ struct RulerAgent {
         case (.coalitionMaintenance, .defend(let defense)):
             return ZoneDirective(
                 zoneId: directive.zoneId,
-                defense: DefenseParameters(targetReserves: max(2, defense.targetReserves), stance: defense.stance),
+                defense: DefenseParameters(
+                    targetReserves: max(2, defense.targetReserves),
+                    stance: defense.stance,
+                    fallbackRegionIds: defense.fallbackRegionIds,
+                    counterattackRegionIds: defense.counterattackRegionIds,
+                    strongpointRegionIds: defense.strongpointRegionIds,
+                    maxFrontCommitment: defense.maxFrontCommitment
+                ),
                 category: directive.category,
                 tactic: directive.tactic,
                 commandTarget: directive.commandTarget
@@ -128,16 +141,29 @@ struct RulerAgent {
                 attack: AttackParameters(
                     targetTheaterId: attack.targetTheaterId,
                     weightedRegions: attack.weightedRegions,
-                    intensity: .limitedCounter
+                    intensity: .limitedCounter,
+                    focusRegionId: attack.focusRegionId,
+                    supportRegionIds: attack.supportRegionIds,
+                    convergenceRegionId: attack.convergenceRegionId,
+                    coordinatedZoneIds: attack.coordinatedZoneIds,
+                    maxCommittedUnits: attack.maxCommittedUnits,
+                    exploitDepth: attack.exploitDepth
                 ),
                 category: directive.category,
                 tactic: directive.tactic,
                 commandTarget: directive.commandTarget
             )
-        case (.stabilizeFront, .defend):
+        case (.stabilizeFront, .defend(let defense)):
             return ZoneDirective(
                 zoneId: directive.zoneId,
-                defense: DefenseParameters(targetReserves: 1, stance: .flexible),
+                defense: DefenseParameters(
+                    targetReserves: 1,
+                    stance: .flexible,
+                    fallbackRegionIds: defense.fallbackRegionIds,
+                    counterattackRegionIds: defense.counterattackRegionIds,
+                    strongpointRegionIds: defense.strongpointRegionIds,
+                    maxFrontCommitment: defense.maxFrontCommitment
+                ),
                 category: .defense,
                 tactic: .holdPosition,
                 commandTarget: directive.commandTarget
@@ -201,22 +227,180 @@ struct RulerAgent {
     private func rationale(for posture: RulerStrategicPosture, snapshot: RulerStrategicSnapshot) -> String {
         switch posture {
         case .offensive:
-            return "Ruler sees \(snapshot.advantagedFrontZoneCount) advantaged zone(s) and accepts offensive risk."
+            return "君主判断有利防区 \(snapshot.advantagedFrontZoneCount) 处，可承担进攻风险。"
         case .defensive:
-            return "Ruler sees pressure \(snapshot.averageZonePressure) and \(snapshot.outnumberedFrontZoneCount) outnumbered zone(s)."
+            return "君主判断平均压力 \(snapshot.averageZonePressure)，兵力受压防区 \(snapshot.outnumberedFrontZoneCount) 处，应先守根本。"
         case .coalitionMaintenance:
-            return "Ruler preserves coalition reserves across \(snapshot.frontZoneCount) active zone(s)."
+            return "君主要求维系盟从与预备兵力，当前活跃防区 \(snapshot.frontZoneCount) 处。"
         case .stabilizeFront:
-            return "Ruler avoids overextension while contested forward presence is resolved."
+            return "君主要求先稳住前沿争夺，避免军势过伸。"
         }
     }
 
     private func appendRulerContext(_ context: String?, record: RulerDecisionRecord) -> String {
-        let rulerContext = "Ruler \(record.rulerAgentId): \(record.posture.displayName), target \(record.preferredFrontZoneId?.rawValue ?? "none")."
+        let targetText = record.preferredFrontZoneId == nil ? "暂无重点防区" : "已指定重点防区"
+        let rulerContext = "君主决策：\(record.posture.displayName)，\(targetText)。"
         guard let context, !context.isEmpty else {
             return rulerContext
         }
         return "\(context) \(rulerContext)"
+    }
+
+    private func stableUnique<T: Hashable>(_ values: [T]) -> [T] {
+        var seen: Set<T> = []
+        var result: [T] = []
+        for value in values where !seen.contains(value) {
+            seen.insert(value)
+            result.append(value)
+        }
+        return result
+    }
+}
+
+struct CourtDirectiveAdjustment: Equatable {
+    let envelope: DirectiveEnvelope
+    let rulerRecord: RulerDecisionRecord
+    let courtRecord: CourtDecisionRecord
+}
+
+struct CourtAgent {
+    func deliberate(
+        envelope: DirectiveEnvelope,
+        theaterEnvelope: TheaterDirectiveEnvelope?,
+        in state: GameState
+    ) -> CourtDirectiveAdjustment {
+        let faction = theaterEnvelope?.faction ?? state.activeFaction
+        let sovereign = RulerAgent.automatic(for: faction, in: state)
+        let sovereignAdjustment = sovereign.adjust(envelope: envelope, in: state)
+        let adjustedEnvelope = sovereignAdjustment.envelope
+        let rulerRecord = sovereignAdjustment.record
+        let strategistAgentId = theaterEnvelope?.issuerId
+            ?? adjustedEnvelope.commanderAgentId
+            ?? "strategist_\(faction.rawValue)"
+        let marchAgentIds = stableUnique(
+            adjustedEnvelope.directives.map { "march_commander_\($0.zoneId.rawValue)" }
+        )
+        let steps = makeSteps(
+            envelope: adjustedEnvelope,
+            theaterEnvelope: theaterEnvelope,
+            rulerRecord: rulerRecord,
+            strategistAgentId: strategistAgentId,
+            marchAgentIds: marchAgentIds,
+            state: state
+        )
+        let record = CourtDecisionRecord(
+            id: "court_\(faction.rawValue)_turn_\(state.turn)",
+            turn: state.turn,
+            faction: faction,
+            issuerId: adjustedEnvelope.issuerId,
+            sovereignAgentId: rulerRecord.rulerAgentId,
+            strategistAgentId: strategistAgentId,
+            marchCommanderAgentIds: marchAgentIds,
+            directiveCount: adjustedEnvelope.directives.count,
+            rulerRecord: rulerRecord,
+            steps: steps
+        )
+
+        return CourtDirectiveAdjustment(
+            envelope: adjustedEnvelope,
+            rulerRecord: rulerRecord,
+            courtRecord: record
+        )
+    }
+
+    private func makeSteps(
+        envelope: DirectiveEnvelope,
+        theaterEnvelope: TheaterDirectiveEnvelope?,
+        rulerRecord: RulerDecisionRecord,
+        strategistAgentId: String,
+        marchAgentIds: [String],
+        state: GameState
+    ) -> [CourtAgentStepRecord] {
+        let faction = rulerRecord.faction
+        let targetZoneIds = stableUnique(envelope.directives.map(\.zoneId))
+        let targetRegionIds = stableUnique(envelope.directives.flatMap(\.targetRegionIds))
+        let governorRegions = governorFocusRegionIds(for: faction, in: state)
+        let tacticNames = stableUnique(
+            envelope.directives.compactMap { $0.tactic?.displayName }
+        )
+
+        return [
+            CourtAgentStepRecord(
+                id: "court_\(state.turn)_\(faction.rawValue)_sovereign",
+                role: .sovereign,
+                agentId: rulerRecord.rulerAgentId,
+                summary: rulerRecord.posture.displayName,
+                targetZoneIds: rulerRecord.preferredFrontZoneId.map { [$0] } ?? [],
+                targetRegionIds: rulerRecord.targetRegionIds,
+                directiveCount: envelope.directives.count,
+                rationale: rulerRecord.rationale
+            ),
+            CourtAgentStepRecord(
+                id: "court_\(state.turn)_\(faction.rawValue)_strategist",
+                role: .strategist,
+                agentId: strategistAgentId,
+                summary: theaterEnvelope?.strategicIntent ?? envelope.theaterContext ?? "按当前前线生成方面目标",
+                targetZoneIds: targetZoneIds,
+                targetRegionIds: targetRegionIds,
+                directiveCount: envelope.directives.count,
+                rationale: theaterEnvelope?.summary ?? "谋主将战略意图编译为方面军令。"
+            ),
+            CourtAgentStepRecord(
+                id: "court_\(state.turn)_\(faction.rawValue)_governor",
+                role: .governor,
+                agentId: "governor_staff_\(faction.rawValue)",
+                summary: governorRegions.isEmpty ? "州郡后勤暂无紧急警报" : "关注 \(governorRegions.count) 个粮草/围城州郡",
+                targetZoneIds: [],
+                targetRegionIds: governorRegions,
+                directiveCount: 0,
+                rationale: "太守层只记录补给、围城和州郡治理风险，不直接执行状态修改。"
+            ),
+            CourtAgentStepRecord(
+                id: "court_\(state.turn)_\(faction.rawValue)_march",
+                role: .marchCommander,
+                agentId: marchAgentIds.first ?? "march_commander_\(faction.rawValue)",
+                summary: "下发 \(envelope.directives.count) 条方面军令",
+                targetZoneIds: targetZoneIds,
+                targetRegionIds: targetRegionIds,
+                directiveCount: envelope.directives.count,
+                rationale: "行军总管层只拟定方面军令，仍交由军令规则校验执行。"
+            ),
+            CourtAgentStepRecord(
+                id: "court_\(state.turn)_\(faction.rawValue)_general",
+                role: .general,
+                agentId: "general_staff_\(faction.rawValue)",
+                summary: tacticNames.isEmpty ? "未指定战术" : tacticNames.joined(separator: "、"),
+                targetZoneIds: targetZoneIds,
+                targetRegionIds: targetRegionIds,
+                directiveCount: envelope.directives.count,
+                rationale: "将领层影响战术偏好和投入节奏，不绕过底层命令校验。"
+            ),
+            CourtAgentStepRecord(
+                id: "court_\(state.turn)_\(faction.rawValue)_diplomat",
+                role: .diplomat,
+                agentId: "diplomat_\(faction.rawValue)",
+                summary: state.diplomacyState.summary(for: faction),
+                targetZoneIds: [],
+                targetRegionIds: [],
+                directiveCount: 0,
+                rationale: "使者层记录外交态势；自动轮转可在保守条件下提交停战或归附关系命令。"
+            )
+        ]
+    }
+
+    private func governorFocusRegionIds(for faction: Faction, in state: GameState) -> [RegionId] {
+        let warningRegions = state.divisions.compactMap { division -> RegionId? in
+            guard division.faction == faction,
+                  !division.isDestroyed,
+                  division.supplyState != .supplied else {
+                return nil
+            }
+            return division.location(in: state.map)
+        }
+        let supplyRegions = state.map.regions.values
+            .filter { $0.controller == faction && $0.supplyValue >= 3 }
+            .map(\.id)
+        return stableUnique(warningRegions + supplyRegions).prefix(5).map { $0 }
     }
 
     private func stableUnique<T: Hashable>(_ values: [T]) -> [T] {
@@ -341,7 +525,7 @@ extension RulerAgent {
         case .germany:
             config = RulerAgentConfig(
                 id: country?.rulerAgentId ?? "ruler_germany",
-                name: "German Ruler",
+                name: "旧剧本统帅",
                 faction: faction,
                 countryId: country?.id,
                 aggression: 82,
@@ -351,12 +535,42 @@ extension RulerAgent {
         case .allies:
             config = RulerAgentConfig(
                 id: country?.rulerAgentId ?? "ruler_allies",
-                name: "Allied Supreme Council",
+                name: "旧剧本议事会",
                 faction: faction,
                 countryId: country?.id,
                 aggression: 58,
                 coalitionDiscipline: 82,
                 riskTolerance: 48
+            )
+        case .tang:
+            config = RulerAgentConfig(
+                id: country?.rulerAgentId ?? "sovereign_li_yuan",
+                name: "李渊",
+                faction: faction,
+                countryId: country?.id,
+                aggression: 68,
+                coalitionDiscipline: 72,
+                riskTolerance: 58
+            )
+        case .luoyangSui:
+            config = RulerAgentConfig(
+                id: country?.rulerAgentId ?? "sovereign_wang_shichong",
+                name: "王世充",
+                faction: faction,
+                countryId: country?.id,
+                aggression: 58,
+                coalitionDiscipline: 46,
+                riskTolerance: 52
+            )
+        case .wagang, .xia, .qinXue, .liuWuzhou, .tujue:
+            config = RulerAgentConfig(
+                id: country?.rulerAgentId ?? "sovereign_\(faction.rawValue)",
+                name: "\(faction.displayName)君主",
+                faction: faction,
+                countryId: country?.id,
+                aggression: 64,
+                coalitionDiscipline: 55,
+                riskTolerance: 60
             )
         }
         return RulerAgent(config: config)

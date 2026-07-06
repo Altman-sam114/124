@@ -160,7 +160,7 @@ enum DataLoaderError: Error, CustomStringConvertible, LocalizedError {
     var description: String {
         switch self {
         case .missingResource(let resourceName):
-            return "Missing data resource: \(resourceName).json"
+            return "缺少战局数据资源：\(resourceName).json。"
         case .validationFailed(let errors):
             return errors.map(\.description).joined(separator: "\n")
         }

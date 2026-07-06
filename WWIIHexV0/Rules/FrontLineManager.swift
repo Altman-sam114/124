@@ -414,12 +414,14 @@ struct FrontLineManager {
             let type: FrontLineType = hasEncirclement ? .encirclement : (hasBreakthrough ? .breakthrough : .normal)
             let state = operationalState(maxPressure: maxPressure, hasEncirclement: hasEncirclement)
 
+            let factionB = opposingFaction(for: finalSegments, factionA: factionA, map: map)
+                ?? fallbackOpposingFaction(to: factionA, map: map)
             return FrontLine(
-                id: frontLineId(theaterId: theaterId, factionA: factionA, factionB: factionA.opponent),
+                id: frontLineId(theaterId: theaterId, factionA: factionA, factionB: factionB),
                 theaterId: theaterId,
                 opposingTheaterIds: Array(opposingTheaterIds),
                 factionA: factionA,
-                factionB: factionA.opponent,
+                factionB: factionB,
                 segments: finalSegments,
                 type: type,
                 state: state
@@ -485,11 +487,34 @@ struct FrontLineManager {
         guard !counts.isEmpty else {
             return nil
         }
-        return Faction.allCases.max { (counts[$0] ?? 0) < (counts[$1] ?? 0) }
+        return counts.max {
+            $0.value == $1.value ? $0.key.rawValue > $1.key.rawValue : $0.value < $1.value
+        }?.key
     }
 
     private func frontLineId(theaterId: TheaterId, factionA: Faction, factionB: Faction) -> FrontLineId {
         FrontLineId("front_\(theaterId.rawValue)_\(factionA.rawValue)_vs_\(factionB.rawValue)")
+    }
+
+    private func opposingFaction(for segments: [FrontSegment], factionA: Faction, map: MapState) -> Faction? {
+        let counts = segments.reduce(into: [Faction: Int]()) { result, segment in
+            guard let controller = map.regions[segment.regionB]?.controller,
+                  controller != factionA else {
+                return
+            }
+            result[controller, default: 0] += 1
+        }
+        return counts.max {
+            $0.value == $1.value ? $0.key.rawValue > $1.key.rawValue : $0.value < $1.value
+        }?.key
+    }
+
+    private func fallbackOpposingFaction(to faction: Faction, map: MapState) -> Faction {
+        let controllers = Set(map.regions.values.map(\.controller))
+        return controllers
+            .filter { $0 != faction }
+            .sorted { $0.rawValue < $1.rawValue }
+            .first ?? faction
     }
 
     private func divisionStrengthsByRegion(

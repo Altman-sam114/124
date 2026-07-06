@@ -5,10 +5,11 @@ struct EconomyRules {
     private let baseIndustryReserve = 160
     private let baseSupplyReserve = 180
     private let maxAutomaticReinforcementPerDivision = 2
+    private let supplyRules = SupplyRules()
 
     func makeInitialState(map: MapState, factions: [Faction], turn: Int) -> EconomyState {
         var state = EconomyState(lastResolvedTurn: turn)
-        let uniqueFactions = Set(factions).isEmpty ? Set(Faction.allCases) : Set(factions)
+        let uniqueFactions = Set(factions).isEmpty ? Set(Faction.legacyCombatants) : Set(factions)
 
         for faction in uniqueFactions {
             let income = income(for: faction, map: map)
@@ -35,13 +36,24 @@ struct EconomyRules {
         }
 
         var next = state
-        let factions = next.divisions.map(\.faction) + Faction.allCases
+        let factions = activeFactions(in: next)
         next.economyState = makeInitialState(map: next.map, factions: factions, turn: next.turn)
         next.appendEvent(
-            "Economy state bootstrapped from controlled cities, factories, supply hubs, and regions.",
+            "府库账册已按受控城池、工坊、粮道节点和州郡初始化。",
             category: .supply
         )
         return next
+    }
+
+    private func activeFactions(in state: GameState) -> [Faction] {
+        var factions = Set(state.divisions.map(\.faction))
+        factions.formUnion(state.map.tiles.values.compactMap(\.controller))
+        factions.formUnion(state.map.supplySources.map(\.faction))
+        factions.formUnion(state.diplomacyState.countries.map(\.faction))
+        if factions.isEmpty {
+            return Faction.legacyCombatants
+        }
+        return factions.sorted { $0.rawValue < $1.rawValue }
     }
 
     func canQueueProduction(kind: ProductionKind, faction: Faction, in state: GameState) -> Bool {
@@ -52,7 +64,7 @@ struct EconomyRules {
         var ledger = state.economyState.ledger(for: faction)
         guard ledger.stockpile.canAfford(kind.cost) else {
             state.appendEvent(
-                "\(faction.displayName) lacks resources for \(kind.displayName).",
+                "\(faction.displayName) 府库不足，无法征发 \(kind.displayName)。",
                 category: .supply
             )
             return false
@@ -69,7 +81,7 @@ struct EconomyRules {
         ledger.lastUpdatedTurn = state.turn
         state.economyState.updateLedger(ledger)
         state.appendEvent(
-            "\(faction.displayName) queued \(kind.displayName): cost \(resourceSummary(kind.cost)), \(kind.buildTurns) turn(s).",
+            "\(faction.displayName) 征发 \(kind.displayName)：耗费 \(resourceSummary(kind.cost))，\(kind.buildTurns) 回合完成。",
             category: .supply
         )
         return true
@@ -102,7 +114,7 @@ struct EconomyRules {
         state.economyState.updateLedger(ledger)
         state.economyState.lastResolvedTurn = state.turn
         state.appendEvent(
-            "\(faction.displayName) economy: +\(resourceSummary(turnIncome)); upkeep \(resourceSummary(upkeep)); reinforcement \(resourceSummary(reinforcementSpend)); stockpile \(resourceSummary(ledger.stockpile)).",
+            "\(faction.displayName) 府库结算：收入 \(resourceSummary(turnIncome))；军粮消耗 \(resourceSummary(upkeep))；补员耗费 \(resourceSummary(reinforcementSpend))；结余 \(resourceSummary(ledger.stockpile))。",
             category: .supply
         )
     }
@@ -193,7 +205,7 @@ struct EconomyRules {
         let upkeep = state.divisions
             .filter { $0.faction == faction && !$0.isDestroyed }
             .reduce(0) { partial, division in
-                partial + 2 + (division.isArmor ? 2 : 0) + (division.isArtillery ? 1 : 0)
+                partial + 2 + (division.hasCavalryShock ? 2 : 0) + (division.hasRangedSupport ? 1 : 0)
             }
         return EconomyResources(supplies: upkeep)
     }
@@ -206,7 +218,7 @@ struct EconomyRules {
         }
 
         state.appendEvent(
-            "\(faction.displayName) strategic supply stockpile is depleted; supplied units degrade to Low Supply this turn.",
+            "\(faction.displayName) 粮草库耗尽，本回合粮道畅通的军队降为粮草不足。",
             category: .supply
         )
     }
@@ -224,7 +236,8 @@ struct EconomyRules {
                     !division.isRetreating &&
                     division.supplyState == .supplied &&
                     division.strength < division.maxStrength &&
-                    !isAdjacentToEnemy(division, in: state)
+                    !isAdjacentToEnemy(division, in: state) &&
+                    !supplyRules.isBesieged(division, in: state)
             }
             .sorted { lhs, rhs in
                 let lhsMissing = lhs.maxStrength - lhs.strength
@@ -255,7 +268,7 @@ struct EconomyRules {
             if restored > 0 {
                 state.divisions[index].reinforceStrength(restored)
                 state.appendEvent(
-                    "\(state.divisions[index].name) received automatic replacements: +\(restored) strength.",
+                    "\(state.divisions[index].name) 获得自动补员：兵力 +\(restored)。",
                     category: .reinforce
                 )
             }
@@ -265,19 +278,19 @@ struct EconomyRules {
     }
 
     private func reinforcementCostPerStrength(for division: Division) -> EconomyResources {
-        let armorWeight = division.components
-            .filter { $0.type == .tank }
+        let shockWeight = division.components
+            .filter { $0.type == .tank || $0.type == .cavalry || $0.type == .guard || $0.type == .naval }
             .reduce(0.0) { $0 + $1.weight }
-        let motorizedWeight = division.components
-            .filter { $0.type == .motorizedInfantry }
+        let mobileWeight = division.components
+            .filter { $0.type.isMobileShock }
             .reduce(0.0) { $0 + $1.weight }
-        let artilleryWeight = division.components
-            .filter { $0.type == .artillery }
+        let supportWeight = division.components
+            .filter { $0.type.isRangedSupport }
             .reduce(0.0) { $0 + $1.weight }
 
         return EconomyResources(
-            manpower: max(4, Int((8 + 6 * (1 - armorWeight)).rounded())),
-            industry: max(1, Int((1 + armorWeight * 5 + motorizedWeight * 2 + artilleryWeight * 3).rounded())),
+            manpower: max(4, Int((8 + 4 * (1 - shockWeight)).rounded())),
+            industry: max(1, Int((1 + shockWeight * 3 + mobileWeight * 2 + supportWeight * 3).rounded())),
             supplies: 1
         )
     }
@@ -307,7 +320,7 @@ struct EconomyRules {
             if order.kind == .supplyStockpile {
                 ledger.stockpile.add(EconomyResources(supplies: order.kind.supplyOutput))
                 state.appendEvent(
-                    "\(faction.displayName) completed \(order.kind.displayName): +\(order.kind.supplyOutput) supplies.",
+                    "\(faction.displayName) 完成 \(order.kind.displayName)：粮草 +\(order.kind.supplyOutput)。",
                     category: .supply
                 )
                 continue
@@ -322,14 +335,15 @@ struct EconomyRules {
                 )
                 state.divisions.append(division)
                 order.deploymentRegionId = deployment.regionId
+                let regionName = state.map.region(id: deployment.regionId)?.name ?? "后方州郡"
                 state.appendEvent(
-                    "\(faction.displayName) deployed \(division.name) at \(deployment.coord.q),\(deployment.coord.r).",
+                    "\(faction.displayName) 已在 \(regionName) 后方部署 \(division.name)。",
                     category: .reinforce
                 )
             } else {
                 remainingOrders.append(order)
                 state.appendEvent(
-                    "\(order.kind.displayName) is ready, but no safe rear deployment hex is available.",
+                    "\(order.kind.displayName) 已完成，但当前没有安全后方地块可部署。",
                     category: .reinforce
                 )
             }
@@ -441,17 +455,57 @@ struct EconomyRules {
         index: Int
     ) -> Division {
         let id = "prod_\(faction.rawValue)_\(order.kind.rawValue)_\(order.createdTurn)_\(index)"
-        let name = "\(order.kind.displayName) \(order.createdTurn)-\(index)"
+        let name = "\(faction.displayName)\(order.kind.displayName)第\(max(1, index + 1))队"
 
         switch order.kind {
         case .infantryDivision:
-            return .infantry(id: id, name: name, faction: faction, coord: coord)
+            return Division(
+                id: id,
+                name: name,
+                faction: faction,
+                coord: coord,
+                components: [
+                    DivisionComponent(type: .infantry, weight: 0.75),
+                    DivisionComponent(type: .archer, weight: 0.15),
+                    DivisionComponent(type: .militia, weight: 0.10)
+                ]
+            )
         case .panzerDivision:
-            return .panzer(id: id, name: name, faction: faction, coord: coord)
+            return Division(
+                id: id,
+                name: name,
+                faction: faction,
+                coord: coord,
+                components: [
+                    DivisionComponent(type: .cavalry, weight: 0.80),
+                    DivisionComponent(type: .infantry, weight: 0.15),
+                    DivisionComponent(type: .archer, weight: 0.05)
+                ]
+            )
         case .motorizedDivision:
-            return .motorized(id: id, name: name, faction: faction, coord: coord)
+            return Division(
+                id: id,
+                name: name,
+                faction: faction,
+                coord: coord,
+                components: [
+                    DivisionComponent(type: .cavalry, weight: 0.60),
+                    DivisionComponent(type: .militia, weight: 0.25),
+                    DivisionComponent(type: .archer, weight: 0.15)
+                ]
+            )
         case .artilleryDivision:
-            return .artillery(id: id, name: name, faction: faction, coord: coord)
+            return Division(
+                id: id,
+                name: name,
+                faction: faction,
+                coord: coord,
+                components: [
+                    DivisionComponent(type: .archer, weight: 0.45),
+                    DivisionComponent(type: .siegeEngine, weight: 0.35),
+                    DivisionComponent(type: .infantry, weight: 0.20)
+                ]
+            )
         case .supplyStockpile:
             return .infantry(id: id, name: name, faction: faction, coord: coord)
         }
@@ -463,7 +517,9 @@ struct EconomyRules {
 
     private func isEnemyAdjacent(to coord: HexCoord, faction: Faction, in state: GameState) -> Bool {
         state.divisions.contains { other in
-            other.faction != faction && !other.isDestroyed && other.coord.distance(to: coord) <= 1
+            state.diplomacyState.isHostile(faction, other.faction) &&
+                !other.isDestroyed &&
+                other.coord.distance(to: coord) <= 1
         }
     }
 
@@ -472,6 +528,6 @@ struct EconomyRules {
     }
 
     private func resourceSummary(_ resources: EconomyResources) -> String {
-        "MP \(resources.manpower), IC \(resources.industry), SUP \(resources.supplies)"
+        resources.displaySummary
     }
 }

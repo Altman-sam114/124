@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "templates": [
+    {
+      "id": "suitang_infantry_host",
+      "displayName": "府兵步军",
+      "maxHP": 10,
+      "components": [
+        {
+          "type": "infantry",
+          "weight": 0.78
+        },
+        {
+          "type": "archer",
+          "weight": 0.12
+        },
+        {
+          "type": "cavalry",
+          "weight": 0.1
+        }
+      ]
+    },
+    {
+      "id": "suitang_cavalry_column",
+      "displayName": "骑军行营",
+      "maxHP": 10,
+      "components": [
+        {
+          "type": "cavalry",
+          "weight": 0.82
+        },
+        {
+          "type": "infantry",
+          "weight": 0.13
+        },
+        {
+          "type": "archer",
+          "weight": 0.05
+        }
+      ]
+    },
+    {
+      "id": "suitang_archer_camp",
+      "displayName": "弓弩营",
+      "maxHP": 9,
+      "components": [
+        {
+          "type": "archer",
+          "weight": 0.55
+        },
+        {
+          "type": "infantry",
+          "weight": 0.35
+        },
+        {
+          "type": "cavalry",
+          "weight": 0.1
+        }
+      ]
+    },
+    {
+      "id": "suitang_siege_train",
+      "displayName": "攻城器械队",
+      "maxHP": 8,
+      "components": [
+        {
+          "type": "siegeEngine",
+          "weight": 0.65
+        },
+        {
+          "type": "infantry",
+          "weight": 0.25
+        },
+        {
+          "type": "archer",
+          "weight": 0.1
+        }
+      ]
+    },
+    {
+      "id": "suitang_garrison",
+      "displayName": "城关守军",
+      "maxHP": 10,
+      "components": [
+        {
+          "type": "guard",
+          "weight": 0.5
+        },
+        {
+          "type": "infantry",
+          "weight": 0.3
+        },
+        {
+          "type": "archer",
+          "weight": 0.2
+        }
+      ]
+    },
+    {
+      "id": "suitang_frontier_raiders",
+      "displayName": "边骑游军",
+      "maxHP": 9,
+      "components": [
+        {
+          "type": "cavalry",
+          "weight": 0.86
+        },
+        {
+          "type": "militia",
+          "weight": 0.1
+        },
+        {
+          "type": "archer",
+          "weight": 0.04
+        }
+      ]
+    }
+  ]
+}

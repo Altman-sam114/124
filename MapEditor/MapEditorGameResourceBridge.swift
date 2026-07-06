@@ -6,17 +6,17 @@ enum MapEditorGameResourceBridgeError: Error, CustomStringConvertible {
 
     var description: String {
         switch self {
-        case .missingTerrain(let terrain):
-            return "Unknown terrain in game data: \(terrain)."
-        case .missingResource(let url):
-            return "Missing resource: \(url.path)."
+        case .missingTerrain:
+            return "游戏资源中存在地图工具暂不支持的地形。"
+        case .missingResource:
+            return "缺少默认战局资源。"
         }
     }
 }
 
 enum MapEditorGameResourceBridge {
-    static let scenarioResourceName = "ardennes_v0_scenario"
-    static let regionResourceName = "ardennes_v02_regions"
+    static let scenarioResourceName = "wude_618_scenario"
+    static let regionResourceName = "wude_618_regions"
 
     static var gameDataDirectory: URL {
         URL(fileURLWithPath: #filePath)
@@ -46,10 +46,26 @@ enum MapEditorGameResourceBridge {
         let result = try MapEditorExporter.export(
             document: document,
             scenarioFileName: scenarioResourceName,
-            regionFileName: regionResourceName
+            regionFileName: regionResourceName,
+            metadata: defaultExportMetadata()
         )
         try MapEditorExporter.write(result, to: gameDataDirectory)
         return result
+    }
+
+    static func exportMetadata(for document: MapEditorDocument) -> MapEditorExportMetadata? {
+        guard document.id.hasPrefix("wude_618") else { return nil }
+        return defaultExportMetadata()
+    }
+
+    static func defaultExportMetadata() -> MapEditorExportMetadata? {
+        let scenarioURL = gameDataDirectory.appending(path: scenarioResourceName).appendingPathExtension("json")
+        guard FileManager.default.fileExists(atPath: scenarioURL.path),
+              let data = try? Data(contentsOf: scenarioURL),
+              let scenario = try? JSONDecoder().decode(ScenarioDefinition.self, from: data) else {
+            return nil
+        }
+        return MapEditorExportMetadata(scenario: scenario)
     }
 
     private static func makeDocument(
@@ -113,6 +129,16 @@ enum MapEditorGameResourceBridge {
                 assignedAgentId: unit.assignedAgentId
             )
         }
+        let keyLocations = scenario.keyLocations.map { location in
+            MapEditorKeyLocationDraft(
+                id: location.id,
+                name: location.name,
+                kind: location.kind,
+                coord: HexCoord(q: location.coord.q, r: location.coord.r),
+                faction: location.faction.flatMap(Faction.init(rawValue:)),
+                objectiveId: location.objectiveId
+            )
+        }
 
         return MapEditorDocument(
             id: scenario.id,
@@ -123,7 +149,9 @@ enum MapEditorGameResourceBridge {
             regions: regions,
             theaters: theaters,
             regionTheaterAssignments: regionTheaterAssignments,
-            initialUnits: units
+            initialUnits: units,
+            keyLocations: keyLocations,
+            keyLocationsAreAuthoritative: true
         )
     }
 }

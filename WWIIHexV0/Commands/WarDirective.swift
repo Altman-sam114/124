@@ -3,11 +3,29 @@ import Foundation
 enum DirectiveType: String, Codable, Equatable, CaseIterable {
     case defend
     case attack
+
+    var displayName: String {
+        switch self {
+        case .defend:
+            return "固守"
+        case .attack:
+            return "进军"
+        }
+    }
 }
 
 enum CommandCategory: String, Codable, Equatable, CaseIterable {
     case offense
     case defense
+
+    var displayName: String {
+        switch self {
+        case .offense:
+            return "进攻"
+        case .defense:
+            return "防守"
+        }
+    }
 }
 
 enum TacticName: String, Codable, Equatable, CaseIterable {
@@ -40,6 +58,35 @@ enum TacticName: String, Codable, Equatable, CaseIterable {
              .defenseInDepth,
              .lastStand:
             return .defense
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .standardAttack:
+            return "正攻"
+        case .blitzkrieg:
+            return "疾骑突进"
+        case .spearhead:
+            return "突骑破阵"
+        case .breakthrough:
+            return "破阵"
+        case .pincerMovement:
+            return "合围"
+        case .fireCoverage:
+            return "弓弩压制"
+        case .feint:
+            return "佯动"
+        case .guerrillaWarfare:
+            return "袭扰截粮"
+        case .holdPosition:
+            return "固守"
+        case .elasticDefense:
+            return "诱敌退守"
+        case .defenseInDepth:
+            return "守关层防"
+        case .lastStand:
+            return "死守"
         }
     }
 }
@@ -95,7 +142,7 @@ extension DirectiveTarget: Codable {
             return
         }
         throw DecodingError.dataCorrupted(
-            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "DirectiveTarget requires theater or region.")
+            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "军令目标缺少方面或州郡。")
         )
     }
 
@@ -488,27 +535,27 @@ enum TheaterDirectiveDecoderError: Error, Equatable, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidUTF8:
-            return "Theater directive JSON is not valid UTF-8."
-        case .malformedJSON(let detail):
-            return "Malformed theater directive JSON: \(detail)"
+            return "元帅军令原文不是有效 UTF-8 文本。"
+        case .malformedJSON:
+            return "元帅军令结构化原文格式不正确。"
         case .unsupportedSchemaVersion(let version):
-            return "Unsupported theater directive schemaVersion \(version)."
-        case .issuerMismatch(let expected, let actual):
-            return "Theater directive issuer mismatch. Expected \(expected), got \(actual)."
+            return "元帅军令格式版本 \(version) 暂不支持。"
+        case .issuerMismatch:
+            return "元帅军令来源不匹配。"
         case .turnMismatch(let expected, let actual):
-            return "Theater directive turn mismatch. Expected \(expected), got \(actual)."
+            return "元帅军令回合不匹配：预期第 \(expected) 回合，实际第 \(actual) 回合。"
         case .factionMismatch(let expected, let actual):
-            return "Theater directive faction mismatch. Expected \(expected.displayName), got \(actual.displayName)."
-        case .missingZone(let zoneId):
-            return "Theater directive references missing FrontZone \(zoneId.rawValue)."
-        case .zoneFactionMismatch(let zoneId, let expected, let actual):
-            return "Theater directive zone \(zoneId.rawValue) belongs to \(actual.displayName), expected \(expected.displayName)."
-        case .missingTargetTheater(let theaterId):
-            return "Theater directive references missing target theater \(theaterId.rawValue)."
-        case .missingRegion(let regionId):
-            return "Theater directive references missing region \(regionId.rawValue)."
-        case .tacticCategoryMismatch(let directiveId, let tactic, let category):
-            return "Theater directive \(directiveId) uses tactic \(tactic.rawValue) outside category \(category.rawValue)."
+            return "元帅军令势力不匹配：预期 \(expected.displayName)，实际 \(actual.displayName)。"
+        case .missingZone:
+            return "元帅军令引用了不存在的行军防区。"
+        case .zoneFactionMismatch(_, let expected, let actual):
+            return "元帅军令中的行军防区属于 \(actual.displayName)，预期为 \(expected.displayName)。"
+        case .missingTargetTheater:
+            return "元帅军令引用了不存在的目标方面。"
+        case .missingRegion:
+            return "元帅军令引用了不存在的州郡。"
+        case .tacticCategoryMismatch(_, let tactic, let category):
+            return "元帅军令中的战术 \(tactic.displayName) 不属于\(category.displayName)类别。"
         }
     }
 }

@@ -13,11 +13,11 @@ enum MapEditorMode: String, Codable, CaseIterable, Identifiable {
         case .hexPainter:
             return "地块"
         case .regionBuilder:
-            return "省份"
+            return "州郡"
         case .theaterAssignment:
-            return "战区"
+            return "方面"
         case .unitPlanner:
-            return "部队"
+            return "军队"
         }
     }
 }
@@ -119,7 +119,7 @@ struct MapEditorRegionDraft: Codable, Equatable, Identifiable {
         assignedGeneralId: String? = nil
     ) {
         self.id = id
-        self.name = name ?? id.rawValue
+        self.name = name ?? "未命名州郡"
         self.owner = owner
         self.controller = controller
         self.infrastructure = infrastructure
@@ -136,7 +136,7 @@ struct MapEditorTheaterDraft: Codable, Equatable, Identifiable {
 
     init(id: TheaterId, name: String? = nil) {
         self.id = id
-        self.name = name ?? id.rawValue
+        self.name = name ?? "未命名方面"
     }
 }
 
@@ -177,6 +177,31 @@ struct MapEditorUnitDraft: Codable, Equatable, Identifiable {
     }
 }
 
+struct MapEditorKeyLocationDraft: Codable, Equatable, Identifiable {
+    var id: String
+    var name: String
+    var kind: String
+    var coord: HexCoord
+    var faction: Faction?
+    var objectiveId: String?
+
+    init(
+        id: String,
+        name: String,
+        kind: String,
+        coord: HexCoord,
+        faction: Faction? = nil,
+        objectiveId: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.kind = kind
+        self.coord = coord
+        self.faction = faction
+        self.objectiveId = objectiveId
+    }
+}
+
 struct MapEditorBackgroundImage: Codable, Equatable {
     var filePath: String
     var opacity: Double
@@ -209,6 +234,9 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
     var theaters: [TheaterId: MapEditorTheaterDraft]
     var regionTheaterAssignments: [RegionId: TheaterId]
     var initialUnits: [MapEditorUnitDraft]
+    var keyLocations: [MapEditorKeyLocationDraft]
+    var keyLocationsAreAuthoritative: Bool
+    var suppressedKeyLocationCoordKeys: Set<String>
     var backgroundImage: MapEditorBackgroundImage?
 
     init(
@@ -221,6 +249,9 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
         theaters: [TheaterId: MapEditorTheaterDraft] = [:],
         regionTheaterAssignments: [RegionId: TheaterId] = [:],
         initialUnits: [MapEditorUnitDraft] = [],
+        keyLocations: [MapEditorKeyLocationDraft] = [],
+        keyLocationsAreAuthoritative: Bool = true,
+        suppressedKeyLocationCoordKeys: Set<String> = [],
         backgroundImage: MapEditorBackgroundImage? = nil
     ) {
         self.id = id
@@ -232,10 +263,68 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
         self.theaters = theaters
         self.regionTheaterAssignments = regionTheaterAssignments
         self.initialUnits = initialUnits
+        self.keyLocations = keyLocations
+        self.keyLocationsAreAuthoritative = keyLocationsAreAuthoritative
+        self.suppressedKeyLocationCoordKeys = suppressedKeyLocationCoordKeys
         self.backgroundImage = backgroundImage
     }
 
-    static func new(id: String = "mapeditor_scenario", displayName: String = "MapEditor Scenario", width: Int, height: Int) -> MapEditorDocument {
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case displayName
+        case width
+        case height
+        case hexes
+        case regions
+        case theaters
+        case regionTheaterAssignments
+        case initialUnits
+        case keyLocations
+        case keyLocationsAreAuthoritative
+        case suppressedKeyLocationCoordKeys
+        case backgroundImage
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        width = try container.decode(Int.self, forKey: .width)
+        height = try container.decode(Int.self, forKey: .height)
+        hexes = try container.decode([HexCoord: MapEditorHex].self, forKey: .hexes)
+        regions = try container.decode([RegionId: MapEditorRegionDraft].self, forKey: .regions)
+        theaters = try container.decode([TheaterId: MapEditorTheaterDraft].self, forKey: .theaters)
+        regionTheaterAssignments = try container.decode([RegionId: TheaterId].self, forKey: .regionTheaterAssignments)
+        initialUnits = try container.decode([MapEditorUnitDraft].self, forKey: .initialUnits)
+        keyLocations = try container.decodeIfPresent([MapEditorKeyLocationDraft].self, forKey: .keyLocations) ?? []
+        keyLocationsAreAuthoritative = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .keyLocationsAreAuthoritative
+        ) ?? false
+        suppressedKeyLocationCoordKeys = Set(
+            try container.decodeIfPresent([String].self, forKey: .suppressedKeyLocationCoordKeys) ?? []
+        )
+        backgroundImage = try container.decodeIfPresent(MapEditorBackgroundImage.self, forKey: .backgroundImage)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(displayName, forKey: .displayName)
+        try container.encode(width, forKey: .width)
+        try container.encode(height, forKey: .height)
+        try container.encode(hexes, forKey: .hexes)
+        try container.encode(regions, forKey: .regions)
+        try container.encode(theaters, forKey: .theaters)
+        try container.encode(regionTheaterAssignments, forKey: .regionTheaterAssignments)
+        try container.encode(initialUnits, forKey: .initialUnits)
+        try container.encode(keyLocations, forKey: .keyLocations)
+        try container.encode(keyLocationsAreAuthoritative, forKey: .keyLocationsAreAuthoritative)
+        try container.encode(suppressedKeyLocationCoordKeys.sorted(), forKey: .suppressedKeyLocationCoordKeys)
+        try container.encodeIfPresent(backgroundImage, forKey: .backgroundImage)
+    }
+
+    static func new(id: String = "mapeditor_suitang_scenario", displayName: String = "隋唐地图草稿", width: Int, height: Int) -> MapEditorDocument {
         var hexes: [HexCoord: MapEditorHex] = [:]
         for q in 0..<max(1, width) {
             for r in 0..<max(1, height) {
@@ -278,6 +367,11 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
         regions = regions.filter { validRegions.contains($0.key) }
         regionTheaterAssignments = regionTheaterAssignments.filter { validRegions.contains($0.key) }
         initialUnits.removeAll { next[$0.coord] == nil }
+        keyLocations.removeAll { next[$0.coord] == nil }
+        suppressedKeyLocationCoordKeys = suppressedKeyLocationCoordKeys.filter { key in
+            guard let coord = HexCoord(mapEditorKey: key) else { return false }
+            return next[coord] != nil
+        }
         width = clampedWidth
         height = clampedHeight
         hexes = next
@@ -304,6 +398,7 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
         let removedRegionId = hexes[coord]?.regionId
         hexes.removeValue(forKey: coord)
         initialUnits.removeAll { $0.coord == coord }
+        removeKeyLocation(at: coord)
 
         if let removedRegionId,
            !hexes.values.contains(where: { $0.regionId == removedRegionId }) {
@@ -320,6 +415,7 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
         guard contains(coord) else { return }
         hexes[coord] = MapEditorHex(coord: coord)
         initialUnits.removeAll { $0.coord == coord }
+        removeKeyLocation(at: coord)
     }
 
     mutating func createRegion(id: RegionId, name: String? = nil, controller: Faction? = nil) {
@@ -342,6 +438,29 @@ struct MapEditorDocument: Codable, Equatable, Identifiable {
         } else {
             regionTheaterAssignments.removeValue(forKey: regionId)
         }
+    }
+
+    func keyLocation(at coord: HexCoord) -> MapEditorKeyLocationDraft? {
+        keyLocations.first { $0.coord == coord }
+    }
+
+    mutating func upsertKeyLocation(_ location: MapEditorKeyLocationDraft) {
+        guard contains(location.coord) else { return }
+        if let index = keyLocations.firstIndex(where: { $0.coord == location.coord }) {
+            keyLocations[index] = location
+        } else {
+            keyLocations.append(location)
+        }
+        suppressedKeyLocationCoordKeys.remove(location.coord.mapEditorKey)
+    }
+
+    mutating func removeKeyLocation(at coord: HexCoord) {
+        keyLocations.removeAll { $0.coord == coord }
+        suppressedKeyLocationCoordKeys.insert(coord.mapEditorKey)
+    }
+
+    func isKeyLocationSuppressed(at coord: HexCoord) -> Bool {
+        suppressedKeyLocationCoordKeys.contains(coord.mapEditorKey)
     }
 
     func contains(_ coord: HexCoord) -> Bool {
@@ -380,6 +499,16 @@ enum MapEditorStorage {
 }
 
 extension HexCoord {
+    init?(mapEditorKey: String) {
+        let parts = mapEditorKey.split(separator: ",").map(String.init)
+        guard parts.count == 2,
+              let q = Int(parts[0]),
+              let r = Int(parts[1]) else {
+            return nil
+        }
+        self.init(q: q, r: r)
+    }
+
     var mapEditorKey: String {
         "\(q),\(r)"
     }

@@ -43,7 +43,7 @@ struct TacticConditionChecker {
              .pincerMovement:
             return !zoneUnits.filter(\.canAct).isEmpty
         case .fireCoverage:
-            return zoneUnits.contains { $0.isArtillery || $0.range > 1 }
+            return zoneUnits.contains { $0.hasRangedSupport || $0.range > 1 }
         case .feint:
             return !zone.unitsFront.isEmpty
         case .defenseInDepth:
@@ -52,9 +52,7 @@ struct TacticConditionChecker {
     }
 
     private func isMobile(_ division: Division) -> Bool {
-        division.isArmor
-            || division.movement >= 5
-            || division.components.contains { $0.type == .motorizedInfantry && $0.weight >= 0.25 }
+        division.isMobileForce
     }
 }
 
@@ -575,7 +573,7 @@ struct ZoneCommanderAgent: ZoneCommanderProviding {
                 unitIds.contains($0.id)
                     && $0.faction == zone.faction
                     && !$0.isDestroyed
-                    && ($0.isArtillery || $0.range > 1)
+                    && ($0.hasRangedSupport || $0.range > 1)
             }
             .reduce(0) { $0 + combatPower($1, mode: .friendly) }
     }
@@ -742,7 +740,7 @@ struct ZoneCommanderAgent: ZoneCommanderProviding {
         }
 
         return previous.commandResults.allSatisfy { summary in
-            summary.commandDisplayName?.hasPrefix("Hold") == true
+            summary.commandKind == .hold
         }
     }
 
@@ -790,9 +788,7 @@ struct ZoneCommanderAgent: ZoneCommanderProviding {
     }
 
     private func isMobile(_ division: Division) -> Bool {
-        division.isArmor
-            || division.movement >= 5
-            || division.components.contains { $0.type == .motorizedInfantry && $0.weight >= 0.25 }
+        division.isMobileForce
     }
 
     private func stableUnique<T: Hashable>(_ values: [T]) -> [T] {
@@ -843,10 +839,9 @@ struct TheaterCommanderPool {
 
     static func defaultConfig(for zone: FrontZone) -> ZoneCommanderAgentConfig {
         let style: ZoneCommanderAgentConfig.CommandStyle = zone.faction == .germany ? .aggressive : .balanced
-        let factionName = zone.faction == .germany ? "German" : "Allied"
         return ZoneCommanderAgentConfig(
             id: "auto_\(zone.id.rawValue)",
-            name: "\(factionName) Commander (\(zone.id.rawValue))",
+            name: "\(Self.displayFactionName(zone.faction))总管（\(displayZoneName(zone))）",
             faction: zone.faction,
             assignedZoneId: zone.id,
             skills: [],
@@ -854,8 +849,28 @@ struct TheaterCommanderPool {
         )
     }
 
+    private static func displayZoneName(_ zone: FrontZone) -> String {
+        guard !zone.name.isEmpty,
+              !zone.name.contains("_"),
+              !zone.name.hasPrefix("theater"),
+              !zone.name.hasPrefix("front"),
+              zone.name != zone.id.rawValue else {
+            return "\(Self.displayFactionName(zone.faction))方面"
+        }
+        return zone.name
+    }
+
     private func contextSummary(for faction: Faction, directives: [ZoneDirective]) -> String {
-        "\(faction.displayName): \(directives.count) zone directive(s)."
+        "\(Self.displayFactionName(faction))：生成 \(directives.count) 条方面军令。"
+    }
+
+    private static func displayFactionName(_ faction: Faction) -> String {
+        switch faction {
+        case .germany, .allies:
+            return "旧剧本势力"
+        default:
+            return faction.displayName
+        }
     }
 }
 
@@ -896,20 +911,65 @@ struct MarshalAgentConfig: Codable, Equatable, Identifiable {
         switch faction {
         case .germany:
             return MarshalAgentConfig(
-                id: "marshal_rundstedt",
-                name: "Gerd von Rundstedt",
+                id: "strategist_legacy_primary",
+                name: "旧剧本势力行军总管",
                 faction: .germany,
-                personality: "Steady operational commander; favors concentration of force, reserves, and controlled breakthroughs.",
+                personality: "稳健的行军总管，偏好集中兵力、保留预备队，并控制突破节奏。",
                 strategicBias: .offensive,
                 theaterGroupZoneIds: zoneIds
             )
         case .allies:
             return MarshalAgentConfig(
-                id: "marshal_eisenhower",
-                name: "Dwight Eisenhower",
+                id: "strategist_legacy_secondary",
+                name: "旧剧本势力行军总管",
                 faction: .allies,
-                personality: "Coalition commander; favors stable fronts, reserves, and coordinated limited counterattacks.",
+                personality: "善于协调防线的行军总管，偏好稳定前线、保留预备队，并组织有限反击。",
                 strategicBias: .balanced,
+                theaterGroupZoneIds: zoneIds
+            )
+        case .tang:
+            return MarshalAgentConfig(
+                id: "strategist_li_shimin",
+                name: "李世民",
+                faction: faction,
+                personality: "进取型统帅，偏好机动集中、决战破局，并优先夺取战略关隘。",
+                strategicBias: .offensive,
+                theaterGroupZoneIds: zoneIds
+            )
+        case .luoyangSui:
+            return MarshalAgentConfig(
+                id: "strategist_wang_shichong",
+                name: "王世充",
+                faction: faction,
+                personality: "守势朝堂统帅，偏好固守洛阳、保存预备队，并争夺仓城。",
+                strategicBias: .defensive,
+                theaterGroupZoneIds: zoneIds
+            )
+        case .wagang:
+            return MarshalAgentConfig(
+                id: "strategist_li_mi",
+                name: "李密",
+                faction: faction,
+                personality: "机动义军统帅，偏好袭扰仓城、捕捉战机，并迅速扩大战果。",
+                strategicBias: .offensive,
+                theaterGroupZoneIds: zoneIds
+            )
+        case .xia:
+            return MarshalAgentConfig(
+                id: "strategist_dou_jiande",
+                name: "窦建德",
+                faction: faction,
+                personality: "稳健的地方统帅，偏好均衡作战，并优先保全根本方面。",
+                strategicBias: .balanced,
+                theaterGroupZoneIds: zoneIds
+            )
+        case .qinXue, .liuWuzhou, .tujue:
+            return MarshalAgentConfig(
+                id: "strategist_\(faction.rawValue)",
+                name: "\(faction.displayName)总管",
+                faction: faction,
+                personality: "施压型边地统帅，偏好袭扰、有限进攻，并利用敌方薄弱前线。",
+                strategicBias: .offensive,
                 theaterGroupZoneIds: zoneIds
             )
         }
@@ -986,7 +1046,7 @@ struct MarshalBattlefieldSummarizer {
             .map { frontSummary(for: $0, faction: faction, state: state) }
 
         let heldObjectives = objectiveNames(controlledBy: faction, state: state)
-        let lostObjectives = objectiveNames(controlledBy: faction.opponent, state: state)
+        let lostObjectives = hostileObjectiveNames(to: faction, state: state)
         let recentEvents = Array(state.eventLog.suffix(maxRecentEvents)).map(\.message)
 
         return MarshalBattlefieldSummary(
@@ -1051,7 +1111,7 @@ struct MarshalBattlefieldSummarizer {
             garrisonUnitCount: zone.unitsGarrison.count,
             supplyWarningCount: supplyWarnings,
             keyObjectivesHeld: objectiveNames(in: frontRegionIds, controlledBy: faction, state: state),
-            keyObjectivesLost: objectiveNames(in: enemyRegionIds, controlledBy: faction.opponent, state: state),
+            keyObjectivesLost: hostileObjectiveNames(in: enemyRegionIds, to: faction, state: state),
             status: status(for: zone, ratio: ratio, supplyWarnings: supplyWarnings)
         )
     }
@@ -1162,6 +1222,33 @@ struct MarshalBattlefieldSummarizer {
             .sorted()
     }
 
+    private func hostileObjectiveNames(to faction: Faction, state: GameState) -> [String] {
+        state.map.objectives
+            .filter { objective in
+                guard let controller = state.map.tile(at: objective.coord)?.controller else {
+                    return false
+                }
+                return state.diplomacyState.isHostile(faction, controller)
+            }
+            .map(\.name)
+            .sorted()
+    }
+
+    private func hostileObjectiveNames(in regionIds: [RegionId], to faction: Faction, state: GameState) -> [String] {
+        let regionSet = Set(regionIds)
+        return state.map.objectives
+            .filter { objective in
+                guard let regionId = state.map.region(for: objective.coord),
+                      regionSet.contains(regionId),
+                      let controller = state.map.tile(at: objective.coord)?.controller else {
+                    return false
+                }
+                return state.diplomacyState.isHostile(faction, controller)
+            }
+            .map(\.name)
+            .sorted()
+    }
+
     private func status(for zone: FrontZone, ratio: Double, supplyWarnings: Int) -> String {
         if supplyWarnings > 0 {
             return "supply_warning"
@@ -1206,7 +1293,7 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
             if shouldAttack {
                 let tactic = offensiveTactic(front: front, bias: config.strategicBias)
                 return TheaterDirective(
-                    id: "marshal_\(summary.turn)_\(front.id.rawValue)",
+                    id: "command_\(summary.turn)_\(front.id.rawValue)",
                     zoneId: front.id,
                     category: .offense,
                     tactic: tactic,
@@ -1221,13 +1308,13 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
                     intensity: front.strengthRatio >= 1.8 ? .allOut : .limitedCounter,
                     maxCommittedUnits: front.frontUnitCount + max(0, front.depthUnitCount / 2),
                     exploitDepth: front.strengthRatio >= 1.8 ? 1 : 0,
-                    rationale: "Simulated marshal JSON: \(tactic.rawValue) selected from strength ratio \(String(format: "%.2f", front.strengthRatio))."
+                    rationale: "模拟军议：因兵力比 \(String(format: "%.2f", front.strengthRatio))，选用\(tactic.displayName)。"
                 )
             }
 
             let tactic = defensiveTactic(front: front)
             return TheaterDirective(
-                id: "marshal_\(summary.turn)_\(front.id.rawValue)",
+                id: "command_\(summary.turn)_\(front.id.rawValue)",
                 zoneId: front.id,
                 category: .defense,
                 tactic: tactic,
@@ -1237,7 +1324,7 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
                 supportRegionIds: front.enemyRegionIds,
                 reserveBias: max(1, min(3, front.depthUnitCount)),
                 maxCommittedUnits: front.frontUnitCount,
-                rationale: "Simulated marshal JSON: \(tactic.rawValue) selected for front status \(front.status)."
+                rationale: "模拟军议：因前线态势为\(frontStatusDisplayName(front.status))，选用\(tactic.displayName)。"
             )
         }
 
@@ -1247,12 +1334,12 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
             faction: summary.faction,
             strategicIntent: strategicIntent(summary: summary, bias: config.strategicBias),
             directives: directives,
-            summary: "\(summary.marshalName): \(directives.count) theater directive(s) from summarized fronts."
+            summary: "\(summary.marshalName)：根据前线汇总生成 \(directives.count) 条方面军令。"
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(envelope)
-        return "```json\n\(String(decoding: data, as: UTF8.self))\n```"
+        return String(decoding: data, as: UTF8.self)
     }
 
     private func shouldAttack(
@@ -1331,11 +1418,28 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
     ) -> String {
         switch bias {
         case .offensive:
-            return "Concentrate active fronts with favorable odds; hold strained fronts with minimal reserves."
+            return "集中优势方面主动进取，受压方面以少量预备稳住阵脚。"
         case .balanced:
-            return "Preserve front stability while attacking only where the summarized odds justify commitment."
+            return "保持前线稳定，只在汇总战机足够明确处投入攻势。"
         case .defensive:
-            return "Stabilize threatened fronts and keep reserves available for counterattacks."
+            return "先稳住受威胁前线，保留预备队等待反击机会。"
+        }
+    }
+
+    private func frontStatusDisplayName(_ status: String) -> String {
+        switch status {
+        case "supply_warning":
+            return "粮道吃紧"
+        case "under_pressure":
+            return "承压"
+        case "advantage":
+            return "占优"
+        case "outnumbered":
+            return "兵力不足"
+        case "stable_contact":
+            return "接触稳定"
+        default:
+            return "前线待判"
         }
     }
 }
@@ -1374,7 +1478,7 @@ struct TheaterDirectiveCompiler {
             turn: theaterEnvelope.turn,
             directives: compiledDirectives,
             commanderAgentId: theaterEnvelope.issuerId,
-            theaterContext: "\(theaterEnvelope.strategicIntent) Compiled \(compiledDirectives.count) zone directive(s)."
+            theaterContext: "\(theaterEnvelope.strategicIntent) 已编成 \(compiledDirectives.count) 条方面军令。"
         )
     }
 
@@ -1493,7 +1597,7 @@ struct MarshalAgent {
                 rawTheaterJSON: nil,
                 theaterEnvelope: nil,
                 directiveEnvelope: fallback,
-                diagnostics: ["Marshal \(config.id) belongs to \(config.faction.displayName), fallback used for \(faction.displayName)."]
+                diagnostics: ["当前军议隶属 \(Self.displayFactionName(config.faction))，已为 \(Self.displayFactionName(faction)) 改用方面总管备用军令。"]
             )
         }
 
@@ -1525,8 +1629,38 @@ struct MarshalAgent {
                 rawTheaterJSON: nil,
                 theaterEnvelope: nil,
                 directiveEnvelope: fallback,
-                diagnostics: ["Marshal directive decode/compile failed: \(error.localizedDescription). Fallback TheaterCommanderPool used."]
+                diagnostics: ["军议指令解析或编译失败，已改用方面总管保底军令。原因：\(userFacingMarshalError(error))。"]
             )
         }
+    }
+
+    private static func displayFactionName(_ faction: Faction) -> String {
+        switch faction {
+        case .germany, .allies:
+            return "旧剧本势力"
+        default:
+            return faction.displayName
+        }
+    }
+
+    private func userFacingMarshalError(_ error: Error) -> String {
+        if error is DecodingError {
+            return "结构化军令无法解析"
+        }
+        if error is EncodingError {
+            return "结构化军令无法生成"
+        }
+        if let localizedError = error as? LocalizedError,
+           let description = localizedError.errorDescription,
+           !description.isEmpty {
+            if !containsLikelyEnglish(description) {
+                return description
+            }
+        }
+        return "原因未明"
+    }
+
+    private func containsLikelyEnglish(_ text: String) -> Bool {
+        text.range(of: #"[A-Za-z]{2,}"#, options: .regularExpression) != nil
     }
 }

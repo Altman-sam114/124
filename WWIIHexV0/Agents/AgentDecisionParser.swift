@@ -10,16 +10,16 @@ enum AgentDecisionParserError: Error, Equatable, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .malformedJSON(let detail):
-            return "Malformed agent decision JSON: \(detail)"
+        case .malformedJSON:
+            return "朝堂决策原文无法解析。"
         case .unsupportedSchemaVersion(let version):
-            return "Unsupported agent decision schemaVersion \(version)."
-        case .agentMismatch(let expected, let actual):
-            return "Agent decision agentId mismatch. Expected \(expected), got \(actual)."
+            return "朝堂决策格式版本 \(version) 暂不支持。"
+        case .agentMismatch:
+            return "朝堂决策来源不匹配。"
         case .turnMismatch(let expected, let actual):
-            return "Agent decision turn mismatch. Expected \(expected), got \(actual)."
-        case .missingRegionDestination(let divisionId):
-            return "Move order for \(divisionId) is missing toRegionId."
+            return "朝堂决策回合不匹配：预期第 \(expected) 回合，实际第 \(actual) 回合。"
+        case .missingRegionDestination:
+            return "行军命令缺少目标州郡。"
         }
     }
 }
@@ -44,7 +44,7 @@ struct AgentDecisionParser {
         expectedTurn: Int? = nil
     ) throws -> AgentDecisionEnvelope {
         guard let data = rawJSON.data(using: .utf8) else {
-            throw AgentDecisionParserError.malformedJSON("Input is not valid UTF-8.")
+            throw AgentDecisionParserError.malformedJSON("输入内容不是有效 UTF-8。")
         }
 
         let envelope: AgentDecisionEnvelope

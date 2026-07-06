@@ -3,16 +3,40 @@ import Foundation
 enum GamePhase: String, Codable, Equatable, CaseIterable {
     case germanAI
     case alliedPlayer
+    case playerCommand
+    case aiCommand
     case resolution
 
     var displayName: String {
         switch self {
         case .germanAI:
-            return "German AI"
+            return "AI 行动"
         case .alliedPlayer:
-            return "Allied Player"
+            return "玩家行动"
+        case .playerCommand:
+            return "玩家军令"
+        case .aiCommand:
+            return "AI 军令"
         case .resolution:
-            return "Resolution"
+            return "结算"
+        }
+    }
+
+    var allowsPlayerInput: Bool {
+        switch self {
+        case .alliedPlayer, .playerCommand:
+            return true
+        case .germanAI, .aiCommand, .resolution:
+            return false
+        }
+    }
+
+    var allowsAIExecution: Bool {
+        switch self {
+        case .germanAI, .aiCommand:
+            return true
+        case .alliedPlayer, .playerCommand, .resolution:
+            return false
         }
     }
 }

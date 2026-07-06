@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "generals": [
+    {
+      "id": "general_li_shimin",
+      "name": "Li Shimin",
+      "localizedName": "李世民",
+      "rank": "秦王",
+      "faction": "tang",
+      "commandStyle": "aggressive",
+      "skills": [
+        "cavalry_command",
+        "decisive_battle",
+        "operational_mobility"
+      ],
+      "portrait": "portrait_li_shimin",
+      "biography": "唐军核心统帅，擅长机动会战和集中兵力打开关中东线。",
+      "preferredTheaterIds": [
+        "theater_guanzhong_east",
+        "theater_hedong"
+      ],
+      "preferredRegionIds": [
+        "region_tongguan",
+        "region_huayin_hongnong",
+        "region_puban_hedong"
+      ],
+      "baseLoyalty": 82,
+      "baseSatisfaction": 78
+    },
+    {
+      "id": "general_li_jiancheng",
+      "name": "Li Jiancheng",
+      "localizedName": "李建成",
+      "rank": "太子",
+      "faction": "tang",
+      "commandStyle": "balanced",
+      "skills": [
+        "capital_defense",
+        "reserve_coordination",
+        "political_weight"
+      ],
+      "portrait": "portrait_li_jiancheng",
+      "biography": "负责长安和关中根本，偏向稳健调度与守备。",
+      "preferredTheaterIds": [
+        "theater_guanzhong"
+      ],
+      "preferredRegionIds": [
+        "region_changan",
+        "region_fufeng",
+        "region_jinyang_south"
+      ],
+      "baseLoyalty": 78,
+      "baseSatisfaction": 72
+    },
+    {
+      "id": "general_yin_kaishan",
+      "name": "Yin Kaishan",
+      "localizedName": "殷开山",
+      "rank": "行军总管",
+      "faction": "tang",
+      "commandStyle": "balanced",
+      "skills": [
+        "mountain_route",
+        "screening_force",
+        "local_coordination"
+      ],
+      "portrait": "portrait_yin_kaishan",
+      "biography": "适合关中南缘和商洛山道的稳健指挥。",
+      "preferredTheaterIds": [
+        "theater_guanzhong",
+        "theater_guanzhong_south"
+      ],
+      "preferredRegionIds": [
+        "region_lantian_wuguan",
+        "region_shangluo"
+      ],
+      "baseLoyalty": 74,
+      "baseSatisfaction": 70
+    },
+    {
+      "id": "general_wang_shichong",
+      "name": "Wang Shichong",
+      "localizedName": "王世充",
+      "rank": "郑公",
+      "faction": "luoyangSui",
+      "commandStyle": "cautious",
+      "skills": [
+        "fortress_defense",
+        "court_intrigue",
+        "heluo_control"
+      ],
+      "portrait": "portrait_wang_shichong",
+      "biography": "洛阳方向的实际掌权者，重视坚城、关隘和河洛核心控制。",
+      "preferredTheaterIds": [
+        "theater_heluo"
+      ],
+      "preferredRegionIds": [
+        "region_luoyang",
+        "region_hangu_pass",
+        "region_hulao"
+      ],
+      "baseLoyalty": 66,
+      "baseSatisfaction": 68
+    },
+    {
+      "id": "general_li_mi",
+      "name": "Li Mi",
+      "localizedName": "李密",
+      "rank": "魏公",
+      "faction": "wagang",
+      "commandStyle": "aggressive",
+      "skills": [
+        "granary_warfare",
+        "insurgent_mobilization",
+        "rapid_pressure"
+      ],
+      "portrait": "portrait_li_mi",
+      "biography": "瓦岗领袖，依托洛口仓和荥阳压力威胁河洛。",
+      "preferredTheaterIds": [
+        "theater_wagang"
+      ],
+      "preferredRegionIds": [
+        "region_luokou_granary",
+        "region_wagang_camp",
+        "region_xingyang"
+      ],
+      "baseLoyalty": 70,
+      "baseSatisfaction": 74
+    },
+    {
+      "id": "general_qin_shubao",
+      "name": "Qin Shubao",
+      "localizedName": "秦叔宝",
+      "rank": "骁将",
+      "faction": "wagang",
+      "commandStyle": "aggressive",
+      "skills": [
+        "shock_cavalry",
+        "raiding",
+        "morale"
+      ],
+      "portrait": "portrait_qin_shubao",
+      "biography": "适合快速袭扰和局部突击的瓦岗骁将。",
+      "preferredTheaterIds": [
+        "theater_wagang"
+      ],
+      "preferredRegionIds": [
+        "region_xingyang",
+        "region_jijun"
+      ],
+      "baseLoyalty": 68,
+      "baseSatisfaction": 78
+    },
+    {
+      "id": "general_dou_jiande",
+      "name": "Dou Jiande",
+      "localizedName": "窦建德",
+      "rank": "夏王",
+      "faction": "xia",
+      "commandStyle": "balanced",
+      "skills": [
+        "popular_support",
+        "field_army",
+        "hebei_logistics"
+      ],
+      "portrait": "portrait_dou_jiande",
+      "biography": "河北夏政权核心，重视洺州、黎阳仓和河北平原机动。",
+      "preferredTheaterIds": [
+        "theater_hebei"
+      ],
+      "preferredRegionIds": [
+        "region_mingzhou",
+        "region_liyang_granary",
+        "region_hebei_plain"
+      ],
+      "baseLoyalty": 76,
+      "baseSatisfaction": 76
+    },
+    {
+      "id": "general_xue_rengao",
+      "name": "Xue Rengao",
+      "localizedName": "薛仁杲",
+      "rank": "秦王",
+      "faction": "qinXue",
+      "commandStyle": "aggressive",
+      "skills": [
+        "western_pressure",
+        "cavalry_charge",
+        "frontier_supply"
+      ],
+      "portrait": "portrait_xue_rengao",
+      "biography": "陇右方向压力来源，适合从浅水原威胁关中。",
+      "preferredTheaterIds": [
+        "theater_longyou"
+      ],
+      "preferredRegionIds": [
+        "region_qianshuiyuan",
+        "region_longyou_gate",
+        "region_longban"
+      ],
+      "baseLoyalty": 72,
+      "baseSatisfaction": 69
+    },
+    {
+      "id": "general_song_jingang",
+      "name": "Song Jingang",
+      "localizedName": "宋金刚",
+      "rank": "大将",
+      "faction": "liuWuzhou",
+      "commandStyle": "aggressive",
+      "skills": [
+        "northern_cavalry",
+        "taiyuan_pressure",
+        "winter_campaign"
+      ],
+      "portrait": "portrait_song_jingang",
+      "biography": "刘武周集团主将，擅长从北线压迫太原。",
+      "preferredTheaterIds": [
+        "theater_taiyuan_north"
+      ],
+      "preferredRegionIds": [
+        "region_liu_wuzhou_camp",
+        "region_yanmen_mayi",
+        "region_huoyi_road"
+      ],
+      "baseLoyalty": 70,
+      "baseSatisfaction": 75
+    },
+    {
+      "id": "general_tujue_shibi_khan",
+      "name": "Shibi Khan",
+      "localizedName": "始毕可汗",
+      "rank": "可汗",
+      "faction": "tujue",
+      "commandStyle": "cautious",
+      "skills": [
+        "border_pressure",
+        "cavalry_raids",
+        "diplomatic_leverage"
+      ],
+      "portrait": "portrait_shibi_khan",
+      "biography": "东突厥压力的场上代表，首版作为边境骑军和外交威胁。",
+      "preferredTheaterIds": [
+        "theater_northern_front"
+      ],
+      "preferredRegionIds": [
+        "region_tujue_south_camp",
+        "region_hetao_border"
+      ],
+      "baseLoyalty": 64,
+      "baseSatisfaction": 66
+    }
+  ]
+}

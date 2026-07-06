@@ -100,13 +100,21 @@ final class MapEditorCanvasScene: SKScene {
             addChild(road)
         }
 
-        if viewModel.mode == .hexPainter, hex.isSupplySource {
+        let keyLocation = viewModel.document.keyLocation(at: hex.coord)
+        if viewModel.mode == .hexPainter,
+           hex.isSupplySource,
+           keyLocation == nil,
+           !viewModel.document.isKeyLocationSuppressed(at: hex.coord) {
             let supply = SKLabelNode(text: "补")
             supply.fontSize = 11
             supply.fontName = "Helvetica-Bold"
             supply.fontColor = .white
             supply.position = CGPoint(x: layout.center(for: hex.coord).x, y: layout.center(for: hex.coord).y - 5)
             addChild(supply)
+        }
+
+        if viewModel.mode == .hexPainter, let keyLocation {
+            draw(keyLocation, at: hex.coord)
         }
 
         if viewModel.mode == .unitPlanner,
@@ -134,6 +142,24 @@ final class MapEditorCanvasScene: SKScene {
         label.fontColor = .white
         label.verticalAlignmentMode = .center
         label.position = marker.position
+        addChild(label)
+    }
+
+    private func draw(_ location: MapEditorKeyLocationDraft, at coord: HexCoord) {
+        let center = layout.center(for: coord)
+        let badge = SKShapeNode(circleOfRadius: 8)
+        badge.position = CGPoint(x: center.x, y: center.y - 3)
+        badge.fillColor = keyLocationFillColor(for: location.kind)
+        badge.strokeColor = .white
+        badge.lineWidth = 1
+        addChild(badge)
+
+        let label = SKLabelNode(text: keyLocationSymbol(for: location.kind))
+        label.fontSize = 9
+        label.fontName = "Helvetica-Bold"
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        label.position = badge.position
         addChild(label)
     }
 
@@ -192,6 +218,38 @@ final class MapEditorCanvasScene: SKScene {
             return 2.8
         }
         return 1
+    }
+
+    private func keyLocationFillColor(for kind: String) -> SKColor {
+        switch kind {
+        case "ferry", "port", "harbor":
+            return SKColor(red: 0.15, green: 0.55, blue: 0.82, alpha: 0.94)
+        case "granary", "supply":
+            return SKColor(red: 0.82, green: 0.58, blue: 0.16, alpha: 0.94)
+        case "fortress", "pass":
+            return SKColor(red: 0.58, green: 0.36, blue: 0.28, alpha: 0.94)
+        default:
+            return SKColor(red: 0.72, green: 0.22, blue: 0.20, alpha: 0.94)
+        }
+    }
+
+    private func keyLocationSymbol(for kind: String) -> String {
+        switch kind {
+        case "capital":
+            return "都"
+        case "city":
+            return "城"
+        case "fortress", "pass":
+            return "关"
+        case "granary", "supply":
+            return "仓"
+        case "ferry":
+            return "渡"
+        case "port", "harbor":
+            return "港"
+        default:
+            return "点"
+        }
     }
 
     private func shouldDrawPendingMarker(for hex: MapEditorHex, viewModel: MapEditorViewModel) -> Bool {
@@ -433,15 +491,30 @@ private extension SKColor {
 
 private extension String {
     var mapEditorUnitAbbreviation: String {
+        if localizedStandardContains("suitang_cavalry") || localizedStandardContains("frontier_raiders") {
+            return "骑"
+        }
+        if localizedStandardContains("archer") {
+            return "弩"
+        }
+        if localizedStandardContains("siege") {
+            return "器"
+        }
+        if localizedStandardContains("garrison") {
+            return "守"
+        }
+        if localizedStandardContains("suitang_infantry") {
+            return "步"
+        }
         if localizedStandardContains("panzer") || localizedStandardContains("tank") {
-            return "ARM"
+            return "甲"
         }
         if localizedStandardContains("artillery") {
-            return "ART"
+            return "炮"
         }
         if localizedStandardContains("motorized") {
-            return "MOT"
+            return "机"
         }
-        return "INF"
+        return "军"
     }
 }

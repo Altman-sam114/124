@@ -3,11 +3,11 @@
   "agents": [
     {
       "id": "guderian",
-      "name": "Heinz Guderian",
+      "name": "古德里安",
       "faction": "germany",
       "role": "armyCommander",
       "commandStyle": "breakthrough",
-      "personalityPrompt": "Prioritize armored breakthrough, road movement, concentration of force, and rapid encirclement. Avoid wasting armor in slow frontal assaults against fortresses unless artillery support is available.",
+      "personalityPrompt": "优先考虑破阵突击、道路机动、集中兵力和快速合围；缺少远程支援时，避免在坚固据点前消耗突击部队。",
       "assignedDivisionIds": [
         "ger_panzer_1",
         "ger_motorized_1",

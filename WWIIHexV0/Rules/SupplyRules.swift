@@ -11,7 +11,18 @@ struct SupplyRules {
         let snapshot = state
         for index in state.divisions.indices {
             let division = state.divisions[index]
-            state.divisions[index].supplyState = supplyState(for: division, in: snapshot)
+            let previousState = division.supplyState
+            let nextState = supplyState(for: division, in: snapshot)
+            state.divisions[index].supplyState = nextState
+
+            if previousState != nextState,
+               nextState == .encircled,
+               isBesieged(division, in: snapshot) {
+                state.appendEvent(
+                    "\(division.name) 在\(settlementName(for: division, in: snapshot))断粮被围，城防恢复受限。",
+                    category: .supply
+                )
+            }
         }
     }
 
@@ -41,10 +52,12 @@ struct SupplyRules {
 
         if hpRecovered > 0 {
             state.appendEvent(
-                "\(after.name) reinforced in \(after.supplyState.rawValue): +\(hpRecovered) strength."
+                "\(after.name) 粮道恢复，补员 +\(hpRecovered)。"
             )
+        } else if isBesieged(after, in: state) {
+            state.appendEvent("\(after.name) 仍在围城中，无法自动恢复。")
         } else {
-            state.appendEvent("\(after.name) could not recover while \(after.supplyState.rawValue).")
+            state.appendEvent("\(after.name) 当前\(after.supplyState.displayName)，无法自动恢复。")
         }
     }
 
@@ -62,12 +75,12 @@ struct SupplyRules {
             }
             state.divisions[index].beginRetreat(to: destination)
             state.appendEvent(
-                "\(division.name) retreated from \(origin.q),\(origin.r) to \(destination.q),\(destination.r)."
+                "\(division.name) 从前线撤至后方地块。"
             )
         } else {
             state.divisions[index].hp = max(1, state.divisions[index].hp - failedRetreatHPLoss)
             state.appendEvent(
-                "\(division.name) failed to retreat and lost \(failedRetreatHPLoss) strength."
+                "\(division.name) 撤退失败，兵力 -\(failedRetreatHPLoss)。"
             )
         }
     }
@@ -91,7 +104,7 @@ struct SupplyRules {
             let hpLost = beforeHP - state.divisions[index].hp
             if hpLost > 0 {
                 state.appendEvent(
-                    "\(state.divisions[index].name) suffered encirclement attrition: -\(hpLost) strength."
+                    "\(state.divisions[index].name) 遭围困损耗，兵力 -\(hpLost)。"
                 )
             }
         }
@@ -108,11 +121,25 @@ struct SupplyRules {
             return .supplied
         }
 
+        if isBesieged(division, in: state) {
+            return .encircled
+        }
+
         if isEncircled(division, in: state) {
             return .encircled
         }
 
         return .lowSupply
+    }
+
+    func isBesieged(_ division: Division, in state: GameState) -> Bool {
+        guard !hasSupplyLine(for: division, in: state),
+              isFortifiedSettlement(at: division.coord, in: state),
+              hasHostileAdjacentUnit(to: division.coord, faction: division.faction, in: state) else {
+            return false
+        }
+
+        return true
     }
 
     func isEncircled(_ division: Division, in state: GameState) -> Bool {
@@ -134,7 +161,9 @@ struct SupplyRules {
             return false
         }
 
-        if tile.isCapturable && tile.controller == faction.opponent {
+        if tile.isCapturable,
+           let controller = tile.controller,
+           state.diplomacyState.isHostile(faction, controller) {
             return false
         }
 
@@ -214,7 +243,9 @@ struct SupplyRules {
             return false
         }
 
-        if tile.isCapturable && tile.controller == faction.opponent {
+        if tile.isCapturable,
+           let controller = tile.controller,
+           state.diplomacyState.isHostile(faction, controller) {
             return false
         }
 
@@ -260,7 +291,7 @@ struct SupplyRules {
         let wasRetreating = state.divisions[index].isRetreating
         state.divisions[index].advanceRetreatTurn()
         if wasRetreating && !state.divisions[index].isRetreating {
-            state.appendEvent("\(state.divisions[index].name) completed retreat recovery.")
+            state.appendEvent("\(state.divisions[index].name) 已完成退却整顿。")
         }
 
         return true
@@ -277,6 +308,49 @@ struct SupplyRules {
         default:
             return 2
         }
+    }
+
+    private func hasHostileAdjacentUnit(to coord: HexCoord, faction: Faction, in state: GameState) -> Bool {
+        state.divisions.contains { other in
+            !other.isDestroyed &&
+                state.diplomacyState.isHostile(faction, other.faction) &&
+                other.coord.distance(to: coord) == 1
+        }
+    }
+
+    private func isFortifiedSettlement(at coord: HexCoord, in state: GameState) -> Bool {
+        guard let tile = state.map.tile(at: coord) else {
+            return false
+        }
+
+        if tile.baseTerrain == .city ||
+            tile.baseTerrain == .fortress ||
+            tile.cityName != nil ||
+            tile.fortressName != nil {
+            return true
+        }
+
+        guard let regionId = state.map.region(for: coord),
+              let region = state.map.region(id: regionId),
+              region.city != nil else {
+            return false
+        }
+        return coord == region.representativeHex
+    }
+
+    private func settlementName(for division: Division, in state: GameState) -> String {
+        if let tile = state.map.tile(at: division.coord) {
+            if let name = tile.cityName ?? tile.fortressName {
+                return name
+            }
+        }
+
+        if let regionId = state.map.region(for: division.coord),
+           let region = state.map.region(id: regionId) {
+            return region.city?.name ?? region.name
+        }
+
+        return "当前位置"
     }
 }
 

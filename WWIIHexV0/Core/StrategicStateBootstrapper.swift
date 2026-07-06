@@ -4,8 +4,12 @@ struct StrategicStateBootstrapper {
     func bootstrapIfNeeded(_ state: GameState) -> GameState {
         var next = EconomyRules().bootstrapIfNeeded(state)
         if next.diplomacyState.countries.isEmpty {
-            next.diplomacyState = DiplomacyState.initial(for: Faction.allCases, turn: next.turn)
-            next.appendEvent("Diplomacy state bootstrapped with countries, blocs, and initial war relations.")
+            let factions = next.divisions.map(\.faction)
+            next.diplomacyState = DiplomacyState.initial(
+                for: factions.isEmpty ? Faction.legacyCombatants : factions,
+                turn: next.turn
+            )
+            next.appendEvent("外交档案已按当前势力初始化：国家、盟从与初始敌对关系已建立。")
         }
 
         guard !state.map.regions.isEmpty else {
@@ -19,7 +23,7 @@ struct StrategicStateBootstrapper {
                 turn: next.turn
             )
             next.appendEvent(
-                "Theater state bootstrapped from region data.",
+                "方面态势已按州郡数据初始化。",
                 category: .theaterChange,
                 relatedRecordId: nil
             )
@@ -37,7 +41,7 @@ struct StrategicStateBootstrapper {
                 turn: next.turn
             )
             next.appendEvent(
-                "Front line state bootstrapped from theater data.",
+                "前线态势已按方面接触初始化。",
                 category: .frontChange,
                 relatedRecordId: nil
             )
@@ -51,7 +55,7 @@ struct StrategicStateBootstrapper {
                 turn: next.turn
             )
             next.appendEvent(
-                "FrontZone deployment state bootstrapped from theater data.",
+                "行军防区已按方面态势初始化。",
                 category: .frontChange,
                 relatedRecordId: nil
             )

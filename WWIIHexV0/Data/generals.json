@@ -3,9 +3,9 @@
   "generals": [
     {
       "id": "general_montgomery",
-      "name": "Bernard Montgomery",
-      "localizedName": "蒙哥马利",
-      "rank": "Field Marshal",
+      "name": "稳守总管甲",
+      "localizedName": "稳守总管甲",
+      "rank": "行军总管",
       "faction": "allies",
       "commandStyle": "balanced",
       "skills": [
@@ -14,7 +14,7 @@
         "coalition_coordination"
       ],
       "portrait": "portrait_montgomery",
-      "biography": "A methodical British field marshal who favors preparation, reserves, and overwhelming force before a major attack.",
+      "biography": "稳健缜密的旧剧本总管，偏好充分准备、保留预备队，并在关键战役前集中优势兵力。",
       "preferredTheaterIds": [
         "theater_1"
       ],
@@ -28,9 +28,9 @@
     },
     {
       "id": "general_weygand",
-      "name": "Maxime Weygand",
-      "localizedName": "魏刚",
-      "rank": "General",
+      "name": "稳守总管乙",
+      "localizedName": "稳守总管乙",
+      "rank": "上军总管",
       "faction": "allies",
       "commandStyle": "cautious",
       "skills": [
@@ -39,7 +39,7 @@
         "reserve_control"
       ],
       "portrait": "portrait_weygand",
-      "biography": "A conservative staff-minded commander best suited to stabilizing strained defensive sectors and preserving reserves.",
+      "biography": "偏保守的参谋型旧剧本总管，适合稳定承压防区并保存预备兵力。",
       "preferredTheaterIds": [
         "theater_2"
       ],
@@ -52,9 +52,9 @@
     },
     {
       "id": "general_de_gaulle",
-      "name": "Charles de Gaulle",
-      "localizedName": "戴高乐",
-      "rank": "Brigadier General",
+      "name": "机略总管甲",
+      "localizedName": "机略总管甲",
+      "rank": "偏将",
       "faction": "allies",
       "commandStyle": "aggressive",
       "skills": [
@@ -63,7 +63,7 @@
         "political_will"
       ],
       "portrait": "portrait_de_gaulle",
-      "biography": "An ambitious armored warfare advocate who accepts operational risk for mobile counterattacks and decisive initiative.",
+      "biography": "锐意进取的机动作战倡导者，愿意为机动反击和夺取主动承担战役风险。",
       "preferredTheaterIds": [
         "theater_4"
       ],
@@ -76,9 +76,9 @@
     },
     {
       "id": "general_guderian",
-      "name": "Heinz Guderian",
-      "localizedName": "古德里安",
-      "rank": "Generaloberst",
+      "name": "历史总管",
+      "localizedName": "历史总管",
+      "rank": "上军总管",
       "faction": "germany",
       "commandStyle": "aggressive",
       "skills": [
@@ -87,7 +87,7 @@
         "rapid_exploitation"
       ],
       "portrait": "portrait_guderian",
-      "biography": "A fast-moving armored commander focused on concentration, breakthrough, and exploitation before the enemy can stabilize.",
+      "biography": "行动迅疾的旧剧本总管，重视集中兵力、突破纵深，并在敌军稳住阵脚前扩大战果。",
       "preferredTheaterIds": [
         "theater_3"
       ],
@@ -101,9 +101,9 @@
     },
     {
       "id": "general_leeb",
-      "name": "Wilhelm Ritter von Leeb",
-      "localizedName": "里布",
-      "rank": "Field Marshal",
+      "name": "稳守总管丙",
+      "localizedName": "稳守总管丙",
+      "rank": "行军总管",
       "faction": "germany",
       "commandStyle": "cautious",
       "skills": [
@@ -112,7 +112,7 @@
         "disciplined_retreat"
       ],
       "portrait": "portrait_leeb",
-      "biography": "A disciplined and cautious commander who favors prepared positions, strongpoints, and deliberate defensive control.",
+      "biography": "纪律严整且谨慎的旧剧本总管，偏好预设阵地、支撑点和有计划的防御控制。",
       "preferredTheaterIds": [
         "theater_4"
       ],
@@ -125,9 +125,9 @@
     },
     {
       "id": "general_bock",
-      "name": "Fedor von Bock",
-      "localizedName": "博客",
-      "rank": "Field Marshal",
+      "name": "攻势总管甲",
+      "localizedName": "攻势总管甲",
+      "rank": "行军总管",
       "faction": "germany",
       "commandStyle": "balanced",
       "skills": [
@@ -136,7 +136,7 @@
         "pressure_management"
       ],
       "portrait": "portrait_bock",
-      "biography": "A forceful army group commander who balances offensive pressure with orderly front management and reserves.",
+      "biography": "作风强硬的旧剧本总管，能够在攻势压力、前线秩序和预备队之间保持平衡。",
       "preferredTheaterIds": [
         "theater_3"
       ],

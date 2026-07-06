@@ -38,10 +38,8 @@ final class UnitNode: SKNode {
         body.zPosition = 0
         addChild(body)
 
-        // v0.21: NATO APP-6 兵牌内部图形（替代纯文字 markerCode）
-        addNATOSymbol(for: division, width: width, height: height)
+        addUnitSymbol(for: division, width: width, height: height)
 
-        // 兵力数字（移至底部，NATO symbol 占中央）
         addLabel(
             text: division.markerReadinessText,
             y: -height * 0.28,
@@ -57,15 +55,12 @@ final class UnitNode: SKNode {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// v0.21: NATO APP-6 兵牌内部图形。
-    /// armor=椭圆、motorized=单斜线、infantry=X、artillery=圆。
-    private func addNATOSymbol(for division: Division, width: CGFloat, height: CGFloat) {
+    private func addUnitSymbol(for division: Division, width: CGFloat, height: CGFloat) {
         let lineColor = SKColor(white: 0.97, alpha: 0.95)
         let lineWidth = max(1.5, min(width, height) * 0.08)
         let inset = min(width, height) * 0.18
 
-        if division.isArtillery {
-            // 炮兵：圆
+        if division.hasSiegeCapability {
             let radius = min(width, height) * 0.22
             let circle = SKShapeNode(circleOfRadius: radius)
             circle.strokeColor = lineColor
@@ -73,8 +68,7 @@ final class UnitNode: SKNode {
             circle.fillColor = .clear
             circle.zPosition = 1
             addChild(circle)
-        } else if division.isArmor {
-            // 装甲：椭圆
+        } else if division.hasCavalryShock {
             let ellipse = SKShapeNode(ellipseOf: CGSize(width: width - inset * 1.4, height: height - inset * 1.4))
             ellipse.strokeColor = lineColor
             ellipse.lineWidth = lineWidth
@@ -82,8 +76,7 @@ final class UnitNode: SKNode {
             ellipse.zPosition = 1
             addChild(ellipse)
         } else {
-            // 步兵系：斜线。motorized 单斜线（\），infantry 双斜线（X）
-            let isMotorized = division.components.contains { $0.type == .motorizedInfantry && $0.weight >= 0.40 }
+            let isRanged = division.hasRangedSupport
             let halfW = width / 2 - inset
             let halfH = height / 2 - inset
 
@@ -97,8 +90,7 @@ final class UnitNode: SKNode {
             slash1.zPosition = 1
             addChild(slash1)
 
-            if !isMotorized {
-                // 步兵：第二条斜线（/）成 X
+            if !isRanged {
                 let slash2 = SKShapeNode()
                 let path2 = CGMutablePath()
                 path2.move(to: CGPoint(x: -halfW, y: -halfH))
@@ -176,20 +168,11 @@ final class UnitNode: SKNode {
 
 private extension Division {
     var markerCode: String {
-        if isArtillery {
-            return "ART"
-        }
-        if isArmor {
-            return "ARM"
-        }
-        if components.contains(where: { $0.type == .motorizedInfantry && $0.weight >= 0.40 }) {
-            return "MOT"
-        }
-        return "INF"
+        primaryComponentType.displayCode
     }
 
     var markerReadinessText: String {
-        "\(strength)/\(maxStrength) \(retreatMode.markerCode)"
+        "\(markerCode) 兵\(strength) \(retreatMode.markerCode)"
     }
 }
 
@@ -197,9 +180,9 @@ private extension RetreatMode {
     var markerCode: String {
         switch self {
         case .retreatable:
-            return "R"
+            return "退"
         case .hold:
-            return "H"
+            return "守"
         }
     }
 }

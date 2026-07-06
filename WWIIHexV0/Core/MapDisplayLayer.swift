@@ -15,17 +15,17 @@ enum MapDisplayLayer: String, Codable, Equatable, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .hex:
-            return "Hex"
+            return "地块"
         case .province:
-            return "Province"
+            return "州郡"
         case .initialTheater:
-            return "Initial"
+            return "初始方面"
         case .dynamicTheater:
-            return "Dynamic"
+            return "当前方面"
         case .frontLine:
-            return "Front"
+            return "前线"
         case .deployment:
-            return "Deploy"
+            return "部署"
         }
     }
 }

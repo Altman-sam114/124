@@ -1,8 +1,8 @@
 import Foundation
 
 // DEPRECATED as of v0.352 - kept for regression reference, not invoked by default. See WarPipelineMode.
-// Guderian MockAI. Heuristic: skip acted; low/encircled supply -> resupply;
-// in-range vulnerable enemy -> attack; else advance toward Bastogne on roads; else hold.
+// Legacy heuristic: skip acted; low/encircled supply -> resupply;
+// in-range vulnerable enemy -> attack; else advance toward the primary objective on roads; else hold.
 
 struct MockAIClient: DecisionProvider {
     func decide(context: AgentContext) async throws -> AgentDecisionEnvelope {
@@ -13,7 +13,9 @@ struct MockAIClient: DecisionProvider {
 
         var orders: [AgentOrder] = []
         var reservedDestinations = Set(context.friendlyDivisions.compactMap(\.regionId) + context.enemyDivisions.compactMap(\.regionId))
-        let objective = context.objectives.first { $0.name == "Bastogne" } ?? context.objectives.first
+        let objective = context.objectives.first { $0.id == LegacyMockAIObjective.primaryId }
+            ?? context.objectives.first { LegacyMockAIObjective.primaryDisplayNames.contains($0.name) }
+            ?? context.objectives.first
 
         for division in context.friendlyDivisions.sorted(by: orderPriority) {
             guard !division.hasActed else {
@@ -26,8 +28,8 @@ struct MockAIClient: DecisionProvider {
                         type: .resupply,
                         divisionId: division.id,
                         toRegionId: division.regionId,
-                        stance: "recover",
-                        reason: "Unit is \(division.supplyState.rawValue); recover supply before continuing the attack."
+                        stance: "整补恢复",
+                        reason: "军队补给状态为\(division.supplyState.displayName)，先整军补给再继续行动。"
                     )
                 )
                 continue
@@ -39,7 +41,7 @@ struct MockAIClient: DecisionProvider {
                         type: .attack,
                         divisionId: division.id,
                         targetDivisionId: attackTarget.id,
-                        stance: division.isArtillery ? "fireSupport" : "breakthrough",
+                        stance: division.isArtillery ? "火力支援" : "突破",
                         reason: attackReason(attacker: division, target: attackTarget, context: context)
                     )
                 )
@@ -63,20 +65,20 @@ struct MockAIClient: DecisionProvider {
                         type: .move,
                         divisionId: division.id,
                         toRegionId: destination,
-                        stance: division.isArmor ? "roadAdvance" : "advance",
-                        reason: "Advance toward \(objective.name), preferring road movement and open routes."
+                        stance: division.isArmor ? "沿路推进" : "稳步推进",
+                        reason: "向当前战役目标推进，优先选择道路和通畅路线。"
                     )
                 )
                 continue
             }
 
             orders.append(
-                    AgentOrder(
-                        type: .hold,
-                        divisionId: division.id,
-                        toRegionId: division.regionId,
-                        stance: "hold",
-                    reason: "No useful visible move or attack is available."
+                AgentOrder(
+                    type: .hold,
+                    divisionId: division.id,
+                    toRegionId: division.regionId,
+                    stance: "固守",
+                    reason: "当前没有合适的可见行军或进攻机会。"
                 )
             )
         }
@@ -85,7 +87,7 @@ struct MockAIClient: DecisionProvider {
             schemaVersion: context.visibleRegions.isEmpty ? 1 : 2,
             agentId: context.agentId,
             turn: context.turn,
-            intent: "Break through toward Bastogne using armor on roads and artillery support.",
+            intent: "沿道路集中机动兵力推进，并以远程火力支援突破。",
             orders: orders
         )
     }
@@ -107,8 +109,8 @@ struct MockAIClient: DecisionProvider {
                         type: .resupply,
                         divisionId: division.id,
                         toRegionId: division.regionId,
-                        stance: "frontRecovery",
-                        reason: "v0.33 deployment: unit supply is \(division.supplyState.rawValue), recover before front action."
+                        stance: "前线整补",
+                        reason: "行军部署：军队补给状态为\(division.supplyState.displayName)，先整军再投入前线行动。"
                     )
                 )
                 usedDivisionIds.insert(division.id)
@@ -129,8 +131,8 @@ struct MockAIClient: DecisionProvider {
                                 type: .attack,
                                 divisionId: unitId,
                                 targetDivisionId: target.id,
-                                stance: segment.isEncircled ? "closePocket" : "frontAttack",
-                                reason: "v0.33 deployment: FRONT unit acts on segment \(segment.regionId.rawValue)."
+                                stance: segment.isEncircled ? "收紧包围" : "前线进攻",
+                                reason: "行军部署：前线军队在所属地段发起进攻。"
                             )
                         )
                     } else {
@@ -139,8 +141,8 @@ struct MockAIClient: DecisionProvider {
                                 type: .hold,
                                 divisionId: unitId,
                                 toRegionId: division.regionId,
-                                stance: segment.isEncircled ? "containPocket" : "holdFront",
-                                reason: "v0.33 deployment: FRONT unit holds assigned segment \(segment.regionId.rawValue)."
+                                stance: segment.isEncircled ? "围堵敌军" : "固守前线",
+                                reason: "行军部署：前线军队固守所属地段。"
                             )
                         )
                     }
@@ -165,8 +167,8 @@ struct MockAIClient: DecisionProvider {
                             type: .move,
                             divisionId: unitId,
                             toRegionId: targetRegion,
-                            stance: "depthReinforce",
-                            reason: "v0.33 deployment: DEPTH reserve reinforces nearest FRONT segment."
+                            stance: "纵深驰援",
+                            reason: "行军部署：纵深预备军驰援最近前线地段。"
                         )
                     )
                 } else {
@@ -175,8 +177,8 @@ struct MockAIClient: DecisionProvider {
                             type: .hold,
                             divisionId: unitId,
                             toRegionId: division.regionId,
-                            stance: "depthReserve",
-                            reason: "v0.33 deployment: DEPTH reserve has no adjacent safe front target."
+                            stance: "纵深待命",
+                            reason: "行军部署：纵深预备军暂无相邻安全前线目标，继续待命。"
                         )
                     )
                 }
@@ -195,8 +197,8 @@ struct MockAIClient: DecisionProvider {
                     type: .hold,
                     divisionId: unitId,
                     toRegionId: division.regionId,
-                    stance: "garrison",
-                    reason: "v0.33 deployment: GARRISON unit does not leave core or city region."
+                    stance: "驻防",
+                    reason: "行军部署：驻防军队留守核心或城池州郡。"
                 )
             )
             usedDivisionIds.insert(unitId)
@@ -208,14 +210,14 @@ struct MockAIClient: DecisionProvider {
                   let regionId = division.regionId else {
                 continue
             }
-            let stance = frontRegionIds.contains(regionId) ? "frontUnassigned" : "operationalReserve"
+            let stance = frontRegionIds.contains(regionId) ? "前线待命" : "战役预备"
             orders.append(
                 AgentOrder(
                     type: .hold,
                     divisionId: division.id,
                     toRegionId: regionId,
                     stance: stance,
-                    reason: "v0.33 deployment: unit outside deployment pool holds."
+                    reason: "行军部署：未列入部署池的军队原地待命。"
                 )
             )
         }
@@ -225,7 +227,7 @@ struct MockAIClient: DecisionProvider {
             schemaVersion: 2,
             agentId: context.agentId,
             turn: context.turn,
-            intent: "Use v0.33 FrontZone deployment: front units hold or attack, depth reserves reinforce, garrisons hold.",
+            intent: "按行军防区部署：前线军队固守或进攻，纵深预备军驰援，驻防军队留守。",
             orders: orders
         )
     }
@@ -340,9 +342,9 @@ struct MockAIClient: DecisionProvider {
         let targetTile = context.visibleTiles.first { $0.coord == target.coord }
         if attacker.isArtillery,
            targetTile?.baseTerrain == .city || targetTile?.baseTerrain == .fortress {
-            return "Artillery fires on defender in a city or fortress hex."
+            return "远程部队压制城池或关隘守军。"
         }
-        return "Target is within range and vulnerable enough for a local attack."
+        return "目标在射程内，且局部态势适合进攻。"
     }
 
     private func bestMoveDestination(
@@ -399,4 +401,9 @@ struct MockAIClient: DecisionProvider {
     private func terrainMoveCost(_ terrain: BaseTerrain) -> Int {
         terrain.movementCost
     }
+}
+
+private enum LegacyMockAIObjective {
+    static let primaryId = "bastogne"
+    static let primaryDisplayNames = ["旧战局要地甲"]
 }

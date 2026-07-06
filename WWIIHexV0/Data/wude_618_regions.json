@@ -1,0 +1,1862 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "wude_618_guanzhong_luoyang",
+  "displayName": "武德元年：关中河洛州郡图",
+  "hexToRegion": {
+    "0,0": "region_hetao_border",
+    "1,0": "region_hetao_border",
+    "2,0": "region_yanmen_mayi",
+    "3,0": "region_yanmen_mayi",
+    "4,0": "region_yanmen_mayi",
+    "5,0": "region_jinyang",
+    "6,0": "region_jinyang",
+    "7,0": "region_tujue_south_camp",
+    "8,0": "region_tujue_south_camp",
+    "9,0": "region_tujue_south_camp",
+    "0,1": "region_fenbei_hills",
+    "1,1": "region_fenbei_hills",
+    "2,1": "region_jinyang_south",
+    "3,1": "region_jinyang_south",
+    "4,1": "region_jinyang_south",
+    "5,1": "region_huoyi_road",
+    "6,1": "region_huoyi_road",
+    "7,1": "region_liu_wuzhou_camp",
+    "8,1": "region_liu_wuzhou_camp",
+    "9,1": "region_liu_wuzhou_camp",
+    "0,2": "region_longyou_gate",
+    "1,2": "region_longyou_gate",
+    "2,2": "region_fufeng",
+    "3,2": "region_fufeng",
+    "4,2": "region_fufeng",
+    "5,2": "region_puban_hedong",
+    "6,2": "region_puban_hedong",
+    "7,2": "region_taihang_west",
+    "8,2": "region_taihang_west",
+    "9,2": "region_taihang_west",
+    "0,3": "region_weibei_xianyang",
+    "1,3": "region_weibei_xianyang",
+    "2,3": "region_changan",
+    "3,3": "region_changan",
+    "4,3": "region_changan",
+    "5,3": "region_tongguan",
+    "6,3": "region_tongguan",
+    "7,3": "region_hebei_south_edge",
+    "8,3": "region_hebei_south_edge",
+    "9,3": "region_hebei_south_edge",
+    "0,4": "region_lantian_wuguan",
+    "1,4": "region_lantian_wuguan",
+    "2,4": "region_huayin_hongnong",
+    "3,4": "region_huayin_hongnong",
+    "4,4": "region_huayin_hongnong",
+    "5,4": "region_hangu_pass",
+    "6,4": "region_hangu_pass",
+    "7,4": "region_liyang_granary",
+    "8,4": "region_liyang_granary",
+    "9,4": "region_liyang_granary",
+    "0,5": "region_qianshuiyuan",
+    "1,5": "region_qianshuiyuan",
+    "2,5": "region_luoyang_west",
+    "3,5": "region_luoyang_west",
+    "4,5": "region_luoyang_west",
+    "5,5": "region_luoyang",
+    "6,5": "region_luoyang",
+    "7,5": "region_jijun",
+    "8,5": "region_jijun",
+    "9,5": "region_jijun",
+    "0,6": "region_longban",
+    "1,6": "region_longban",
+    "2,6": "region_hulao",
+    "3,6": "region_hulao",
+    "4,6": "region_hulao",
+    "5,6": "region_luokou_granary",
+    "6,6": "region_luokou_granary",
+    "7,6": "region_xingyang",
+    "8,6": "region_xingyang",
+    "9,6": "region_xingyang",
+    "0,7": "region_shangluo",
+    "1,7": "region_shangluo",
+    "2,7": "region_henan_south_road",
+    "3,7": "region_henan_south_road",
+    "4,7": "region_henan_south_road",
+    "5,7": "region_wagang_camp",
+    "6,7": "region_wagang_camp",
+    "7,7": "region_mingzhou",
+    "8,7": "region_mingzhou",
+    "9,7": "region_mingzhou",
+    "0,8": "region_huaibei_edge",
+    "1,8": "region_huaibei_edge",
+    "2,8": "region_runan_gate",
+    "3,8": "region_runan_gate",
+    "4,8": "region_runan_gate",
+    "5,8": "region_huaiyang",
+    "6,8": "region_huaiyang",
+    "7,8": "region_hebei_plain",
+    "8,8": "region_hebei_plain",
+    "9,8": "region_hebei_plain"
+  },
+  "regions": [
+    {
+      "id": "region_hetao_border",
+      "name": "河套边塞",
+      "owner": "tujue",
+      "controller": "tujue",
+      "theaterId": "theater_northern_front",
+      "assignedGeneralId": "general_tujue_shibi_khan",
+      "terrain": "hill",
+      "neighbors": [
+        "region_yanmen_mayi",
+        "region_fenbei_hills"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 0
+        },
+        {
+          "q": 1,
+          "r": 0
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 0
+      },
+      "city": {
+        "name": "边塞牙帐",
+        "victoryPoints": 1,
+        "isCapital": false
+      },
+      "infrastructure": 2,
+      "supplyValue": 3,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tujue"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_yanmen_mayi",
+      "name": "雁门马邑",
+      "owner": "liuWuzhou",
+      "controller": "liuWuzhou",
+      "theaterId": "theater_taiyuan_north",
+      "assignedGeneralId": "general_song_jingang",
+      "terrain": "mountain",
+      "neighbors": [
+        "region_hetao_border",
+        "region_jinyang",
+        "region_jinyang_south"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 0
+        },
+        {
+          "q": 3,
+          "r": 0
+        },
+        {
+          "q": 4,
+          "r": 0
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 0
+      },
+      "city": {
+        "name": "马邑",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 3,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "liuWuzhou"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_jinyang",
+      "name": "晋阳太原",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_hedong",
+      "assignedGeneralId": "general_li_shimin",
+      "terrain": "city",
+      "neighbors": [
+        "region_yanmen_mayi",
+        "region_tujue_south_camp",
+        "region_huoyi_road"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 0
+        },
+        {
+          "q": 6,
+          "r": 0
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 0
+      },
+      "city": {
+        "name": "晋阳",
+        "victoryPoints": 4,
+        "isCapital": false
+      },
+      "infrastructure": 6,
+      "supplyValue": 6,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_tujue_south_camp",
+      "name": "突厥南庭",
+      "owner": "tujue",
+      "controller": "tujue",
+      "theaterId": "theater_northern_front",
+      "assignedGeneralId": "general_tujue_shibi_khan",
+      "terrain": "plain",
+      "neighbors": [
+        "region_jinyang",
+        "region_liu_wuzhou_camp"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 0
+        },
+        {
+          "q": 8,
+          "r": 0
+        },
+        {
+          "q": 9,
+          "r": 0
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 0
+      },
+      "city": {
+        "name": "突厥南营",
+        "victoryPoints": 1,
+        "isCapital": false
+      },
+      "infrastructure": 2,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tujue"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_fenbei_hills",
+      "name": "汾北山地",
+      "owner": "liuWuzhou",
+      "controller": "liuWuzhou",
+      "theaterId": "theater_taiyuan_north",
+      "assignedGeneralId": "general_song_jingang",
+      "terrain": "mountain",
+      "neighbors": [
+        "region_jinyang_south",
+        "region_hetao_border",
+        "region_longyou_gate"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 1
+        },
+        {
+          "q": 1,
+          "r": 1
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 1
+      },
+      "city": null,
+      "infrastructure": 2,
+      "supplyValue": 2,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "liuWuzhou"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_jinyang_south",
+      "name": "晋阳南郊",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_hedong",
+      "assignedGeneralId": "general_li_jiancheng",
+      "terrain": "plain",
+      "neighbors": [
+        "region_fenbei_hills",
+        "region_huoyi_road",
+        "region_yanmen_mayi",
+        "region_fufeng"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 1
+        },
+        {
+          "q": 3,
+          "r": 1
+        },
+        {
+          "q": 4,
+          "r": 1
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 1
+      },
+      "city": null,
+      "infrastructure": 4,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_huoyi_road",
+      "name": "霍邑道",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_hedong",
+      "assignedGeneralId": "general_li_shimin",
+      "terrain": "hill",
+      "neighbors": [
+        "region_jinyang_south",
+        "region_liu_wuzhou_camp",
+        "region_jinyang",
+        "region_puban_hedong"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 1
+        },
+        {
+          "q": 6,
+          "r": 1
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 1
+      },
+      "city": {
+        "name": "霍邑",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 4,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_liu_wuzhou_camp",
+      "name": "刘武周营",
+      "owner": "liuWuzhou",
+      "controller": "liuWuzhou",
+      "theaterId": "theater_taiyuan_north",
+      "assignedGeneralId": "general_song_jingang",
+      "terrain": "plain",
+      "neighbors": [
+        "region_huoyi_road",
+        "region_tujue_south_camp",
+        "region_taihang_west"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 1
+        },
+        {
+          "q": 8,
+          "r": 1
+        },
+        {
+          "q": 9,
+          "r": 1
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 1
+      },
+      "city": {
+        "name": "定杨军营",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 3,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "liuWuzhou"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_longyou_gate",
+      "name": "陇右入口",
+      "owner": "qinXue",
+      "controller": "qinXue",
+      "theaterId": "theater_longyou",
+      "assignedGeneralId": "general_xue_rengao",
+      "terrain": "hill",
+      "neighbors": [
+        "region_fufeng",
+        "region_fenbei_hills",
+        "region_weibei_xianyang"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 2
+        },
+        {
+          "q": 1,
+          "r": 2
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 2
+      },
+      "city": {
+        "name": "陇右营",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 3,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "qinXue"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_fufeng",
+      "name": "扶风",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong",
+      "assignedGeneralId": "general_li_jiancheng",
+      "terrain": "plain",
+      "neighbors": [
+        "region_longyou_gate",
+        "region_puban_hedong",
+        "region_jinyang_south",
+        "region_changan"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 2
+        },
+        {
+          "q": 3,
+          "r": 2
+        },
+        {
+          "q": 4,
+          "r": 2
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 2
+      },
+      "city": {
+        "name": "扶风",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 5,
+      "supplyValue": 4,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_puban_hedong",
+      "name": "蒲坂河东",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_hedong",
+      "assignedGeneralId": "general_li_shimin",
+      "terrain": "city",
+      "neighbors": [
+        "region_fufeng",
+        "region_taihang_west",
+        "region_huoyi_road",
+        "region_tongguan"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 2
+        },
+        {
+          "q": 6,
+          "r": 2
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 2
+      },
+      "city": {
+        "name": "蒲坂",
+        "victoryPoints": 3,
+        "isCapital": false
+      },
+      "infrastructure": 5,
+      "supplyValue": 5,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_taihang_west",
+      "name": "上党太行",
+      "owner": "xia",
+      "controller": "xia",
+      "theaterId": "theater_hebei",
+      "assignedGeneralId": "general_dou_jiande",
+      "terrain": "mountain",
+      "neighbors": [
+        "region_puban_hedong",
+        "region_liu_wuzhou_camp",
+        "region_hebei_south_edge"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 2
+        },
+        {
+          "q": 8,
+          "r": 2
+        },
+        {
+          "q": 9,
+          "r": 2
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 2
+      },
+      "city": {
+        "name": "上党",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 3,
+      "supplyValue": 3,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "xia"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_weibei_xianyang",
+      "name": "咸阳渭北",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong",
+      "assignedGeneralId": "general_yin_kaishan",
+      "terrain": "plain",
+      "neighbors": [
+        "region_changan",
+        "region_longyou_gate",
+        "region_lantian_wuguan"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 3
+        },
+        {
+          "q": 1,
+          "r": 3
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 3
+      },
+      "city": {
+        "name": "咸阳",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 5,
+      "supplyValue": 4,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_changan",
+      "name": "长安大兴",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong",
+      "assignedGeneralId": "general_li_jiancheng",
+      "terrain": "city",
+      "neighbors": [
+        "region_weibei_xianyang",
+        "region_tongguan",
+        "region_fufeng",
+        "region_huayin_hongnong"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 3
+        },
+        {
+          "q": 3,
+          "r": 3
+        },
+        {
+          "q": 4,
+          "r": 3
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 3
+      },
+      "city": {
+        "name": "长安",
+        "victoryPoints": 6,
+        "isCapital": true
+      },
+      "infrastructure": 8,
+      "supplyValue": 7,
+      "factories": 2,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_tongguan",
+      "name": "潼关",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong_east",
+      "assignedGeneralId": "general_li_shimin",
+      "terrain": "fortress",
+      "neighbors": [
+        "region_changan",
+        "region_hebei_south_edge",
+        "region_puban_hedong",
+        "region_hangu_pass"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 3
+        },
+        {
+          "q": 6,
+          "r": 3
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 3
+      },
+      "city": {
+        "name": "潼关",
+        "victoryPoints": 4,
+        "isCapital": false
+      },
+      "infrastructure": 6,
+      "supplyValue": 6,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_hebei_south_edge",
+      "name": "河北南缘",
+      "owner": "xia",
+      "controller": "xia",
+      "theaterId": "theater_hebei",
+      "assignedGeneralId": "general_dou_jiande",
+      "terrain": "plain",
+      "neighbors": [
+        "region_tongguan",
+        "region_taihang_west",
+        "region_liyang_granary"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 3
+        },
+        {
+          "q": 8,
+          "r": 3
+        },
+        {
+          "q": 9,
+          "r": 3
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 3
+      },
+      "city": null,
+      "infrastructure": 4,
+      "supplyValue": 3,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "xia"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_lantian_wuguan",
+      "name": "蓝田武关",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong",
+      "assignedGeneralId": "general_yin_kaishan",
+      "terrain": "hill",
+      "neighbors": [
+        "region_huayin_hongnong",
+        "region_weibei_xianyang",
+        "region_qianshuiyuan"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 4
+        },
+        {
+          "q": 1,
+          "r": 4
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 4
+      },
+      "city": {
+        "name": "武关",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 4,
+      "supplyValue": 3,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_huayin_hongnong",
+      "name": "华阴弘农",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong_east",
+      "assignedGeneralId": "general_li_shimin",
+      "terrain": "hill",
+      "neighbors": [
+        "region_lantian_wuguan",
+        "region_hangu_pass",
+        "region_changan",
+        "region_luoyang_west"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 4
+        },
+        {
+          "q": 3,
+          "r": 4
+        },
+        {
+          "q": 4,
+          "r": 4
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 4
+      },
+      "city": {
+        "name": "弘农",
+        "victoryPoints": 3,
+        "isCapital": false
+      },
+      "infrastructure": 5,
+      "supplyValue": 4,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_hangu_pass",
+      "name": "函谷关",
+      "owner": "luoyangSui",
+      "controller": "luoyangSui",
+      "theaterId": "theater_heluo",
+      "assignedGeneralId": "general_wang_shichong",
+      "terrain": "fortress",
+      "neighbors": [
+        "region_huayin_hongnong",
+        "region_liyang_granary",
+        "region_tongguan",
+        "region_luoyang"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 4
+        },
+        {
+          "q": 6,
+          "r": 4
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 4
+      },
+      "city": {
+        "name": "函谷关",
+        "victoryPoints": 4,
+        "isCapital": false
+      },
+      "infrastructure": 6,
+      "supplyValue": 5,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "luoyangSui"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_liyang_granary",
+      "name": "黎阳仓",
+      "owner": "xia",
+      "controller": "xia",
+      "theaterId": "theater_hebei",
+      "assignedGeneralId": "general_dou_jiande",
+      "terrain": "city",
+      "neighbors": [
+        "region_hangu_pass",
+        "region_hebei_south_edge",
+        "region_jijun"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 4
+        },
+        {
+          "q": 8,
+          "r": 4
+        },
+        {
+          "q": 9,
+          "r": 4
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 4
+      },
+      "city": {
+        "name": "黎阳仓",
+        "victoryPoints": 4,
+        "isCapital": false
+      },
+      "infrastructure": 6,
+      "supplyValue": 7,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "xia"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_qianshuiyuan",
+      "name": "浅水原",
+      "owner": "qinXue",
+      "controller": "qinXue",
+      "theaterId": "theater_longyou",
+      "assignedGeneralId": "general_xue_rengao",
+      "terrain": "plain",
+      "neighbors": [
+        "region_luoyang_west",
+        "region_lantian_wuguan",
+        "region_longban"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 5
+        },
+        {
+          "q": 1,
+          "r": 5
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 5
+      },
+      "city": {
+        "name": "浅水原",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 3,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "qinXue"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_luoyang_west",
+      "name": "洛阳西郊",
+      "owner": "luoyangSui",
+      "controller": "luoyangSui",
+      "theaterId": "theater_heluo",
+      "assignedGeneralId": "general_wang_shichong",
+      "terrain": "plain",
+      "neighbors": [
+        "region_qianshuiyuan",
+        "region_luoyang",
+        "region_huayin_hongnong",
+        "region_hulao"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 5
+        },
+        {
+          "q": 3,
+          "r": 5
+        },
+        {
+          "q": 4,
+          "r": 5
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 5
+      },
+      "city": null,
+      "infrastructure": 5,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "luoyangSui"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_luoyang",
+      "name": "洛阳",
+      "owner": "luoyangSui",
+      "controller": "luoyangSui",
+      "theaterId": "theater_heluo",
+      "assignedGeneralId": "general_wang_shichong",
+      "terrain": "city",
+      "neighbors": [
+        "region_luoyang_west",
+        "region_jijun",
+        "region_hangu_pass",
+        "region_luokou_granary"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 5
+        },
+        {
+          "q": 6,
+          "r": 5
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 5
+      },
+      "city": {
+        "name": "洛阳",
+        "victoryPoints": 6,
+        "isCapital": true
+      },
+      "infrastructure": 8,
+      "supplyValue": 7,
+      "factories": 2,
+      "resources": [],
+      "coreOf": [
+        "luoyangSui"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_jijun",
+      "name": "汲郡",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_wagang",
+      "assignedGeneralId": "general_li_mi",
+      "terrain": "plain",
+      "neighbors": [
+        "region_luoyang",
+        "region_liyang_granary",
+        "region_xingyang"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 5
+        },
+        {
+          "q": 8,
+          "r": 5
+        },
+        {
+          "q": 9,
+          "r": 5
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 5
+      },
+      "city": {
+        "name": "汲郡",
+        "victoryPoints": 2,
+        "isCapital": false
+      },
+      "infrastructure": 4,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_longban",
+      "name": "陇坂",
+      "owner": "qinXue",
+      "controller": "qinXue",
+      "theaterId": "theater_longyou",
+      "assignedGeneralId": "general_xue_rengao",
+      "terrain": "mountain",
+      "neighbors": [
+        "region_hulao",
+        "region_qianshuiyuan",
+        "region_shangluo"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 6
+        },
+        {
+          "q": 1,
+          "r": 6
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 6
+      },
+      "city": null,
+      "infrastructure": 2,
+      "supplyValue": 2,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "qinXue"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_hulao",
+      "name": "虎牢",
+      "owner": "luoyangSui",
+      "controller": "luoyangSui",
+      "theaterId": "theater_heluo",
+      "assignedGeneralId": "general_wang_shichong",
+      "terrain": "fortress",
+      "neighbors": [
+        "region_longban",
+        "region_luokou_granary",
+        "region_luoyang_west",
+        "region_henan_south_road"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 6
+        },
+        {
+          "q": 3,
+          "r": 6
+        },
+        {
+          "q": 4,
+          "r": 6
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 6
+      },
+      "city": {
+        "name": "虎牢",
+        "victoryPoints": 5,
+        "isCapital": false
+      },
+      "infrastructure": 6,
+      "supplyValue": 6,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "luoyangSui"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_luokou_granary",
+      "name": "洛口仓",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_wagang",
+      "assignedGeneralId": "general_li_mi",
+      "terrain": "city",
+      "neighbors": [
+        "region_hulao",
+        "region_xingyang",
+        "region_luoyang",
+        "region_wagang_camp"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 6
+        },
+        {
+          "q": 6,
+          "r": 6
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 6
+      },
+      "city": {
+        "name": "洛口仓",
+        "victoryPoints": 5,
+        "isCapital": false
+      },
+      "infrastructure": 7,
+      "supplyValue": 8,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_xingyang",
+      "name": "荥阳",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_wagang",
+      "assignedGeneralId": "general_li_mi",
+      "terrain": "plain",
+      "neighbors": [
+        "region_luokou_granary",
+        "region_jijun",
+        "region_mingzhou"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 6
+        },
+        {
+          "q": 8,
+          "r": 6
+        },
+        {
+          "q": 9,
+          "r": 6
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 6
+      },
+      "city": {
+        "name": "荥阳",
+        "victoryPoints": 3,
+        "isCapital": false
+      },
+      "infrastructure": 5,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_shangluo",
+      "name": "商洛",
+      "owner": "tang",
+      "controller": "tang",
+      "theaterId": "theater_guanzhong_south",
+      "assignedGeneralId": "general_yin_kaishan",
+      "terrain": "hill",
+      "neighbors": [
+        "region_henan_south_road",
+        "region_longban",
+        "region_huaibei_edge"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 7
+        },
+        {
+          "q": 1,
+          "r": 7
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 7
+      },
+      "city": null,
+      "infrastructure": 3,
+      "supplyValue": 3,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "tang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_henan_south_road",
+      "name": "河南南路",
+      "owner": "luoyangSui",
+      "controller": "luoyangSui",
+      "theaterId": "theater_heluo",
+      "assignedGeneralId": "general_wang_shichong",
+      "terrain": "plain",
+      "neighbors": [
+        "region_shangluo",
+        "region_wagang_camp",
+        "region_hulao",
+        "region_runan_gate"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 7
+        },
+        {
+          "q": 3,
+          "r": 7
+        },
+        {
+          "q": 4,
+          "r": 7
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 7
+      },
+      "city": null,
+      "infrastructure": 4,
+      "supplyValue": 3,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "luoyangSui"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_wagang_camp",
+      "name": "瓦岗寨",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_wagang",
+      "assignedGeneralId": "general_li_mi",
+      "terrain": "hill",
+      "neighbors": [
+        "region_henan_south_road",
+        "region_mingzhou",
+        "region_luokou_granary",
+        "region_huaiyang"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 7
+        },
+        {
+          "q": 6,
+          "r": 7
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 7
+      },
+      "city": {
+        "name": "瓦岗寨",
+        "victoryPoints": 4,
+        "isCapital": false
+      },
+      "infrastructure": 4,
+      "supplyValue": 5,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_mingzhou",
+      "name": "洺州",
+      "owner": "xia",
+      "controller": "xia",
+      "theaterId": "theater_hebei",
+      "assignedGeneralId": "general_dou_jiande",
+      "terrain": "city",
+      "neighbors": [
+        "region_wagang_camp",
+        "region_xingyang",
+        "region_hebei_plain"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 7
+        },
+        {
+          "q": 8,
+          "r": 7
+        },
+        {
+          "q": 9,
+          "r": 7
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 7
+      },
+      "city": {
+        "name": "洺州",
+        "victoryPoints": 5,
+        "isCapital": true
+      },
+      "infrastructure": 6,
+      "supplyValue": 6,
+      "factories": 1,
+      "resources": [],
+      "coreOf": [
+        "xia"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_huaibei_edge",
+      "name": "淮北边缘",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_huaibei",
+      "assignedGeneralId": null,
+      "terrain": "plain",
+      "neighbors": [
+        "region_runan_gate",
+        "region_shangluo"
+      ],
+      "displayHexes": [
+        {
+          "q": 0,
+          "r": 8
+        },
+        {
+          "q": 1,
+          "r": 8
+        }
+      ],
+      "representativeHex": {
+        "q": 1,
+        "r": 8
+      },
+      "city": null,
+      "infrastructure": 2,
+      "supplyValue": 2,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 60
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_runan_gate",
+      "name": "汝南入口",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_huaibei",
+      "assignedGeneralId": null,
+      "terrain": "forest",
+      "neighbors": [
+        "region_huaibei_edge",
+        "region_huaiyang",
+        "region_henan_south_road"
+      ],
+      "displayHexes": [
+        {
+          "q": 2,
+          "r": 8
+        },
+        {
+          "q": 3,
+          "r": 8
+        },
+        {
+          "q": 4,
+          "r": 8
+        }
+      ],
+      "representativeHex": {
+        "q": 3,
+        "r": 8
+      },
+      "city": null,
+      "infrastructure": 2,
+      "supplyValue": 2,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 60
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_huaiyang",
+      "name": "淮阳",
+      "owner": "wagang",
+      "controller": "wagang",
+      "theaterId": "theater_wagang",
+      "assignedGeneralId": "general_li_mi",
+      "terrain": "city",
+      "neighbors": [
+        "region_runan_gate",
+        "region_hebei_plain",
+        "region_wagang_camp"
+      ],
+      "displayHexes": [
+        {
+          "q": 5,
+          "r": 8
+        },
+        {
+          "q": 6,
+          "r": 8
+        }
+      ],
+      "representativeHex": {
+        "q": 6,
+        "r": 8
+      },
+      "city": {
+        "name": "淮阳",
+        "victoryPoints": 3,
+        "isCapital": false
+      },
+      "infrastructure": 4,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "wagang"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    },
+    {
+      "id": "region_hebei_plain",
+      "name": "河北平原",
+      "owner": "xia",
+      "controller": "xia",
+      "theaterId": "theater_hebei",
+      "assignedGeneralId": "general_dou_jiande",
+      "terrain": "plain",
+      "neighbors": [
+        "region_huaiyang",
+        "region_mingzhou"
+      ],
+      "displayHexes": [
+        {
+          "q": 7,
+          "r": 8
+        },
+        {
+          "q": 8,
+          "r": 8
+        },
+        {
+          "q": 9,
+          "r": 8
+        }
+      ],
+      "representativeHex": {
+        "q": 8,
+        "r": 8
+      },
+      "city": null,
+      "infrastructure": 5,
+      "supplyValue": 4,
+      "factories": 0,
+      "resources": [],
+      "coreOf": [
+        "xia"
+      ],
+      "occupationState": {
+        "resistance": 0,
+        "compliance": 70
+      },
+      "isPassable": true
+    }
+  ],
+  "edges": [],
+  "supplySources": [
+    {
+      "id": "supply_changan",
+      "faction": "tang",
+      "regionId": "region_changan"
+    },
+    {
+      "id": "supply_taiyuan",
+      "faction": "tang",
+      "regionId": "region_jinyang"
+    },
+    {
+      "id": "supply_luoyang",
+      "faction": "luoyangSui",
+      "regionId": "region_luoyang"
+    },
+    {
+      "id": "supply_luokou",
+      "faction": "wagang",
+      "regionId": "region_luokou_granary"
+    },
+    {
+      "id": "supply_mingzhou",
+      "faction": "xia",
+      "regionId": "region_mingzhou"
+    },
+    {
+      "id": "supply_qianshuiyuan",
+      "faction": "qinXue",
+      "regionId": "region_qianshuiyuan"
+    },
+    {
+      "id": "supply_mayi",
+      "faction": "liuWuzhou",
+      "regionId": "region_liu_wuzhou_camp"
+    },
+    {
+      "id": "supply_tujue_camp",
+      "faction": "tujue",
+      "regionId": "region_tujue_south_camp"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "obj_changan",
+      "name": "长安",
+      "regionId": "region_changan",
+      "type": "city",
+      "victoryPoints": 6,
+      "mainObjective": true
+    },
+    {
+      "id": "obj_luoyang",
+      "name": "洛阳",
+      "regionId": "region_luoyang",
+      "type": "city",
+      "victoryPoints": 6,
+      "mainObjective": true
+    },
+    {
+      "id": "obj_luokou",
+      "name": "洛口仓",
+      "regionId": "region_luokou_granary",
+      "type": "supply",
+      "victoryPoints": 5,
+      "mainObjective": true
+    },
+    {
+      "id": "obj_hulao",
+      "name": "虎牢",
+      "regionId": "region_hulao",
+      "type": "fortress",
+      "victoryPoints": 5,
+      "mainObjective": false
+    },
+    {
+      "id": "obj_mingzhou",
+      "name": "洺州",
+      "regionId": "region_mingzhou",
+      "type": "city",
+      "victoryPoints": 5,
+      "mainObjective": true
+    },
+    {
+      "id": "obj_tongguan",
+      "name": "潼关",
+      "regionId": "region_tongguan",
+      "type": "fortress",
+      "victoryPoints": 4,
+      "mainObjective": false
+    },
+    {
+      "id": "obj_liyang",
+      "name": "黎阳仓",
+      "regionId": "region_liyang_granary",
+      "type": "supply",
+      "victoryPoints": 4,
+      "mainObjective": false
+    }
+  ]
+}
