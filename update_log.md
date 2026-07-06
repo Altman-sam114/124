@@ -24,6 +24,7 @@
 - 总提示词 §0.2 / §0.4 将 P1 标记为 v3.7-preflight.97 已收口，后续队列保留 P0、P2、P3 等独立切片。
 - 云端 run 28826017428 暴露两个编译问题后追加补修：`GameState` 解码 `playerFaction` 时直接用 `Faction(rawValue:)` 解析字符串；`EconomyRules` 生产部署日志在读取部署州郡名时先解包 optional `regionId`。
 - 云端 run 28826187439 继续暴露 `GeneralRegistry.commanderConfig(zoneId:)` 缺少 `return`，已补回显式返回，不改变生成配置内容。
+- 云端 run 28826279374 继续暴露 `WarCommandExecutor.defensiveDestination` 的 chained collection expression 触发 Swift type-check 超时，已拆为显式循环构建候选 hex，保持排序和过滤语义不变。
 
 关键文件：
 
