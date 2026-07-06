@@ -52,7 +52,7 @@ struct GeneralData: Identifiable, Codable, Equatable {
 
     func commanderConfig(zoneId: FrontZoneId) -> ZoneCommanderAgentConfig {
         let displayName = localizedName.trimmingCharacters(in: .whitespacesAndNewlines)
-        ZoneCommanderAgentConfig(
+        return ZoneCommanderAgentConfig(
             id: id,
             name: displayName.isEmpty ? name : displayName,
             faction: faction,
