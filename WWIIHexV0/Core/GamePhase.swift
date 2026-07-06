@@ -10,13 +10,13 @@ enum GamePhase: String, Codable, Equatable, CaseIterable {
     var displayName: String {
         switch self {
         case .germanAI:
-            return "AI 行动"
+            return "朝堂行动"
         case .alliedPlayer:
             return "玩家行动"
         case .playerCommand:
             return "玩家军令"
         case .aiCommand:
-            return "AI 军令"
+            return "朝堂军令"
         case .resolution:
             return "结算"
         }

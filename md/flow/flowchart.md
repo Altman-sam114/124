@@ -24,9 +24,9 @@
 - 蓝色：初始快照/基准状态，不是运行时推进状态。
 - 紫色：命令管线，玩家、AI、未来聊天命令都要走这里。
 
-## 0.1 v3.0-v3.7-preflight.91 隋唐迁移入口
+## 0.1 v3.0-v3.7-preflight.92 隋唐迁移入口
 
-这张图说明当前迁移状态已推进到 v3.7-preflight.91；最近一轮让指令结果记录命令语义，避免 AI 静态防御判断继续依赖已中文化的展示文本。
+这张图说明当前迁移状态已推进到 v3.7-preflight.92；最近一轮让通用自动行动阶段和 legacy 总管数据展示继续收口到朝堂/历史总管口径。
 
 ```mermaid
 flowchart TD
@@ -129,12 +129,13 @@ flowchart TD
     V89RV["v3.7-preflight.89 RegionVictoryRules 隋唐胜负摘要对齐<br/>RegionRuleSystem 分析摘要按 scenarioId 分支<br/>wude_618 读取洛阳 / 洛口仓 / 潼关 / 长安<br/>不改主胜负执行、命令管线、存档"]:::work
     V90VE["v3.7-preflight.90 共享隋唐胜负 evaluator 收口<br/>VictoryAssessment / 规则层 Wude618VictoryEvaluator<br/>VictoryRules 与 RegionVictoryRules 复用<br/>不改 objective id、规则阈值、存档"]:::work
     V91CK["v3.7-preflight.91 指令结果语义化固守判定<br/>CommandResultSummary.commandKind<br/>ZoneCommanderAgent 按 .hold 判断<br/>不依赖 Hold / 展示名"]:::work
+    V92PD["v3.7-preflight.92 阶段与旧总管展示口径<br/>GamePhase 朝堂行动 / 朝堂军令<br/>general_agents legacy 展示名历史总管<br/>不改 rawValue / legacy id / 规则"]:::work
     CURRENT["当前运行时状态<br/>主游戏默认优先 wude_618<br/>失败 fallback Ardennes<br/>MapEditor 默认桥指向 wude_618"]:::state
     LATER["v3.7+<br/>忠诚 / 叛乱 / 安置等善后实际效果<br/>水战 / 渡河 / 港口补给规则<br/>真实模型接入、完整发布运行时重测"]:::work
     RULE["持续边界<br/>Command / ZoneDirective -> WarCommandExecutor -> RuleEngine<br/>hex 与动态映射仍是权威"]:::rules
 
     PROMPT --> AUDIT --> V31 --> V32 --> V33 --> V34 --> V35 --> V36 --> V37 --> V37S --> V37O --> V37W --> V37A --> V37F --> V37E --> V37R --> V37D --> V37G --> V37AG --> V37AD --> V37SE --> V37ST --> V37SP --> V37SH --> V37HA --> V37AH --> V37AF --> V37AP --> V37AGV --> V37AGS --> V37AUP --> V37AC --> V37RG --> V37GD --> V37DD --> V37ME --> V37MK --> V37SG --> V37LT --> V37DT --> V37DC --> V37AI --> V37BR --> V37ES --> V37UI --> V38UX
-    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> CURRENT
+    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> CURRENT
     V37MK --> LATER
     RULE --> LATER
     RULE --> V31
@@ -229,6 +230,7 @@ flowchart TD
     RULE --> V89RV
     RULE --> V90VE
     RULE --> V91CK
+    RULE --> V92PD
 
     classDef doc fill:#fef3c7,stroke:#d97706,color:#1f1600
     classDef state fill:#ede9fe,stroke:#7c3aed,color:#1f143d

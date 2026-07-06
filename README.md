@@ -1,6 +1,6 @@
 # WWIIHexV0 — iOS / macOS AI 战略战棋骨架
 
-> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.91 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营命令、AI 太守/使者/归附交接、善后记录链、发布检查静态门禁、多轮玩家可见文案收口、本局执掌势力选择、MapEditor 隋唐资源桥与可见文案收口、默认数据说明和补给战报中文化、AI 元帅/方面军令摘要中文化、Legacy MockAI 与元帅解析诊断中文化、legacy fallback JSON 可见文本收口、legacy 将领档案可见文本和技能显示收口、Agent 诊断/错误兜底文案收口、自动回合与元帅诊断兜底文案收口、数据加载与导出说明可见文案收口、复核面板与记录摘要可见文案收口、MapEditor 与主游戏 raw id 可见文案复扫收口、命令错误与源头战报可见文案收口、总管与将领档案防区展示名 raw id 收口、legacy fallback 数据展示文案收口、legacy fallback 单位与防区展示文案收口、legacy static fallback 目标兼容与展示文案收口、legacy LLM prompt 语言收口、外交面板名称和记录净化收口、战报意图屏蔽与中文分类收口、MapEditor 导出元数据 fallback 收口、AI 诊断净化口径对齐、legacy 总管配置中文兜底、legacy prompt 内部编号分层收口、legacy prompt 直通文本净化、legacy prompt 决策者身份净化、legacy MockAI stance 文案收口、legacy prompt 工程说明词收口、模拟元帅输出纯 JSON 收口、UI/战报/外交记录净化 helper 顺序与词表对齐、legacy 将领与朝堂记录可见文案复扫、CommandPanel 命令消息展示净化收口、单位详情与提示 legacy 单位名展示收口、州郡详情 legacy 地名与目标名展示收口、将领与总管面板 legacy 可见文案复扫收口、MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、MapEditor 选择器与状态消息 legacy 文案收口、AppContainer 交互日志与存档反馈 legacy 文案收口、GameLogEntry 源头战报 legacy 文案收口、legacy LocalLLM prompt 临时编号别名收口、legacy fallback 行军总管配置收口、朝堂/外交实际记录 id 展示净化收口、行军总管可见称谓净化收口、源头 legacy 中文势力/国家/地名展示净化收口、将领档案/总管军令称谓净化对齐、fallback JSON 可见数据文本收口、源码层 legacy 可见兜底文本收口、静态 GameState / MapState fallback 可见文本收口、legacy objective lookup 字面量收口、RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口，以及指令结果语义化固守判定收口。正式地图资产、交接后的忠诚/叛乱/安置实际效果、更完整朝堂决策、授权构建/启动/多回合运行验证和云端结果包验收仍未完成。
+> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.92 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营命令、AI 太守/使者/归附交接、善后记录链、发布检查静态门禁、多轮玩家可见文案收口、本局执掌势力选择、MapEditor 隋唐资源桥与可见文案收口、默认数据说明和补给战报中文化、AI 元帅/方面军令摘要中文化、Legacy MockAI 与元帅解析诊断中文化、legacy fallback JSON 可见文本收口、legacy 将领档案可见文本和技能显示收口、Agent 诊断/错误兜底文案收口、自动回合与元帅诊断兜底文案收口、数据加载与导出说明可见文案收口、复核面板与记录摘要可见文案收口、MapEditor 与主游戏 raw id 可见文案复扫收口、命令错误与源头战报可见文案收口、总管与将领档案防区展示名 raw id 收口、legacy fallback 数据展示文案收口、legacy fallback 单位与防区展示文案收口、legacy static fallback 目标兼容与展示文案收口、legacy LLM prompt 语言收口、外交面板名称和记录净化收口、战报意图屏蔽与中文分类收口、MapEditor 导出元数据 fallback 收口、AI 诊断净化口径对齐、legacy 总管配置中文兜底、legacy prompt 内部编号分层收口、legacy prompt 直通文本净化、legacy prompt 决策者身份净化、legacy MockAI stance 文案收口、legacy prompt 工程说明词收口、模拟元帅输出纯 JSON 收口、UI/战报/外交记录净化 helper 顺序与词表对齐、legacy 将领与朝堂记录可见文案复扫、CommandPanel 命令消息展示净化收口、单位详情与提示 legacy 单位名展示收口、州郡详情 legacy 地名与目标名展示收口、将领与总管面板 legacy 可见文案复扫收口、MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、MapEditor 选择器与状态消息 legacy 文案收口、AppContainer 交互日志与存档反馈 legacy 文案收口、GameLogEntry 源头战报 legacy 文案收口、legacy LocalLLM prompt 临时编号别名收口、legacy fallback 行军总管配置收口、朝堂/外交实际记录 id 展示净化收口、行军总管可见称谓净化收口、源头 legacy 中文势力/国家/地名展示净化收口、将领档案/总管军令称谓净化对齐、fallback JSON 可见数据文本收口、源码层 legacy 可见兜底文本收口、静态 GameState / MapState fallback 可见文本收口、legacy objective lookup 字面量收口、RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口，以及阶段与旧总管展示口径收口。正式地图资产、交接后的忠诚/叛乱/安置实际效果、更完整朝堂决策、授权构建/启动/多回合运行验证和云端结果包验收仍未完成。
 
 ---
 
@@ -85,6 +85,12 @@ MapEditor/
 ---
 
 ## 当前完成进度
+
+### v3.7-preflight.92：阶段与旧总管展示口径收口
+
+- `GamePhase.displayName` 的自动行动阶段从 `AI 行动` / `AI 军令` 改为 `朝堂行动` / `朝堂军令`，HUD、引导、命令面板和 legacy prompt 自由文本继续使用玩家语义。
+- `general_agents.json` 中 legacy `guderian` 配置的展示名改为“历史总管”，保留 `guderian` id、`.germany` rawValue、legacy 单位 id 和 `breakthrough` command style。
+- 边界：不改 `GamePhase` rawValue、Codable、回合推进、自动行动判定、JSON schema、DataLoader 校验、AI 决策、命令管线、规则或存档。
 
 ### v3.7-preflight.91：指令结果语义化固守判定收口
 

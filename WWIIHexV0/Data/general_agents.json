@@ -3,7 +3,7 @@
   "agents": [
     {
       "id": "guderian",
-      "name": "古德里安",
+      "name": "历史总管",
       "faction": "germany",
       "role": "armyCommander",
       "commandStyle": "breakthrough",

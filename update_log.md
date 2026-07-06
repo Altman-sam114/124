@@ -9,6 +9,49 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.92 - 阶段与旧总管展示口径收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在指令结果语义化固守判定收口之后，继续处理两个低风险可见口径残留：通用自动行动阶段仍显示 `AI`，legacy `general_agents.json` 兼容配置仍带旧人物专名。本轮只改展示名和文档，不改变回合 rawValue、legacy id、势力 rawValue、单位 id、AI 决策、命令管线、规则执行或存档格式。
+
+核心更新：
+
+- `GamePhase.displayName` 的 `.germanAI` / `.aiCommand` 展示从 `AI 行动` / `AI 军令` 改为 `朝堂行动` / `朝堂军令`。
+- `general_agents.json` 中 legacy `guderian` 配置的展示名从 `古德里安` 改为 `历史总管`。
+- 保留 `guderian` id、`.germany` rawValue、legacy `ger_*` assigned division id 和 `breakthrough` command style，用于旧数据兼容与校验。
+- 新增阶段记录 `md/prompt/v3.0-隋唐迁移/v3.7_phase_legacy_agent_display_record.md`，同步 `README.md`、`md/flow/*`、`md/plan/plan.md`。
+
+关键文件：
+
+- `WWIIHexV0/Core/GamePhase.swift`
+- `WWIIHexV0/Data/general_agents.json`
+- `md/prompt/v3.0-隋唐迁移/v3.7_phase_legacy_agent_display_record.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件语法检查。
+- `command -v jq`：无输出，当前容器缺少 `jq`。
+- `node -e 'JSON.parse(require("fs").readFileSync("WWIIHexV0/Data/general_agents.json", "utf8")); console.log("json ok")'`：通过，输出 `json ok`。
+- 聚焦扫描 `AI 行动` / `AI 军令` / `"name": "古德里安"`：改动文件中不再命中。
+- 本轮改动文件尾随空白扫描：无命中。
+- 本轮改动文件冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未启动主游戏、HUD、开局引导、命令面板或 legacy prompt 路径，展示效果仍需云端构建或人工授权运行时验证确认。
+- legacy objective 展示名 fallback 和 `MarshalFrontSummary.status` 字符串逻辑仍未收口，后续可作为规则/AI 结构补洞继续处理。
+
 ## v3.7-preflight.91 - 指令结果语义化固守判定收口
 
 完成日期：2026-07-07
