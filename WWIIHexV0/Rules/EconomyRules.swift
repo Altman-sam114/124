@@ -335,7 +335,7 @@ struct EconomyRules {
                 )
                 state.divisions.append(division)
                 order.deploymentRegionId = deployment.regionId
-                let regionName = state.map.region(id: deployment.regionId)?.name ?? "后方州郡"
+                let regionName = deployment.regionId.flatMap { state.map.region(id: $0)?.name } ?? "后方州郡"
                 state.appendEvent(
                     "\(faction.displayName) 已在 \(regionName) 后方部署 \(division.name)。",
                     category: .reinforce

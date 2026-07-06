@@ -166,7 +166,7 @@ struct GameState: Codable, Equatable {
         let activeFaction = try container.decode(Faction.self, forKey: .activeFaction)
         var storedPlayerFaction: Faction?
         if let rawPlayerFaction = try? container.decodeIfPresent(String.self, forKey: .playerFaction) {
-            storedPlayerFaction = rawPlayerFaction.flatMap(Faction.init(rawValue:))
+            storedPlayerFaction = Faction(rawValue: rawPlayerFaction)
         }
         let playerFaction = storedPlayerFaction ??
             Self.defaultPlayerFaction(

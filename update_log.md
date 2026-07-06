@@ -22,10 +22,13 @@
 - 如果 source zone 与行动军队都无法确认推进势力，本次动态方面推进会跳过，并写入“动态方面推进跳过：无法确认推进势力。”战报。
 - `shouldAdvanceDynamicTheater` 改为接收已确认的推进势力，避免在判断层继续依赖缺 zone 的 legacy fallback。
 - 总提示词 §0.2 / §0.4 将 P1 标记为 v3.7-preflight.97 已收口，后续队列保留 P0、P2、P3 等独立切片。
+- 云端 run 28826017428 暴露两个编译问题后追加补修：`GameState` 解码 `playerFaction` 时直接用 `Faction(rawValue:)` 解析字符串；`EconomyRules` 生产部署日志在读取部署州郡名时先解包 optional `regionId`。
 
 关键文件：
 
 - `WWIIHexV0/Commands/WarCommandExecutor.swift`
+- `WWIIHexV0/Core/GameState.swift`
+- `WWIIHexV0/Rules/EconomyRules.swift`
 - `md/prompt/v3.0-隋唐迁移/v3.7_dynamic_theater_faction_fallback_record.md`
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `README.md`
