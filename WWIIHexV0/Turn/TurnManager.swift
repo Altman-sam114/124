@@ -578,30 +578,28 @@ struct TurnManager {
         }
 
         if let submittedTarget = hostiles.first(where: { shouldSeekSubmission(of: $0, in: state) }) {
-            return .updateDiplomacy(issuer: faction, target: submittedTarget, status: .submitted)
+            return Command.updateDiplomacy(issuer: faction, target: submittedTarget, status: DiplomaticStatus.submitted)
         }
 
         guard shouldSeekTruce(for: faction, hostileCount: hostiles.count, in: state) else {
             return nil
         }
 
-        let truceTarget = hostiles
-            .map { target in
-                (
-                    faction: target,
-                    score: diplomaticPressureScore(for: target, in: state)
-                )
-            }
-            .sorted {
-                $0.score == $1.score
-                    ? $0.faction.rawValue < $1.faction.rawValue
-                    : $0.score > $1.score
-            }
-            .first?
-            .faction
+        var truceCandidates: [(faction: Faction, score: Int)] = []
+        for target in hostiles {
+            truceCandidates.append((
+                faction: target,
+                score: diplomaticPressureScore(for: target, in: state)
+            ))
+        }
+        let truceTarget = truceCandidates.sorted {
+            $0.score == $1.score
+                ? $0.faction.rawValue < $1.faction.rawValue
+                : $0.score > $1.score
+        }.first?.faction
 
-        return truceTarget.map {
-            .updateDiplomacy(issuer: faction, target: $0, status: .truce)
+        return truceTarget.map { target in
+            Command.updateDiplomacy(issuer: faction, target: target, status: DiplomaticStatus.truce)
         }
     }
 
@@ -610,29 +608,29 @@ struct TurnManager {
             return nil
         }
 
-        let candidates = state.diplomacyState.submittedTargetFactions()
-            .filter { submitted in
-                submitted != faction &&
-                    state.diplomacyState.canResolveSubmissionHandoff(
-                        submitted: submitted,
-                        recipient: faction
-                    ) &&
-                    hasSubmissionRuntimePresence(submitted, in: state)
+        var candidates: [(faction: Faction, score: Int)] = []
+        for submitted in state.diplomacyState.submittedTargetFactions() {
+            guard submitted != faction,
+                  state.diplomacyState.canResolveSubmissionHandoff(
+                    submitted: submitted,
+                    recipient: faction
+                  ),
+                  hasSubmissionRuntimePresence(submitted, in: state) else {
+                continue
             }
-            .map { submitted in
-                (
-                    faction: submitted,
-                    score: submissionPresenceScore(for: submitted, in: state)
-                )
-            }
-            .sorted {
-                $0.score == $1.score
-                    ? $0.faction.rawValue < $1.faction.rawValue
-                    : $0.score > $1.score
-            }
+            candidates.append((
+                faction: submitted,
+                score: submissionPresenceScore(for: submitted, in: state)
+            ))
+        }
+        let sortedCandidates = candidates.sorted {
+            $0.score == $1.score
+                ? $0.faction.rawValue < $1.faction.rawValue
+                : $0.score > $1.score
+        }
 
-        return candidates.first.map {
-            .resolveSubmissionHandoff(submitted: $0.faction, recipient: faction)
+        return sortedCandidates.first.map {
+            Command.resolveSubmissionHandoff(submitted: $0.faction, recipient: faction)
         }
     }
 
