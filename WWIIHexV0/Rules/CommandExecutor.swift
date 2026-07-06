@@ -350,6 +350,11 @@ struct CommandExecutor {
     }
 
     private func advanceActiveFaction(in state: inout GameState) {
+        state.phase = state.phase.normalized(
+            forActiveFaction: state.activeFaction,
+            playerFaction: state.playerFaction
+        )
+
         switch state.phase {
         case .germanAI:
             state.activeFaction = .allies

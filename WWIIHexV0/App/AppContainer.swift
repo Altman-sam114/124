@@ -64,6 +64,10 @@ final class AppContainer: ObservableObject {
     ) {
         var bootstrappedState = StrategicStateBootstrapper().bootstrapIfNeeded(gameState)
         bootstrappedState.playerFaction = playerFaction ?? bootstrappedState.playerFaction
+        bootstrappedState.phase = bootstrappedState.phase.normalized(
+            forActiveFaction: bootstrappedState.activeFaction,
+            playerFaction: bootstrappedState.playerFaction
+        )
         self.gameState = Self.refreshGeneralAssignments(in: bootstrappedState, registry: generalRegistry)
         self.commandHandler = commandHandler
         self.dataLoader = dataLoader
@@ -110,6 +114,10 @@ final class AppContainer: ObservableObject {
         bootstrappedState.playerFaction = playableFaction(
             bootstrappedState.playerFaction,
             in: bootstrappedState
+        )
+        bootstrappedState.phase = bootstrappedState.phase.normalized(
+            forActiveFaction: bootstrappedState.activeFaction,
+            playerFaction: bootstrappedState.playerFaction
         )
         let turnManager = TurnManager(
             agent: guderian,
@@ -354,11 +362,10 @@ final class AppContainer: ObservableObject {
 
         isRunningAI = false
         gameState.playerFaction = faction
-        if gameState.activeFaction == faction, gameState.phase.allowsAIExecution {
-            gameState.phase = .playerCommand
-        } else if gameState.activeFaction != faction, gameState.phase.allowsPlayerInput {
-            gameState.phase = .aiCommand
-        }
+        gameState.phase = gameState.phase.normalized(
+            forActiveFaction: gameState.activeFaction,
+            playerFaction: gameState.playerFaction
+        )
         clearSelection()
         let factionName = Self.displayFactionName(faction)
         lastCommandMessage = "已改由\(factionName)下令。"
@@ -372,9 +379,10 @@ final class AppContainer: ObservableObject {
         let preferredFaction = playerFaction
         var newState = dataLoader.loadInitialGameState()
         newState.playerFaction = Self.playableFaction(preferredFaction, in: newState)
-        if newState.activeFaction != newState.playerFaction, newState.phase.allowsPlayerInput {
-            newState.phase = .aiCommand
-        }
+        newState.phase = newState.phase.normalized(
+            forActiveFaction: newState.activeFaction,
+            playerFaction: newState.playerFaction
+        )
         replaceGameState(newState, clearingLog: true)
         lastCommandMessage = "新局已开始。"
         appendInteractionEvent("新局已开始：\(Self.scenarioTitle(for: gameState.scenarioId))，\(Self.displayFactionName(playerFaction))执掌。")
@@ -394,13 +402,10 @@ final class AppContainer: ObservableObject {
         do {
             var savedState = try saveStore.load()
             savedState.playerFaction = Self.playableFaction(savedState.playerFaction, in: savedState)
-            if savedState.activeFaction == savedState.playerFaction,
-               savedState.phase.allowsAIExecution {
-                savedState.phase = .playerCommand
-            } else if savedState.activeFaction != savedState.playerFaction,
-                      savedState.phase.allowsPlayerInput {
-                savedState.phase = .aiCommand
-            }
+            savedState.phase = savedState.phase.normalized(
+                forActiveFaction: savedState.activeFaction,
+                playerFaction: savedState.playerFaction
+            )
             isRunningAI = false
             replaceGameState(savedState, clearingLog: true)
             hasSavedGame = true
@@ -432,9 +437,10 @@ final class AppContainer: ObservableObject {
         let preferredFaction = playerFaction
         var newState = dataLoader.loadInitialGameState()
         newState.playerFaction = Self.playableFaction(preferredFaction, in: newState)
-        if newState.activeFaction != newState.playerFaction, newState.phase.allowsPlayerInput {
-            newState.phase = .aiCommand
-        }
+        newState.phase = newState.phase.normalized(
+            forActiveFaction: newState.activeFaction,
+            playerFaction: newState.playerFaction
+        )
         replaceGameState(newState, clearingLog: true)
         hasSavedGame = saveStore.hasSavedGame
         lastCommandMessage = "已重置为新局。"
@@ -597,10 +603,14 @@ final class AppContainer: ObservableObject {
         guard !observerModeEnabled else {
             return nil
         }
+        let normalizedPhase = gameState.phase.normalized(
+            forActiveFaction: gameState.activeFaction,
+            playerFaction: playerFaction
+        )
         guard let division = selectedDivision,
               division.faction == playerFaction,
               gameState.activeFaction == playerFaction,
-              gameState.phase.allowsPlayerInput,
+              normalizedPhase.allowsPlayerInput,
               !division.hasActed else {
             return nil
         }
@@ -609,9 +619,13 @@ final class AppContainer: ObservableObject {
     }
 
     private var canIssuePlayerDirective: Bool {
-        !observerModeEnabled &&
+        let normalizedPhase = gameState.phase.normalized(
+            forActiveFaction: gameState.activeFaction,
+            playerFaction: playerFaction
+        )
+        return !observerModeEnabled &&
             gameState.activeFaction == playerFaction &&
-            gameState.phase.allowsPlayerInput
+            normalizedPhase.allowsPlayerInput
     }
 
     private var selectedAttackTarget: (region: RegionNode, zone: FrontZone)? {
@@ -733,9 +747,13 @@ final class AppContainer: ObservableObject {
             return next
         }
 
+        let previousPhase = previousState.phase.normalized(
+            forActiveFaction: previousState.activeFaction,
+            playerFaction: playerFaction
+        )
         guard let divisionId = command.actingDivisionId,
               previousState.activeFaction == playerFaction,
-              previousState.phase.allowsPlayerInput,
+              previousPhase.allowsPlayerInput,
               previousState.division(id: divisionId)?.faction == playerFaction else {
             return next
         }
@@ -927,15 +945,16 @@ final class AppContainer: ObservableObject {
     }
 
     private func shouldRunAI(for faction: Faction, phase: GamePhase) -> Bool {
+        let normalizedPhase = phase.normalized(forActiveFaction: faction, playerFaction: playerFaction)
         if faction == playerFaction {
-            return observerModeEnabled && phase.allowsPlayerInput
+            return observerModeEnabled && normalizedPhase.allowsPlayerInput
         }
 
-        switch phase {
+        switch normalizedPhase {
         case .germanAI:
-            return faction == .germany
+            return true
         case .alliedPlayer:
-            return observerModeEnabled && faction == .allies
+            return observerModeEnabled
         case .aiCommand:
             return true
         case .playerCommand:
@@ -991,15 +1010,19 @@ final class AppContainer: ObservableObject {
     }
 
     private func shouldRunAIInSnapshot(state: GameState, observerEnabled: Bool) -> Bool {
+        let normalizedPhase = state.phase.normalized(
+            forActiveFaction: state.activeFaction,
+            playerFaction: playerFaction
+        )
         if state.activeFaction == playerFaction {
-            return observerEnabled && state.phase.allowsPlayerInput
+            return observerEnabled && normalizedPhase.allowsPlayerInput
         }
 
-        switch state.phase {
+        switch normalizedPhase {
         case .germanAI:
-            return state.activeFaction == .germany
+            return true
         case .alliedPlayer:
-            return observerEnabled && state.activeFaction == .allies
+            return observerEnabled
         case .aiCommand:
             return true
         case .playerCommand:
@@ -1063,7 +1086,6 @@ final class AppContainer: ObservableObject {
         let agents: [any ZoneCommanderProviding] = state.warDeploymentState.frontZones.values
             .sorted { $0.id.rawValue < $1.id.rawValue }
             .map { zone in
-                let style = defaultCommandStyle(for: zone.faction)
                 let factionName = Self.displayFactionName(zone.faction)
                 let config = ZoneCommanderAgentConfig(
                     id: "auto_\(zone.id.rawValue)",
@@ -1071,20 +1093,11 @@ final class AppContainer: ObservableObject {
                     faction: zone.faction,
                     assignedZoneId: zone.id,
                     skills: [],
-                    commandStyle: style
+                    commandStyle: ZoneCommanderAgentConfig.CommandStyle.defaultForFaction(zone.faction)
                 )
                 return ZoneCommanderAgent(config: config)
             }
         return TheaterCommanderPool(commanders: agents)
-    }
-
-    private static func defaultCommandStyle(for faction: Faction) -> ZoneCommanderAgentConfig.CommandStyle {
-        switch faction {
-        case .germany, .tang, .wagang, .qinXue, .liuWuzhou:
-            return .aggressive
-        case .allies, .luoyangSui, .xia, .tujue:
-            return .balanced
-        }
     }
 
     private static func buildMarshalAgent(faction: Faction, state: GameState) -> MarshalAgent {

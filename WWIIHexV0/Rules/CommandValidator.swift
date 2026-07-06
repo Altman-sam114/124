@@ -247,15 +247,9 @@ struct CommandValidator {
     }
 
     private func phaseAllowsCommands(in state: GameState) -> Bool {
-        switch state.phase {
-        case .germanAI:
-            return state.activeFaction == .germany
-        case .alliedPlayer:
-            return state.activeFaction == .allies
-        case .playerCommand, .aiCommand:
-            return true
-        case .resolution:
-            return false
-        }
+        state.phase.allowsCommandExecution(
+            forActiveFaction: state.activeFaction,
+            playerFaction: state.playerFaction
+        )
     }
 }

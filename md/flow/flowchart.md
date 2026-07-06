@@ -24,9 +24,9 @@
 - 蓝色：初始快照/基准状态，不是运行时推进状态。
 - 紫色：命令管线，玩家、AI、未来聊天命令都要走这里。
 
-## 0.1 v3.0-v3.7-preflight.92 隋唐迁移入口
+## 0.1 v3.0-v3.7-preflight.97 隋唐迁移入口
 
-这张图说明当前迁移状态已推进到 v3.7-preflight.92；最近一轮让通用自动行动阶段和 legacy 总管数据展示继续收口到朝堂/历史总管口径。
+这张图说明当前迁移状态已推进到 v3.7-preflight.97；最近一轮收口动态方面推进势力兜底，让异常缺 zone 路径不再把隋唐或自定义推进方静默落到旧东路势力。
 
 ```mermaid
 flowchart TD
@@ -130,12 +130,17 @@ flowchart TD
     V90VE["v3.7-preflight.90 共享隋唐胜负 evaluator 收口<br/>VictoryAssessment / 规则层 Wude618VictoryEvaluator<br/>VictoryRules 与 RegionVictoryRules 复用<br/>不改 objective id、规则阈值、存档"]:::work
     V91CK["v3.7-preflight.91 指令结果语义化固守判定<br/>CommandResultSummary.commandKind<br/>ZoneCommanderAgent 按 .hold 判断<br/>不依赖 Hold / 展示名"]:::work
     V92PD["v3.7-preflight.92 阶段与旧总管展示口径<br/>GamePhase 朝堂行动 / 朝堂军令<br/>general_agents legacy 展示名历史总管<br/>不改 rawValue / legacy id / 规则"]:::work
+    V93CS["v3.7-preflight.93 自动总管默认指挥风格<br/>ZoneCommanderAgent 多势力默认风格<br/>对齐 AppContainer 映射<br/>不改 directive / 规则 / 存档"]:::work
+    V94CH["v3.7-preflight.94 默认指挥风格共享 helper<br/>CommandStyle.defaultForFaction<br/>两处生成入口复用<br/>不改 rawValue / Codable / 规则"]:::work
+    V95DL["v3.7-preflight.95 DataLoader 场景阶段兜底<br/>无效 phase 隋唐默认玩家军令<br/>GameState / 战报 phase 复用<br/>不改 GamePhase rawValue / 规则"]:::work
+    V96PN["v3.7-preflight.96 legacy phase 存档规范化<br/>GamePhase.normalized<br/>加载 / 校验 / 推进 / 自动回合复用<br/>保留合法 legacy rawValue"]:::work
+    V97TF["v3.7-preflight.97 动态方面推进势力兜底<br/>WarCommandExecutor 不再 .germany fallback<br/>zone faction / 行动军队推断<br/>缺失则跳过并记录"]:::work
     CURRENT["当前运行时状态<br/>主游戏默认优先 wude_618<br/>失败 fallback Ardennes<br/>MapEditor 默认桥指向 wude_618"]:::state
     LATER["v3.7+<br/>忠诚 / 叛乱 / 安置等善后实际效果<br/>水战 / 渡河 / 港口补给规则<br/>真实模型接入、完整发布运行时重测"]:::work
     RULE["持续边界<br/>Command / ZoneDirective -> WarCommandExecutor -> RuleEngine<br/>hex 与动态映射仍是权威"]:::rules
 
     PROMPT --> AUDIT --> V31 --> V32 --> V33 --> V34 --> V35 --> V36 --> V37 --> V37S --> V37O --> V37W --> V37A --> V37F --> V37E --> V37R --> V37D --> V37G --> V37AG --> V37AD --> V37SE --> V37ST --> V37SP --> V37SH --> V37HA --> V37AH --> V37AF --> V37AP --> V37AGV --> V37AGS --> V37AUP --> V37AC --> V37RG --> V37GD --> V37DD --> V37ME --> V37MK --> V37SG --> V37LT --> V37DT --> V37DC --> V37AI --> V37BR --> V37ES --> V37UI --> V38UX
-    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> CURRENT
+    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> CURRENT
     V37MK --> LATER
     RULE --> LATER
     RULE --> V31
@@ -231,6 +236,11 @@ flowchart TD
     RULE --> V90VE
     RULE --> V91CK
     RULE --> V92PD
+    RULE --> V93CS
+    RULE --> V94CH
+    RULE --> V95DL
+    RULE --> V96PN
+    RULE --> V97TF
 
     classDef doc fill:#fef3c7,stroke:#d97706,color:#1f1600
     classDef state fill:#ede9fe,stroke:#7c3aed,color:#1f143d
@@ -389,7 +399,7 @@ flowchart TD
     PUSH["push origin main<br/>触发 GitHub Actions"]:::git
     GHA["GitHub Actions<br/>静态检查 + Xcode build<br/>生成日志和结果文件"]:::cloud
     ART["未加密 CI 结果包<br/>ci-artifact-manifest.json<br/>junit.xml / xcodebuild.log / failure summary / xcresult"]:::artifact
-    C["Agent C<br/>gh auth login<br/>下载 artifact 到 /private/tmp/wwiihexv0-c-review-run"]:::agent
+    C["Agent C<br/>gh auth login<br/>下载 artifact 到 /private/tmp/wwiihexv0-c-review-&lt;run_id&gt;"]:::agent
     VERIFY{"核对是否匹配最新 origin/main?<br/>branch / commitSha / runId / runAttempt"}:::decision
     PASS{"云端结果是否通过?"}:::decision
     DOC["验收通过<br/>更新 flow / update_log<br/>向人工报告 run 与 artifact"]:::doc

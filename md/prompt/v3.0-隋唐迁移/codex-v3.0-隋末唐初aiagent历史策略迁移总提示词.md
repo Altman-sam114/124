@@ -1,6 +1,6 @@
-# Codex v3.0-v3.8 任务提示词：从 WWIIHexV0 迁移为隋末唐初 AI Agent 历史策略游戏
+# Codex v3.0-v3.8+ 总提示词：隋末唐初 AI Agent 历史策略迁移与后续迭代
 
-> 本文是交给后续实现 Agent 的总提示词。它不是本轮代码实现记录，而是后续多版本迁移的路线、边界、分工、最终体验和验收标准。执行前必须先读 `AGENTS.md`、`update_log.md`、`md/flow/flow.md`、`md/flow/flowchart.md`、`md/test/test.md` 和本文件。不要凭旧记忆、旧 prompt 或题材想象直接改代码。
+> 本文是交给后续实现 Agent 的总提示词。它不是单轮代码实现记录，而是 v3.0 起的迁移路线、当前交接状态、后续迭代队列、并发边界和验收标准。执行前必须先读 `AGENTS.md`、`update_log.md`、`md/flow/flow.md`、`md/flow/flowchart.md`、`md/test/test.md` 和本文件。不要凭旧记忆、旧 prompt 或题材想象直接改代码。
 
 ---
 
@@ -22,11 +22,16 @@ MapEditor / JSON 数据
   -> WarDeployment hexToFrontZone + FRONT/DEPTH/GARRISON
   -> MarshalAgent / TheaterDirective JSON
   -> TheaterDirectiveDecoder / TheaterDirectiveCompiler
+  -> CourtAgent / RulerAgent 朝堂塑形与审计
+  -> Governor / Diplomat / Submission handoff 辅助命令候选
   -> ZoneDirective
   -> WarCommandExecutor
   -> RuleEngine
+  -> CommandValidator
+  -> CommandExecutor
+  -> VictoryRules / Wude618VictoryEvaluator
   -> StrategicStateSynchronizer
-  -> UI overlay / 日志 / WarDirectiveRecord
+  -> UI overlay / 日志 / WarDirectiveRecord / CourtDecisionRecord / DiplomacyEventRecord
 ```
 
 必须尊重这些事实：
@@ -38,10 +43,86 @@ MapEditor / JSON 数据
 - `hexToFrontZone` 是部署层动态归属权威。
 - 玩家、AI、聊天命令和 MockAI 都必须落到 `Command` / `ZoneDirective`，再经 `WarCommandExecutor`、`CommandValidator`、`RuleEngine` 执行。
 - 旧 Agent D 保留作回归参考，默认战争 AI 主路径不得退回旧管线。
-- 当前源码仍有大量二战绑定：`Faction.germany/allies`、`GamePhase.germanAI/alliedPlayer`、`Division`、`ComponentType.tank/motorizedInfantry`、阿登 JSON、Panzer、Germany、Allies、Bastogne、Marshal/Ruler 的二战文案等。
-- 当前工作树可能有未提交改动和未跟 `update_log.md` 完全一致的 v0.4-v1.1 草案。任何实现前必须先审计工作树，不能回滚他人改动。
+- 当前源码仍保留 legacy 兼容名和值：`Faction.germany/allies`、`GamePhase.germanAI/alliedPlayer`、`Division`、旧阿登 JSON、部分旧胜负字段和旧测试语义。这些是兼容层，不等于新主路径；玩家可见路径已经过多轮 v3.7-preflight 收口，后续只能按扫描结果小步清理，不得直接删除兼容 rawValue / schema。
+- 如果发现当前工作树存在未提交改动、旧草案残留或与 `update_log.md` 不一致的记录，必须先按 `AGENTS.md` 审计来源和范围；不要默认把它们视为当前路线，也不要回滚他人改动。
 
 迁移目标不是换皮，不是把 Germany 改成 Tang、Allies 改成 Sui，而是把现有引擎逐步迁移为一个可发布的 AI Agent 驱动隋末唐初历史策略游戏。
+
+### 0.1 当前交接状态（v3.7-preflight.97）
+
+截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.97`：
+
+- v3.1 已完成多势力兼容、通用阶段和外交关系入口。
+- v3.2 已接入默认 `wude_618_guanzhong_luoyang` 数据，主游戏和 MapEditor 默认桥优先隋唐路径，旧阿登路径仅作 fallback / 回归兼容。
+- v3.3 已完成隋唐兵种、粮草/围城最小规则和主要显示迁移。
+- v3.4 已接入 `CourtAgent` / `RulerAgent` 朝堂塑形和审计记录；默认战争 AI 不退回旧 Agent D 主路径。
+- v3.5 已形成玩家军令、州郡、外交、战报的最小信息闭环。
+- v3.6 已接入 `SuitangDesignTokens`、地图最小历史视觉、粮道、围城、前线墨线和 AI 计划箭头。
+- v3.7-preflight 已连续补齐胜负、本地存档、引导/设置、外交/州郡命令、AI 太守/使者、归附交接、善后记录、MapEditor 隋唐桥和大量玩家可见 legacy 文案收口。
+- v3.7-preflight.89-.97 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，并让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力。
+
+后续 Agent 不能把下方 v3.0-v3.7 路线当作“尚未开始”的待办清单。它们是历史路线和架构合同；当前实际工作应优先从“v3.7+ 剩余风险与 v3.8+ 队列”中切片，并以当前源码和轻量检查结果为准。
+
+### 0.2 v3.7+ / v3.8+ 当前候选队列
+
+后续小步实现优先从以下队列切片，保持单轮文件范围清晰，禁止把多个高风险方向混在一轮。本队列不是全量待办；每轮只能选一项或一个明确子问题，先定位根因，再更新源码、文档和轻量检查记录。
+
+- P0 数据 fallback：`WWIIHexV0/Data/RegionDataSet.swift` 的 null owner/controller 注释与实际 fallback 不一致，后续应避免把缺省州郡落回旧 `.allies`。
+- P1 动态战区推进 fallback：已由 v3.7-preflight.97 收口。`WWIIHexV0/Commands/WarCommandExecutor.swift` 现在优先按 advancing zone 推断推进势力，异常缺 zone 时回退实际行动军队，两者都缺失时跳过本次动态方面推进并记录原因，不再静默兜底旧东路势力。
+- P2 场景语义分类：非 `wude_618` 自定义场景的默认 agent / player faction 仍可能按 legacy 势力推断；后续宜抽出场景语义 helper，区分明确 legacy、明确隋唐和未知自定义。
+- P3 MapEditor 导入 fallback：MapEditor 非法 unit faction fallback 应避免从坏数据静默落到旧 `.allies`，优先显式诊断、保留错误或按场景 metadata 推断。
+- 正式地图资产、图标资产和运行时截图复核：首屏必须是可玩地图，不是说明页或营销页。
+- 忠诚、叛乱、贡赋、俘虏、安置等归附善后实际规则。
+- 水战、渡河、港口补给与粮道扩展规则。
+- 云端验收闭环：凡 Agent B push `main` 后，Agent C 必须按 `md/test/test.md` 下载并核对 GitHub Actions 未加密 CI 结果包、manifest、JUnit/摘要、日志、run id 和 run attempt；这不是可选发布功能。
+- 真实本地 LLM / 可插拔模型接入；必须继续走结构化 directive、decoder、validator 和规则系统。
+
+### 0.3 单轮切片交付模板
+
+后续每轮实现只能选择一个清晰切片。Agent B 开始写代码前，必须在阶段记录或交接说明中写明以下内容；如果本轮只是 Agent A 提示词设计，也必须把这些字段写进给 Agent B 的提示词。
+
+```text
+切片 ID：
+来源：§0.2 队列 / 人工新目标 / 云端退回问题。
+当前基线：origin/main 最新 commit、update_log.md 顶部状态、当前源码和 git status。
+目标：
+非目标：
+允许修改文件：
+只读参考文件：
+禁止项：
+实现步骤：
+轻量检查：
+文档同步：
+验收标准：
+预期风险：
+完成后交付：commit、push origin main、记录 GitHub Actions run 状态；本机重测试未授权则明确不跑。
+```
+
+每轮开始先用精确 `rg` 或源码定位命令确认该切片风险仍存在；完成后用同一组扫描或更强证据说明旧风险已消失。完成某个 P 项后，必须同步更新本文件 §0.2：移除、降级或标注“已由 v3.7-preflight.xx 收口”，避免下一轮重复处理。
+
+新增阶段记录文件必须纳入提交。如果 `update_log.md`、README、`md/flow/*` 或本文件已经引用未跟踪文件，不得 push 漏掉这些记录。
+
+### 0.4 当前 P 项切片建议
+
+这些建议只用于下一轮拆任务，不替代源码审计。每轮仍要重新确认命中和风险。
+
+- P0 `RegionDataSet.toRegions()`：只处理 null owner/controller fallback。先确认 `RegionNode.owner/controller` 是否支持中立语义；不得一轮内新增 `.neutral` 或扩大 JSON schema。若当前结构不能表达 nil / 中立，应改为显式诊断、校验失败或按场景 metadata 推断，不能静默落到旧 `.allies`。
+- P1 `WarCommandExecutor.applyStrategicAdvance`：已由 v3.7-preflight.97 收口。后续只需在运行时重测中关注 directive move 推进、异常缺 zone 场景和旧阿登兼容路径。
+- P2 场景语义 helper：先抽 `ScenarioSemantics` 或同等 helper，区分明确 legacy、明确隋唐和未知自定义。首轮只替换 `AgentConfiguration.defaultCommandFaction`、`GameState` 默认执掌势力、`DataLoader` 已有 id-prefix 分支等低风险入口；不要混入 MapEditor unit import 或 theater 推进。
+- P3 MapEditor 非法 unit faction：只处理 `MapEditorGameResourceBridge` 导入坏 unit faction 的 fallback。不要把坏数据静默转 `.allies`；应记录诊断、跳过坏 unit 或按导入 scenario metadata 推断。若依赖 P2 helper，先写明依赖关系。
+
+### 0.5 总提示词维护与冻结标准
+
+本文件的职责是维护长期架构合同、当前交接状态、当前候选队列、并发边界、检查边界和交付模板。它不再承载每一轮 v3.7-preflight 的流水记录；单轮实现细节、扫描命中、轻量检查结果和未验证风险应写入对应阶段记录、`update_log.md`、`md/flow/*` 或 Agent A 给 Agent B 的切片提示词。
+
+后续只在这些情况修改本文件：
+
+- 当前交接状态或 §0.2 / §0.4 队列发生变化，需要避免下一轮重复处理。
+- `AGENTS.md`、`md/test/test.md`、`md/prompt/README.md` 的工作流、云端验收或检查边界改变。
+- 新增长期架构合同、权威边界、并发规则或交付模板。
+- 发现本文件与当前源码、`update_log.md`、`md/flow/*` 存在会误导后续 Agent 的冲突。
+
+除上述情况外，不要继续扩写历史路线、产品愿景或单轮记录。完成某个 P 项后，优先更新 §0.2 / §0.4 的状态和对应阶段记录；不要把完整实现过程追加进本总提示词。若 §0.2 队列清空、A/B/C 工作流一致、轻量检查边界明确、历史路线只作为归档合同存在，本文件即可视为阶段性冻结版；后续只做状态维护。
 
 ---
 
@@ -113,7 +194,7 @@ MapEditor / JSON 数据
 
 ### 2.3 必须新增或强化的隋唐语义
 
-首发可控实现，不追求一次性完整模拟：
+以下是长期产品语义目标，只有被人工目标或 §0.2 切片选中时才进入实现；首发可控实现，不追求一次性完整模拟：
 
 - `Mandate / Legitimacy`：天命、正朔、民心，影响归附、征兵、外交态度和胜利评价。
 - `Granary / Supply`：粮仓、粮道、仓城。洛口仓、长安、洛阳、太原等应成为战略节点。
@@ -177,7 +258,9 @@ displayName: 武德元年：关中河洛争衡
 
 ## 4. 多 Agent 并发工作流
 
-主 Agent 负责总体架构、接口合同、冲突整合和最终验收。子 Agent 只能在明确边界内并发，不得同时改同一 public API 或同一文件。
+本节的“主 Agent / 子 Agent”只描述单轮内部并发拆分，不替代 `AGENTS.md` 的 Agent A/B/C 工作流。Agent B 负责实现、轻量检查、commit 和 push；Agent C 负责 `origin/main` 最新 commit 的正式云端 artifact 验收。子 Agent 不得自行 push、改变远端 `main` 或宣布正式验收。
+
+主 Agent 负责本轮总体架构、接口合同、冲突整合和内部交付判断。子 Agent 只能在明确边界内并发，不得同时改同一 public API 或同一文件。
 
 ### 4.1 并发前主 Agent 必做
 
@@ -187,9 +270,11 @@ displayName: 武德元年：关中河洛争衡
 ```sh
 git branch --show-current
 git status --short
-rg -n "germany|allies|Ardennes|Panzer|Bastogne|Division|German AI|Allied Player|Marshal|Ruler|Faction\\.opponent" WWIIHexV0 MapEditor README.md md
+rg -n "Germany|Allies|Ardennes|Panzer|Bastogne|German AI|Allied Player" WWIIHexV0/UI WWIIHexV0/SpriteKit WWIIHexV0/Data MapEditor README.md
 rg -n "enum Faction|enum GamePhase|struct Division|enum ComponentType|EconomyResources|DiplomacyState|GeneralData|ZoneDirective|WarCommandExecutor|RuleEngine" WWIIHexV0
 ```
+
+历史 prompt、`update_log.md` 和阶段记录中的 legacy 命中只作背景，不自动形成待办。`Division`、`MarshalAgent`、`RulerAgent`、`germany/allies` rawValue 等源码兼容名只有进入玩家可见路径、破坏隋唐主路径或造成 fallback 语义错误时才处理。
 
 3. 写出本轮实际版本目标、非目标和文件边界。
 4. 定义公共接口合同。没有接口合同前，不要让多个子 Agent 同时改 `Core/`、`Commands/`、`Rules/`。
@@ -345,13 +430,41 @@ rg -n "enum Faction|enum GamePhase|struct Division|enum ComponentType|EconomyRes
 
 没有完成这些检查前，不得声称“多 Agent 工作可合并”。
 
+### 4.4 子 Agent 固定输出格式
+
+每个子 Agent 交回结果时必须使用下面格式，不得只写自然语言结论。只读 explorer 也要写“实际修改文件：无”。
+
+```text
+子 Agent 名称 / 范围：
+实际读取文件：
+实际修改文件：
+新增 / 修改的 public API、enum case、JSON key、schema 字段：
+与其他 Agent 潜在重叠：
+已跑轻量检查及结果：
+未跑检查及原因：
+文档需同步点：
+遗留风险：
+建议主 Agent 整合检查项：
+```
+
+主 Agent 整合并发结果时，最终交付中至少说明：
+
+- 文件级重叠检查结论。
+- public API / enum / JSON schema 分叉检查结论。
+- `project.pbxproj` 引用检查结论；若本轮未涉及项目文件，也要写明未涉及。
+- `Command` / `ZoneDirective` / `WarCommandExecutor` / `RuleEngine` 管线未被绕过的检查结论。
+- `hexToTheater` / `hexToFrontZone` / `regionToTheater` 权威边界未被改错的检查结论。
+- README、`md/flow/*`、阶段记录、`update_log.md` 版本口径一致性结论。
+
 ---
 
 ## 5. 版本路线
 
+本节是历史归档和架构合同，不是 Agent B 的默认实现任务清单。v3.0-v3.7 已经是完成过的历史路线；其中的“目标 / 推荐文件 / 验收”用于理解当时设计边界，不代表当前应重做。当前仓库规则以 `AGENTS.md` 为准：默认在 `main` 上小步提交和云端验证，不再按下面的历史阶段标签新建工作分支，除非人工明确授权。后续 Agent 应从 §0.2 的当前队列或人工新目标切片，不得回到 v3.0-v3.7 重做已完成路线。
+
 ### v3.0：迁移审计、兼容层和题材合同
 
-建议分支：`v3.0-suitang-audit-contract`
+历史阶段标签：`v3.0-suitang-audit-contract`
 
 目标：
 
@@ -387,7 +500,7 @@ rg -n "enum Faction|enum GamePhase|struct Division|enum ComponentType|EconomyRes
 
 ### v3.1：多势力、外交关系和通用回合阶段
 
-建议分支：`v3.1-suitang-powers-diplomacy`
+历史阶段标签：`v3.1-suitang-powers-diplomacy`
 
 目标：
 
@@ -445,7 +558,7 @@ rg -n "enum Faction|enum GamePhase|struct Division|enum ComponentType|EconomyRes
 
 ### v3.2：隋唐地图、剧本数据和地图编辑器迁移
 
-建议分支：`v3.2-suitang-scenario-map`
+历史阶段标签：`v3.2-suitang-scenario-map`
 
 目标：
 
@@ -503,7 +616,7 @@ MapEditor 迁移：
 
 ### v3.3：军队、兵种、粮道、围城和战术规则
 
-建议分支：`v3.3-suitang-war-rules`
+历史阶段标签：`v3.3-suitang-war-rules`
 
 目标：
 
@@ -578,7 +691,7 @@ MapEditor 迁移：
 
 ### v3.4：君主、谋主、行军总管、太守、将领 AI Agent 分层
 
-建议分支：`v3.4-suitang-agent-court`
+历史阶段标签：`v3.4-suitang-agent-court`
 
 目标：
 
@@ -649,13 +762,13 @@ Agent 个性建议：
 验收：
 
 - AI 回合能解释“君主想要什么、谋主选哪里、行军总管做了什么”。
-- 玩家能在 AI 面板看到 raw JSON、编译后的 directive、命令结果和拒绝原因。
+- 玩家能在 AI 面板看到结构化摘要、编译后的 directive、命令结果和拒绝原因；raw JSON 仅限开发 / 审计模式或折叠诊断区。
 - Agent 决策失败不会破坏回合。
 - 仍未绕过 `RuleEngine`。
 
 ### v3.5：玩家军令、州郡经营、外交和战报体验
 
-建议分支：`v3.5-suitang-player-command-ux`
+历史阶段标签：`v3.5-suitang-player-command-ux`
 
 目标：
 
@@ -697,7 +810,7 @@ Agent 个性建议：
 
 ### v3.6：发布级 UI、美术和交互收口
 
-建议分支：`v3.6-suitang-ui-art-polish`
+历史阶段标签：`v3.6-suitang-ui-art-polish`
 
 目标：
 
@@ -757,14 +870,14 @@ SpriteKit 要求：
 
 ### v3.7：存档、新手引导、设置和发布候选
 
-建议分支：`v3.7-suitang-release-candidate`
+历史阶段标签：`v3.7-suitang-release-candidate`
 
 目标：
 
 - 从“能跑的迁移版”收口到“可发布候选版”。
 - 补齐玩家初次体验、错误恢复、存档、版本说明和发布前检查。
 
-发布候选必须具备：
+历史发布候选目标曾要求具备：
 
 - App 名称、图标、默认剧本、主界面、基础设置。
 - 新局 / 继续 / 重置。
@@ -775,7 +888,7 @@ SpriteKit 要求：
 - README 和 flow 文档准确描述当前隋唐架构。
 - `update_log.md` 记录 v3.0-v3.7 每版完成内容、关键文件、轻量检查和未跑重测试。
 
-发布前需要人工授权的重验证：
+发布前需要人工授权的本机 / 人工运行时重验证：
 
 - Xcode build。
 - iOS Simulator 或真机启动。
@@ -784,11 +897,13 @@ SpriteKit 要求：
 - 基础 UI 点击烟测。
 - 性能体感检查。
 
+GitHub Actions 结果包核对不是可选发布功能：凡 Agent B push `main` 后，Agent C 必须按 `AGENTS.md` 和 `md/test/test.md` 下载并核对最新 run 的未加密 artifact、manifest、JUnit/摘要、日志、run id、run attempt 和 commit。
+
 在未获授权前，不得声称“已可发布”。只能写“发布候选代码和文档已准备，运行时验证未授权，风险未验证”。
 
 ### v3.8：真实本地 LLM / 可插拔模型接入
 
-建议分支：`v3.8-suitang-local-llm`
+历史阶段标签：`v3.8-suitang-local-llm`
 
 目标：
 
@@ -801,7 +916,7 @@ SpriteKit 要求：
 - 模型不可用时回退 MockAI。
 - 所有模型输出仍走 JSON decoder / validator。
 - 模型 prompt 只能要求输出 directive，不允许要求直接改状态。
-- AI 面板显示模型来源、raw JSON、解析错误、fallback 原因。
+- AI 面板默认显示结构化摘要、模型来源、解析错误和 fallback 原因；raw JSON 仅限开发/审计模式或折叠诊断区。
 
 ---
 
@@ -918,7 +1033,8 @@ SpriteKit 要求：
 当项目身份正式从 WWII 迁移到隋唐后，才更新：
 
 - `AGENTS.md` 的项目总览和基本规则。
-- `README.md` 的项目定位、架构图和当前进度。
+
+`README.md` 的当前进度、架构口径和验证状态应随实际源码行为同步更新；`AGENTS.md` 的项目身份和基本规则变更需人工明确授权。
 
 不要在只完成提示词或审计时伪装成正式版本完成。
 
@@ -928,11 +1044,12 @@ SpriteKit 要求：
 
 执行任何版本前必须读 `md/test/test.md`。当前默认只允许轻量检查。
 
-通用允许项：
+通用允许项；以下是本阶段建议的轻量文本检查模板，若与 `md/test/test.md` 冲突，以 `md/test/test.md` 为准：
 
 ```sh
 rg -n "[[:blank:]]+$" AGENTS.md README.md update_log.md md/test/test.md md/flow/flow.md md/flow/flowchart.md md/prompt/v3.0-隋唐迁移
 rg -n "<{7}|={7}|>{7}" AGENTS.md README.md update_log.md md/test/test.md md/flow WWIIHexV0 MapEditor
+git diff --check
 ```
 
 JSON 改动：
@@ -958,6 +1075,8 @@ swiftc -parse path/to/ChangedFile.swift
 ```
 
 如果 Swift 文件依赖 SwiftUI、SpriteKit、跨文件类型或 SDK 导致单文件 parse 不可靠，立即停止，记录“未做语法检查，需授权 Xcode build 确认”，不要扩大为全项目构建。
+
+如果 `jq`、`swiftc`、`xmllint` 等轻量工具不存在，记录“工具缺失，未执行该项”，不得改跑全项目构建或本机重测试替代。
 
 禁止默认执行：
 
@@ -1002,13 +1121,15 @@ v3.7 发布候选的最终验收额外要求：
 1. 阅读 `AGENTS.md`、`update_log.md`、`md/flow/flow.md`、`md/flow/flowchart.md`、`md/test/test.md`、本文件。
 2. 读取当前源码中与目标版本有关的文件，不凭旧记忆修改。
 3. 先做当前工作树和分支审计，不回滚用户改动。
-4. 如果本轮是 v3.0，先写审计和接口合同，不要直接大迁移。
-5. 如果本轮是 v3.1 或之后，先确认上一版本记录已经存在且与源码一致。
-6. 需要并发时，主 Agent 先给子 Agent 分文件边界和输出格式。
+4. 除非人工明确要求历史补录，不得把 v3.0-v3.7 历史路线当成待办重做。
+5. 从 §0.2 当前候选队列或人工新目标中选择一个清晰切片；先确认相关历史记录与源码一致。
+6. 需要并发时，主 Agent 先给子 Agent 分文件边界和输出格式；并发子 Agent 只属于单轮内部拆分，默认不建候选分支，不 push。
 7. 子 Agent 完成后，主 Agent 做冲突整合检查。
 8. 只跑 `md/test/test.md` 允许的轻量检查。
 9. 同步文档。
 10. 最终回复按项目交付格式写清楚结果、检查和风险。
+
+`md/prompt/README.md` 是通用摘要；若与 `AGENTS.md` 或本文件有详略差异，Agent A/B/C 仍必须按 `AGENTS.md` 执行角色职责。尤其是 Agent C 完成云端 artifact 核对后，仍需按 `AGENTS.md` 更新 `md/flow/*`，必要时更新 `update_log.md`。
 
 本迁移任务的核心难点不是写更多功能，而是守住三条线：
 

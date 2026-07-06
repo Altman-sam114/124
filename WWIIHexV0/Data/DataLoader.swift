@@ -143,14 +143,16 @@ struct DataLoader {
             registry: (try? loadGeneralRegistry(named: generalRegistryName)) ?? .empty
         )
 
+        let initialPhase = initialPhase(for: scenario)
+        let initialActiveFaction = initialActiveFaction(for: scenario, phase: initialPhase)
+
         return GameState(
             scenarioId: scenario.id,
             turn: turn,
             maxTurns: scenario.maxTurns,
-            activeFaction: initialActiveFaction(for: scenario),
-            playerFaction: Faction(rawValue: scenario.playerFaction) ??
-                (scenario.id.hasPrefix("wude_618") ? .tang : .allies),
-            phase: GamePhase(rawValue: scenario.initialPhase) ?? .germanAI,
+            activeFaction: initialActiveFaction,
+            playerFaction: initialPlayerFaction(for: scenario),
+            phase: initialPhase,
             map: map,
             theaterState: theaterState,
             frontLineState: frontLineState,
@@ -162,16 +164,27 @@ struct DataLoader {
             eventLog: [
                 GameLogEntry(
                     turn: turn,
-                    faction: initialActiveFaction(for: scenario),
-                    phase: GamePhase(rawValue: scenario.initialPhase) ?? .germanAI,
+                    faction: initialActiveFaction,
+                    phase: initialPhase,
                     message: "已载入地图编辑器战局数据：\(scenario.displayName)。"
                 )
             ]
         )
     }
 
-    private func initialActiveFaction(for scenario: ScenarioDefinition) -> Faction {
-        let phase = GamePhase(rawValue: scenario.initialPhase) ?? .alliedPlayer
+    private func initialPhase(for scenario: ScenarioDefinition) -> GamePhase {
+        if let phase = GamePhase(rawValue: scenario.initialPhase) {
+            return phase
+        }
+        return scenario.id.hasPrefix("ardennes") ? .alliedPlayer : .playerCommand
+    }
+
+    private func initialPlayerFaction(for scenario: ScenarioDefinition) -> Faction {
+        Faction(rawValue: scenario.playerFaction) ??
+            (scenario.id.hasPrefix("ardennes") ? .allies : .tang)
+    }
+
+    private func initialActiveFaction(for scenario: ScenarioDefinition, phase: GamePhase) -> Faction {
         switch phase {
         case .alliedPlayer:
             return Faction(rawValue: scenario.playerFaction) ?? .allies

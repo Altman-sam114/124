@@ -12,6 +12,15 @@ struct ZoneCommanderAgentConfig: Codable, Equatable, Identifiable {
         case aggressive
         case balanced
         case cautious
+
+        static func defaultForFaction(_ faction: Faction) -> Self {
+            switch faction {
+            case .germany, .tang, .wagang, .qinXue, .liuWuzhou:
+                return .aggressive
+            case .allies, .luoyangSui, .xia, .tujue:
+                return .balanced
+            }
+        }
     }
 }
 
@@ -838,14 +847,13 @@ struct TheaterCommanderPool {
     }
 
     static func defaultConfig(for zone: FrontZone) -> ZoneCommanderAgentConfig {
-        let style: ZoneCommanderAgentConfig.CommandStyle = zone.faction == .germany ? .aggressive : .balanced
         return ZoneCommanderAgentConfig(
             id: "auto_\(zone.id.rawValue)",
             name: "\(Self.displayFactionName(zone.faction))总管（\(displayZoneName(zone))）",
             faction: zone.faction,
             assignedZoneId: zone.id,
             skills: [],
-            commandStyle: style
+            commandStyle: ZoneCommanderAgentConfig.CommandStyle.defaultForFaction(zone.faction)
         )
     }
 

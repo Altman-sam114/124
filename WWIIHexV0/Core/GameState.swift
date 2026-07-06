@@ -168,17 +168,19 @@ struct GameState: Codable, Equatable {
         if let rawPlayerFaction = try? container.decodeIfPresent(String.self, forKey: .playerFaction) {
             storedPlayerFaction = rawPlayerFaction.flatMap(Faction.init(rawValue:))
         }
+        let playerFaction = storedPlayerFaction ??
+            Self.defaultPlayerFaction(
+                scenarioId: scenarioId,
+                activeFaction: activeFaction
+            )
+        let phase = try container.decode(GamePhase.self, forKey: .phase)
         self.init(
             scenarioId: scenarioId,
             turn: try container.decode(Int.self, forKey: .turn),
             maxTurns: try container.decode(Int.self, forKey: .maxTurns),
             activeFaction: activeFaction,
-            playerFaction: storedPlayerFaction ??
-                Self.defaultPlayerFaction(
-                    scenarioId: scenarioId,
-                    activeFaction: activeFaction
-                ),
-            phase: try container.decode(GamePhase.self, forKey: .phase),
+            playerFaction: playerFaction,
+            phase: phase.normalized(forActiveFaction: activeFaction, playerFaction: playerFaction),
             map: try container.decode(MapState.self, forKey: .map),
             theaterState: try container.decodeIfPresent(TheaterState.self, forKey: .theaterState) ?? .empty,
             frontLineState: try container.decodeIfPresent(FrontLineState.self, forKey: .frontLineState) ?? .empty,

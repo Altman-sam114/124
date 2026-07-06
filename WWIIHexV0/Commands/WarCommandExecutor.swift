@@ -1190,9 +1190,23 @@ struct WarCommandExecutor {
         guard state.theaterState.dynamicTheaterId(for: hex, map: state.map) != advancingTheaterId else {
             return regionId
         }
+        guard let advancingFaction = resolvedAdvancingFaction(
+            for: command,
+            advancingZoneId: advancingZoneId,
+            state: state
+        ) else {
+            state.appendEvent(
+                "动态方面推进跳过：无法确认推进势力。",
+                category: .theaterChange,
+                relatedRecordId: relatedRecordId
+            )
+            return nil
+        }
+
         guard shouldAdvanceDynamicTheater(
             hex: hex,
             advancingZoneId: advancingZoneId,
+            advancingFaction: advancingFaction,
             state: state
         ) else {
             return nil
@@ -1204,7 +1218,7 @@ struct WarCommandExecutor {
             divisions: state.divisions,
             breakthroughHex: hex,
             advancingTheaterId: advancingTheaterId,
-            faction: state.warDeploymentState.frontZones[advancingZoneId]?.faction ?? .germany
+            faction: advancingFaction
         )
         state.theaterState = expansion.state
 
@@ -1273,12 +1287,9 @@ struct WarCommandExecutor {
     private func shouldAdvanceDynamicTheater(
         hex: HexCoord,
         advancingZoneId: FrontZoneId,
+        advancingFaction: Faction,
         state: GameState
     ) -> Bool {
-        guard let advancingFaction = state.warDeploymentState.frontZones[advancingZoneId]?.faction else {
-            return false
-        }
-
         let destinationZoneId = state.warDeploymentState.zoneId(for: hex, map: state.map)
         if let destinationZoneId,
            destinationZoneId != advancingZoneId,
@@ -1291,6 +1302,21 @@ struct WarCommandExecutor {
         }
 
         return false
+    }
+
+    private func resolvedAdvancingFaction(
+        for command: Command,
+        advancingZoneId: FrontZoneId,
+        state: GameState
+    ) -> Faction? {
+        if let faction = state.warDeploymentState.frontZones[advancingZoneId]?.faction {
+            return faction
+        }
+        guard let divisionId = actingDivisionId(for: command),
+              let division = state.division(id: divisionId) else {
+            return nil
+        }
+        return division.faction
     }
 
     private func actingDivisionId(for command: Command) -> String? {

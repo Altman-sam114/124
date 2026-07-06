@@ -39,4 +39,23 @@ enum GamePhase: String, Codable, Equatable, CaseIterable {
             return false
         }
     }
+
+    func normalized(forActiveFaction activeFaction: Faction, playerFaction: Faction) -> GamePhase {
+        let genericPhase: GamePhase = activeFaction == playerFaction ? .playerCommand : .aiCommand
+        switch self {
+        case .germanAI:
+            return activeFaction == .germany && activeFaction != playerFaction ? .germanAI : genericPhase
+        case .alliedPlayer:
+            return activeFaction == .allies && activeFaction == playerFaction ? .alliedPlayer : genericPhase
+        case .playerCommand, .aiCommand:
+            return genericPhase
+        case .resolution:
+            return .resolution
+        }
+    }
+
+    func allowsCommandExecution(forActiveFaction activeFaction: Faction, playerFaction: Faction) -> Bool {
+        normalized(forActiveFaction: activeFaction, playerFaction: playerFaction) != .resolution
+    }
+
 }

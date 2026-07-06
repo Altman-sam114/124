@@ -1,6 +1,6 @@
-# WWIIHexV0 v 版本更新记录
+# WWIIHexV0 版本更新记录
 
-本文档记录项目从 v0 到 v0.37 的正式 v 版本演进。资料来源包括 `git log`、`README.md`、阶段文档与测试/验收报告。
+本文档记录项目从 v0 到当前 v3.x 隋唐迁移阶段的版本演进。资料来源包括 `git log`、`README.md`、阶段文档与测试/验收报告。
 
 维护规则：
 
@@ -8,6 +8,253 @@
 - 记录应包含：版本号、完成日期、核心变更、关键文件/系统、验证结果、遗留事项。
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
+
+## v3.7-preflight.97 - 动态方面推进势力兜底收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在 legacy phase 存档规范化之后，继续处理总提示词 §0.2 的 P1 风险：`WarCommandExecutor.applyStrategicAdvance` 在异常缺少 advancing zone faction 时，会把 `TheaterSystem.expandDynamicTheater` 的推进势力静默兜底为 `.germany`。本轮只改动态方面推进势力推断，不改变 hex 占领权威、动态 theater/front/deploy 权威、同步器主逻辑、命令 schema、规则数值、AI 决策或存档格式。
+
+核心更新：
+
+- `WarCommandExecutor.applyStrategicAdvance` 不再用 `.germany` 作为 `expandDynamicTheater` faction fallback。
+- 新增 `resolvedAdvancingFaction(for:advancingZoneId:state:)`：优先取 `frontZones[advancingZoneId].faction`，异常缺 zone 时回退实际行动军队的 `division.faction`。
+- 如果 source zone 与行动军队都无法确认推进势力，本次动态方面推进会跳过，并写入“动态方面推进跳过：无法确认推进势力。”战报。
+- `shouldAdvanceDynamicTheater` 改为接收已确认的推进势力，避免在判断层继续依赖缺 zone 的 legacy fallback。
+- 总提示词 §0.2 / §0.4 将 P1 标记为 v3.7-preflight.97 已收口，后续队列保留 P0、P2、P3 等独立切片。
+
+关键文件：
+
+- `WWIIHexV0/Commands/WarCommandExecutor.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_dynamic_theater_faction_fallback_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
+- 源码聚焦扫描 `faction: .*?? .germany`：无命中。
+- 源码聚焦扫描 `resolvedAdvancingFaction(`、`shouldAdvanceDynamicTheater(` 和“动态方面推进跳过”：均有预期命中。
+- 本轮改动文件尾随空白扫描：无命中。
+- 本轮改动文件行首冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未运行 AI directive move、动态方面推进、旧阿登场景、默认隋唐场景或异常缺 zone 的自定义场景。
+- 单文件 Swift parse 未执行成功，因为当前容器缺少 `swiftc`。
+- 并发源码扫描还指出 `RegionDataSet` null owner/controller fallback、MapEditor 非法 unit faction fallback、非 `wude_618` 自定义场景默认势力推断和非 wude 胜负 fallback 等候选，后续应单独切片处理。
+
+## 历史维护记录 - v3 隋唐总提示词并发边界收口
+
+完成日期：2026-07-06
+
+性质：文档整理，不伪装成新 v 版本。本轮按普通 Codex 任务使用并发只读子 Agent 审查总提示词、源码候选残留和文档一致性；主 Agent 只做文档口径修正。
+
+核心更新：
+
+- `AGENTS.md` 的当前目标 prompt 示例从旧 v0.37 路径改为 v3.0 隋唐迁移总提示词路径。
+- `md/flow/flow.md` 修正入口文档名为 `AGENTS.md`，并把旧 v0.4 工作树混杂提示改为历史备注，避免误导当前 `main` 直推流程。
+- `md/flow/flowchart.md` 的 Agent C artifact 缓存路径统一为 `/private/tmp/wwiihexv0-c-review-<run_id>/`。
+- `codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md` 明确第 5 节是历史路线和架构合同，历史阶段标签不再代表当前默认新建分支；当前仍按 `AGENTS.md` 在 `main` 小步提交和云端验证。
+- 总提示词进一步明确并发子 Agent 只属于单轮内部拆分，不替代 Agent A/B/C；Agent C 云端 artifact 核对是 push main 后的必做验收，不是可选发布候选功能。
+- 总提示词将 v3.7-preflight.96 后续源码风险按 P0-P3 沉淀：`RegionDataSet` null owner/controller fallback、`WarCommandExecutor` 动态 theater `.germany` fallback、非 `wude_618` 自定义场景默认 faction 推断和 MapEditor 非法 unit faction fallback。
+- 总提示词新增单轮切片交付模板，要求每轮写明切片 ID、来源、当前基线、目标/非目标、文件边界、禁止项、实现步骤、轻量检查、文档同步、验收标准、风险和 push/CI 交付。
+- 总提示词新增 P0-P3 下一轮切片建议，明确每个风险的单轮处理范围、禁止混入的相邻问题和完成后必须更新 §0.2 队列。
+- 总提示词新增子 Agent 固定输出格式和主 Agent 并发整合交付项，要求说明文件重叠、public API / enum / JSON schema 分叉、project 文件、规则管线、动态权威边界和文档口径一致性。
+- 总提示词新增维护与冻结标准：本文件只维护长期合同、当前交接状态、候选队列和模板；单轮实现流水应写入阶段记录、`update_log.md` 或 `md/flow/*`，不继续塞回总提示词。
+- 总提示词强化第 5 节历史归档口径，明确历史“目标 / 推荐文件 / 验收”只用于理解架构边界，不是 Agent B 默认实现清单；后续仍从 §0.2 或人工新目标切片。
+- 总提示词补齐本阶段额外约束：并发子 Agent 默认只做单轮内部拆分、不建候选分支、不 push；`md/prompt/README.md` 只是通用摘要，Agent C 仍按 `AGENTS.md` 完成云端验收后同步 `md/flow/*` 和必要的 `update_log.md`。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+## v3.7-preflight.96 - legacy phase 存档规范化收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在 DataLoader 场景阶段兜底收口之后，继续处理 `.95` 留下的 legacy phase 执行判断残留：旧 `.germanAI` / `.alliedPlayer` 阶段仍在命令校验、自动回合判断和回合推进中分散绑定 `.germany` / `.allies`。本轮集中 phase 规范化口径，让脏存档或自定义隋唐场景不会因旧 phase rawValue 回到 legacy 行动判断；同时保留合法 legacy 阿登双势力存档的旧阶段推进。
+
+核心更新：
+
+- `GamePhase` 新增 `normalized(forActiveFaction:playerFaction:)` 和 `allowsCommandExecution(forActiveFaction:playerFaction:)`，集中判断当前 phase 对 active faction / player faction 的真实语义。
+- `GameState` 解码存档时会按 active faction 与 player faction 规范化 phase；合法 legacy 阿登 `.germanAI` / `.alliedPlayer` 仍可保留，隋唐或自定义脏 phase 会落到 `.playerCommand` / `.aiCommand`。
+- `AppContainer` 在初始化、bootstrap、继续存档、新局、重置和切换执掌势力后统一规范化 phase，并让玩家可操作守卫、玩家命令 bookkeeping、自动回合判断读取规范化 phase。
+- `CommandValidator.phaseAllowsCommands(in:)` 改为复用 `GamePhase` helper，不再在本地分散维护 `.germanAI -> .germany` / `.alliedPlayer -> .allies` 判断。
+- `CommandExecutor.advanceActiveFaction(in:)` 先规范化当前 phase；合法 legacy 阿登阶段仍走原双势力推进，其他场景走通用 turn order。
+- `TurnManager.isAITurn(faction:state:)` 改为按 active faction 和规范化 phase 判断是否可执行自动回合，保留观察模式下 AI 代走玩家阶段的可执行语义。
+
+关键文件：
+
+- `WWIIHexV0/Core/GamePhase.swift`
+- `WWIIHexV0/Core/GameState.swift`
+- `WWIIHexV0/App/AppContainer.swift`
+- `WWIIHexV0/Rules/CommandValidator.swift`
+- `WWIIHexV0/Rules/CommandExecutor.swift`
+- `WWIIHexV0/Turn/TurnManager.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_legacy_phase_normalization_record.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
+- 旧 phase 直接绑定扫描：`state.phase == .germanAI`、`state.phase == .alliedPlayer`、`phase == .germanAI`、`phase == .alliedPlayer`、`return state.activeFaction == .germany`、`return state.activeFaction == .allies` 无命中。
+- 新 phase helper 扫描：`GamePhase.normalized(forActiveFaction:playerFaction:)`、`allowsCommandExecution(forActiveFaction:playerFaction:)`、`GameState` 解码、`AppContainer` 启动/继续/新局/切换执掌势力、`CommandExecutor`、`CommandValidator` 和 `TurnManager` 均有预期命中。
+- 聚焦扫描 `.95` 当前状态残留和待补占位：无命中。
+- 本轮改动文件尾随空白扫描：无命中。
+- 本轮改动文件行首冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未运行旧阿登存档、默认隋唐存档或故意写入 legacy phase 的自定义坏存档。
+- 单文件 Swift parse 未执行成功，因为当前容器缺少 `swiftc`。
+- 并发源码扫描还指出 `WarCommandExecutor` 动态战区推进 `.germany` fallback、RegionDataSet null owner/controller fallback、MapEditor 非法 unit faction fallback、非 `wude_618` 自定义场景的 legacy GameAgent 默认势力等候选，后续应单独切片处理。
+
+## v3.7-preflight.95 - DataLoader 场景阶段兜底收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在默认指挥风格共享 helper 收口之后，继续处理并发只读扫描指出的 DataLoader 迁移残留：`scenario.initialPhase` 无效时仍 fallback 到 `.germanAI`，`initialActiveFaction(for:)` 又独立用 `.alliedPlayer` fallback，导致坏数据或自定义隋唐场景可能回到 legacy 阶段口径且 phase / active faction / 初始战报各自分叉。本轮只改加载兜底，不改变合法 JSON、`GamePhase` case/rawValue、旧阿登显式阶段、命令管线、规则执行、AI 决策或存档 schema。
+
+核心更新：
+
+- `DataLoader.loadGameState(scenario:regionData:)` 只解析一次 `initialPhase` 与 `initialActiveFaction`，并复用到 `GameState` 和初始 `GameLogEntry`。
+- 新增 `initialPhase(for:)`：合法 rawValue 直通；无效时 legacy 阿登 fallback `.alliedPlayer`，隋唐或未知自定义场景 fallback `.playerCommand`。
+- `initialActiveFaction(for:phase:)` 改为接收已解析 phase，不再内部另用 `.alliedPlayer` fallback。
+- 新增 `initialPlayerFaction(for:)`：无效 player faction 时 legacy 阿登 fallback `.allies`，隋唐或未知自定义场景 fallback `.tang`，避免自定义隋唐路径回到 legacy 西路势力。
+
+关键文件：
+
+- `WWIIHexV0/Data/DataLoader.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_dataloader_phase_fallback_record.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
+- 精确扫描旧 DataLoader 直接 fallback：`phase: GamePhase(rawValue: scenario.initialPhase)`、`let phase = ... ??`、`initialActiveFaction(for: scenario)` 无命中。
+- 聚焦扫描新 DataLoader helper：`initialPhase(for:)`、`initialActiveFaction(for:phase:)`、`initialPlayerFaction(for:)` 均有预期命中。
+- 聚焦扫描 `.94` 当前状态残留：当前交接文档无命中。
+- 本轮改动文件尾随空白扫描：无命中。
+- 本轮改动文件行首冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未运行默认隋唐场景、旧阿登 fallback 场景或自定义坏 phase JSON 加载。
+- 单文件 Swift parse 未执行成功，因为当前容器缺少 `swiftc`。
+- legacy phase 执行判断仍保留 `.germanAI` / `.alliedPlayer` 对 `.germany` / `.allies` 的兼容逻辑；后续可单独做“隋唐存档 legacy phase 规范化”补洞。
+
+## v3.7-preflight.94 - 默认指挥风格共享 helper 收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在自动总管默认指挥风格对齐多势力映射之后，继续处理 `.93` 留下的维护风险：`AppContainer` 与 `ZoneCommanderAgent` 各自维护一份相同默认指挥风格 switch。本轮只抽取共享 helper，不改变默认映射结果、directive schema、命令管线、规则执行、AI 阈值、战术选择函数、势力 rawValue 或存档格式。
+
+核心更新：
+
+- `ZoneCommanderAgentConfig.CommandStyle` 新增静态 `defaultForFaction(_:)`，集中维护默认指挥风格映射。
+- `TheaterCommanderPool.defaultConfig(for:)` 与 `AppContainer.buildCommanderPool(state:registry:)` 均改为调用该共享 helper。
+- 删除 `TheaterCommanderPool` 与 `AppContainer` 内部重复的 `defaultCommandStyle(for:)`。
+- 保留 `CommandStyle` case、rawValue、Codable、`.cautious` case 和既有战术阈值逻辑。
+
+关键文件：
+
+- `WWIIHexV0/Agents/ZoneCommanderAgent.swift`
+- `WWIIHexV0/App/AppContainer.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_command_style_helper_record.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
+- 源码聚焦扫描 `defaultCommandStyle(`：`WWIIHexV0/Agents/ZoneCommanderAgent.swift` 与 `WWIIHexV0/App/AppContainer.swift` 无命中。
+- 源码聚焦扫描 `defaultForFaction`：命中共享 helper 定义与两个调用点。
+- 聚焦扫描 `.93` 当前状态残留、`AppContainer.defaultCommandStyle` 和“宜抽共享 helper”：无命中。
+- 本轮改动文件尾随空白扫描：无命中。
+- 本轮改动文件行首冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未运行 AI 回合、方面总管生成链、directive 编译执行链或多势力自动回合。
+- 单文件 Swift parse 未执行成功，因为当前容器缺少 `swiftc`。
+
+## v3.7-preflight.93 - 自动总管默认指挥风格收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在阶段与旧总管展示口径收口之后，继续处理一个低风险 AI 配置残留：自动方面总管默认配置仍用 `.germany` 二元判断决定指挥风格，导致隋唐主路径自动总管全部落到 `.balanced`。本轮只统一默认配置口径，不改变 directive schema、命令管线、规则执行、AI 阈值、战术选择函数、势力 rawValue 或存档格式。
+
+核心更新：
+
+- `ZoneCommanderAgent.defaultConfig(for:)` 改为调用私有 `defaultCommandStyle(for:)`，不再用 `zone.faction == .germany` 判断指挥风格。
+- 默认指挥风格与 `AppContainer` 默认配置口径对齐：旧东路势力、唐、瓦岗、薛秦、刘武周默认 `.aggressive`；旧西路势力、洛阳隋、夏、东突厥默认 `.balanced`。
+- 保留 `ZoneCommanderAgentConfig.CommandStyle` rawValue、Codable、`.cautious` case 和既有战术阈值逻辑。
+- 总提示词当前交接状态推进到 v3.7-preflight.93，并明确后续 Agent 应从 v3.7+ 风险和 v3.8+ 队列切片，不重做历史路线。
+
+关键文件：
+
+- `WWIIHexV0/Agents/ZoneCommanderAgent.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_agent_default_command_style_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 `swiftc -parse WWIIHexV0/Agents/ZoneCommanderAgent.swift`。
+- 聚焦扫描 `zone.faction == .germany ? .aggressive : .balanced`、`.92` 当前状态残留和 README 过时 legacy 胜负口径：无命中。
+- 本轮改动文件尾随空白扫描：无命中。
+- 本轮改动文件行首冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未运行 AI 回合、方面总管生成链、directive 编译执行链或多势力自动回合。
+- 单文件 Swift parse 未执行成功，因为当前容器缺少 `swiftc`。
+- `AppContainer` 与 `ZoneCommanderAgent` 当时各自维护一份默认指挥风格映射；该维护风险已在 v3.7-preflight.94 通过共享 helper 收口。
 
 ## v3.7-preflight.92 - 阶段与旧总管展示口径收口
 
