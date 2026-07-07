@@ -24,9 +24,9 @@
 - 蓝色：初始快照/基准状态，不是运行时推进状态。
 - 紫色：命令管线，玩家、AI、未来聊天命令都要走这里。
 
-## 0.1 v3.0-v3.7-preflight.109 隋唐迁移入口
+## 0.1 v3.0-v3.7-preflight.110 隋唐迁移入口
 
-这张图说明当前迁移状态已推进到 v3.7-preflight.109；最近几轮收口动态方面推进势力兜底、RegionDataSet owner/controller 兜底、场景语义 helper、胜负 fallback 门禁、MapEditor unit faction 导入诊断、归附善后治安压力、贡赋效率、渡口港口粮道补给、MapEditor 河边数据保真、河边绘制入口、水路补给投送点、默认水路地点河边资产、己控水路移动渡河减免和己控港口海港生产部署点，让异常缺 zone 路径不再把推进方静默落到旧东路势力，非 legacy region 数据缺 owner 时不再静默落到旧西路势力，未知自定义场景不再静默套用旧胜负规则，MapEditor 坏 unit faction 也不再静默变成旧西路势力，归附交接后的善后风险也会写入受影响州郡的治安/顺从状态并影响后续府库收入，渡口/港口地点也会影响跨河补给成本、战术补给投送、相邻跨河移动成本和生产部署 fallback，MapEditor 默认资源读写和编辑入口也不再丢失 tile 河边，默认水路地点自身也具备 riverEdges 输入。
+这张图说明当前迁移状态已推进到 v3.7-preflight.110；最近几轮收口动态方面推进势力兜底、RegionDataSet owner/controller 兜底、场景语义 helper、胜负 fallback 门禁、MapEditor unit faction 导入诊断、归附善后治安压力、贡赋效率、渡口港口粮道补给、MapEditor 河边数据保真、河边绘制入口、水路补给投送点、默认水路地点河边资产、己控水路移动渡河减免、己控港口海港生产部署点和己控港口海港战略补给源，让异常缺 zone 路径不再把推进方静默落到旧东路势力，非 legacy region 数据缺 owner 时不再静默落到旧西路势力，未知自定义场景不再静默套用旧胜负规则，MapEditor 坏 unit faction 也不再静默变成旧西路势力，归附交接后的善后风险也会写入受影响州郡的治安/顺从状态并影响后续府库收入，渡口/港口地点也会影响跨河补给成本、战术补给投送、相邻跨河移动成本、生产部署 fallback 和 region 战略补给源，MapEditor 默认资源读写和编辑入口也不再丢失 tile 河边，默认水路地点自身也具备 riverEdges 输入。
 
 ```mermaid
 flowchart TD
@@ -147,12 +147,13 @@ flowchart TD
     V107RE["v3.7-preflight.107 水路地点河边资产<br/>蒲津渡 / 孟津渡 / 洛口津补录 riverEdges<br/>四个默认水路地点自身河边非空<br/>不改运行时规则 / 不双写邻边"]:::work
     V108WM["v3.7-preflight.108 移动渡河减免<br/>己控渡口 / 港口 / 海港<br/>免除相邻非道路跨河移动额外成本<br/>不改补给 / 战斗 / 水战 / schema"]:::work
     V109PD["v3.7-preflight.109 港口部署点<br/>己控港口 / 海港<br/>生产完成安全部署 fallback<br/>不改 SupplySource / 水战 / schema"]:::work
+    V110PS["v3.7-preflight.110 港口战略补给源<br/>己控港口 / 海港所在州郡<br/>并入 RegionSupplyRules sources<br/>不写 MapState supplySources"]:::work
     CURRENT["当前运行时状态<br/>主游戏默认优先 wude_618<br/>失败 fallback Ardennes<br/>MapEditor 默认桥指向 wude_618"]:::state
-    LATER["v3.7+<br/>完整忠诚 / 叛乱 / 俘虏 / 安置<br/>水战 / 永久港口补给源<br/>真实模型接入、完整发布运行时重测"]:::work
+    LATER["v3.7+<br/>完整忠诚 / 叛乱 / 俘虏 / 安置<br/>水战 / 更细水域控制<br/>真实模型接入、完整发布运行时重测"]:::work
     RULE["持续边界<br/>Command / ZoneDirective -> WarCommandExecutor -> RuleEngine<br/>hex 与动态映射仍是权威"]:::rules
 
     PROMPT --> AUDIT --> V31 --> V32 --> V33 --> V34 --> V35 --> V36 --> V37 --> V37S --> V37O --> V37W --> V37A --> V37F --> V37E --> V37R --> V37D --> V37G --> V37AG --> V37AD --> V37SE --> V37ST --> V37SP --> V37SH --> V37HA --> V37AH --> V37AF --> V37AP --> V37AGV --> V37AGS --> V37AUP --> V37AC --> V37RG --> V37GD --> V37DD --> V37ME --> V37MK --> V37SG --> V37LT --> V37DT --> V37DC --> V37AI --> V37BR --> V37ES --> V37UI --> V38UX
-    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> V98RD --> V99SG --> V100ME --> V101AP --> V102TE --> V103WS --> V104RE --> V105RU --> V106SA --> V107RE --> V108WM --> V109PD --> CURRENT
+    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> V98RD --> V99SG --> V100ME --> V101AP --> V102TE --> V103WS --> V104RE --> V105RU --> V106SA --> V107RE --> V108WM --> V109PD --> V110PS --> CURRENT
     V37MK --> LATER
     RULE --> LATER
     RULE --> V31
@@ -208,6 +209,7 @@ flowchart TD
     RULE --> V107RE
     RULE --> V108WM
     RULE --> V109PD
+    RULE --> V110PS
     RULE --> V50RP
     RULE --> V51RI
     RULE --> V52CE

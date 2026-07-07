@@ -9,6 +9,46 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.110 - 己控港口海港战略补给源
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在港口/海港生产部署点之后，继续补“永久港口补给源”的低风险规则侧切片：让己方控制的港口/海港所在州郡成为战略层补给源。
+
+核心更新：
+
+- `RegionSupplyRules.strategicSupplySources` 在既有永久 `SupplySource` 和己控 `supplyValue > 0` 州郡之外，新增己控港口/海港所在 region。
+- 只有 `MapFeatureKind.port` / `harbor` 可成为战略补给源；`ferry` 不作为州郡级补给源。
+- 港口/海港补给源必须满足 marker 所在 hex 可通行、`controller == faction`、所属 region 可通行。
+- 本轮不写入 `MapState.supplySources`，不改 JSON schema、战术补给 anchor、经济收入、生产部署、移动、战斗、水战或命令管线。
+- `RegionSupplyRulesTests` 增加己控港口作为战略补给源、敌控港口不作为己方战略补给源的语义断言，用于云端回归保护。
+
+关键文件：
+
+- `WWIIHexV0/Rules/RegionSupplyRules.swift`
+- `WWIIHexV0/Tests/RegionSupplyRulesTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_port_strategic_supply_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RegionSupplyRulesTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 未启动 App 或运行多回合战略补给 UI 复核。
+- 本轮只实现 region 层派生战略补给源，不实现水战、河面控制、水师部署、跨水域运输或 JSON 永久补给源字段扩展。
+
 ## v3.7-preflight.109 - 己控港口海港生产部署点
 
 完成日期：2026-07-07

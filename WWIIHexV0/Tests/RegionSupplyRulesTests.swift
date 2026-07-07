@@ -58,6 +58,18 @@ final class RegionSupplyRulesTests: XCTestCase {
         XCTAssertEqual(RegionSupplyRules().supplyState(for: state.division(id: "german")!, in: state), .encircled)
     }
 
+    func testControlledPortCanActAsStrategicSupplySource() {
+        var state = Self.portSupplyScenario(portController: .allies)
+
+        XCTAssertEqual(Set(RegionSupplyRules().strategicSupplySources(for: .allies, in: state)), ["port"])
+        XCTAssertEqual(RegionSupplyRules().supplyState(for: state.division(id: "allied")!, in: state), .supplied)
+
+        state = Self.portSupplyScenario(portController: .germany)
+
+        XCTAssertTrue(RegionSupplyRules().strategicSupplySources(for: .allies, in: state).isEmpty)
+        XCTAssertNotEqual(RegionSupplyRules().supplyState(for: state.division(id: "allied")!, in: state), .supplied)
+    }
+
     private static func capturedSupplyScenario() -> GameState {
         let depotHexes = [HexCoord(q: 0, r: 0), HexCoord(q: 1, r: 0)]
         let rearHex = HexCoord(q: 2, r: 0)
@@ -117,6 +129,76 @@ final class RegionSupplyRulesTests: XCTestCase {
             divisions: [
                 Division.infantry(id: "allied", name: "Allied", faction: .allies, coord: rearHex),
                 Division.infantry(id: "german", name: "German", faction: .germany, coord: rearHex)
+            ],
+            victoryState: .ongoing,
+            selectedUnitSummary: nil,
+            eventLog: []
+        )
+    }
+
+    private static func portSupplyScenario(portController: Faction) -> GameState {
+        let portHex = HexCoord(q: 0, r: 0)
+        let frontHex = HexCoord(q: 1, r: 0)
+        let regions: [RegionId: RegionNode] = [
+            "port": RegionNode(
+                id: "port",
+                name: "Port",
+                owner: .allies,
+                controller: portController,
+                terrain: .plain,
+                neighbors: ["front"],
+                displayHexes: [portHex],
+                representativeHex: portHex
+            ),
+            "front": RegionNode(
+                id: "front",
+                name: "Front",
+                owner: .allies,
+                controller: .allies,
+                terrain: .plain,
+                neighbors: ["port"],
+                displayHexes: [frontHex],
+                representativeHex: frontHex
+            )
+        ]
+        let map = MapState(
+            width: 2,
+            height: 1,
+            tiles: [
+                portHex: HexTile(coord: portHex, controller: portController, regionId: "port"),
+                frontHex: HexTile(coord: frontHex, controller: .allies, regionId: "front")
+            ],
+            supplySources: [],
+            objectives: [],
+            featureMarkers: [
+                MapFeatureMarker(
+                    id: "port",
+                    name: "Port",
+                    kind: .port,
+                    coord: portHex,
+                    faction: nil,
+                    objectiveId: nil
+                )
+            ],
+            regions: regions,
+            hexToRegion: [
+                portHex: "port",
+                frontHex: "front"
+            ],
+            regionEdges: [
+                RegionEdge(from: "port", to: "front")
+            ]
+        )
+
+        return GameState(
+            scenarioId: "port_supply_source",
+            turn: 1,
+            maxTurns: 3,
+            activeFaction: .allies,
+            phase: .alliedPlayer,
+            map: map,
+            divisions: [
+                Division.infantry(id: "allied", name: "Allied", faction: .allies, coord: frontHex)
             ],
             victoryState: .ongoing,
             selectedUnitSummary: nil,

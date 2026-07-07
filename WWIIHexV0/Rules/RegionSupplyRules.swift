@@ -75,7 +75,26 @@ struct RegionSupplyRules {
             sources.insert(regionId)
         }
 
+        for regionId in controlledPortSupplySourceRegions(for: faction, in: state) {
+            sources.insert(regionId)
+        }
+
         return Array(sources)
+    }
+
+    private func controlledPortSupplySourceRegions(for faction: Faction, in state: GameState) -> [RegionId] {
+        state.map.featureMarkers.compactMap { marker in
+            guard marker.kind == .port || marker.kind == .harbor,
+                  let tile = state.map.tile(at: marker.coord),
+                  tile.isPassable,
+                  tile.controller == faction,
+                  let regionId = state.map.region(for: marker.coord),
+                  state.map.region(id: regionId)?.isPassable == true else {
+                return nil
+            }
+
+            return regionId
+        }
     }
 
     private func canSupplyPass(through region: RegionNode, for faction: Faction, in state: GameState) -> Bool {
