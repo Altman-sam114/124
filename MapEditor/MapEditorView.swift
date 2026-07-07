@@ -91,13 +91,17 @@ struct MapEditorView: View {
                 }
             }
             HStack {
-                Label(viewModel.hexTool.title, systemImage: viewModel.hexTool == .extend ? "plus.hexagon" : "paintbrush")
+                Label(viewModel.hexTool.title, systemImage: hexToolSystemImage)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("扩展地块", systemImage: "plus.hexagon", action: viewModel.beginExtendingHexes)
             }
-            Text("覆盖：修改已有地块。扩展：只能在已有地块相邻空位生成平原。删除：移除地块。")
+            HStack {
+                Button("绘制河边", systemImage: "water.waves", action: viewModel.beginPaintingRiverEdges)
+                Button("擦除河边", systemImage: "eraser", action: viewModel.beginErasingRiverEdges)
+            }
+            Text("覆盖：修改已有地块。扩展：只能在已有地块相邻空位生成平原。河边：点击地块边缘，只修改当前地块记录。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -257,6 +261,7 @@ struct MapEditorView: View {
                 Text("位置：\(viewModel.displayPosition(for: coord))")
                 Text("地形：\(hex.terrain.chineseName)")
                 Text("道路：\(hex.hasRoad ? "有" : "无")")
+                Text("河边：\(riverEdgesText(for: hex))")
                 if let regionId = hex.regionId {
                     Text("州郡：\(viewModel.displayName(for: regionId))")
                     TextField("州郡名称", text: $viewModel.inspectedRegionName)
@@ -353,6 +358,24 @@ struct MapEditorView: View {
             get: { viewModel.inspectedKeyLocationFaction },
             set: { viewModel.inspectedKeyLocationFaction = $0 }
         )
+    }
+
+    private var hexToolSystemImage: String {
+        switch viewModel.hexTool {
+        case .paint:
+            return "paintbrush"
+        case .extend:
+            return "plus.hexagon"
+        case .riverEdge:
+            return "water.waves"
+        }
+    }
+
+    private func riverEdgesText(for hex: MapEditorHex) -> String {
+        let names = HexDirection.ordered
+            .filter { hex.riverEdges.contains($0) }
+            .map(\.chineseName)
+        return names.isEmpty ? "无" : names.joined(separator: "、")
     }
 
     private func importBackgroundImage() {

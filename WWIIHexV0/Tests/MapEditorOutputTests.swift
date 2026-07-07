@@ -260,6 +260,14 @@ final class MapEditorOutputTests: XCTestCase {
         XCTAssertTrue(shortcutViewModel.handleShortcut("m"))
         XCTAssertEqual(shortcutViewModel.editAction, .idle)
 
+        let riverViewModel = MapEditorViewModel(document: .new(id: "river_probe", displayName: "River Probe", width: 1, height: 1))
+        riverViewModel.beginPaintingRiverEdges()
+        riverViewModel.applyRiverEdgeAction(at: HexCoord(q: 0, r: 0), direction: .east)
+        XCTAssertEqual(riverViewModel.document.hexes[HexCoord(q: 0, r: 0)]?.riverEdges, Set([HexDirection.east]))
+        riverViewModel.beginErasingRiverEdges()
+        riverViewModel.applyRiverEdgeAction(at: HexCoord(q: 0, r: 0), direction: .east)
+        XCTAssertEqual(riverViewModel.document.hexes[HexCoord(q: 0, r: 0)]?.riverEdges, Set<HexDirection>())
+
         var inspectDocument = MapEditorDocument.new(id: "inspect_probe", displayName: "Inspect Probe", width: 1, height: 1)
         let inspectRegion = RegionId("region_1")
         let inspectTheater = TheaterId("theater_1")

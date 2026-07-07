@@ -1,4 +1,4 @@
-# WWIIHexV0 核心流程文档（v3.7-preflight.104 隋唐迁移）
+# WWIIHexV0 核心流程文档（v3.7-preflight.105 隋唐迁移）
 
 > 本文是项目当前核心逻辑的接手文档。目标不是复述历史设计，而是按当前代码真实链路说明：数据如何进入游戏，hex / region / theater / front / deploy 如何派生，主游戏和地图编辑器如何共同维护同一套地图语义，AI / 玩家命令如何落到规则系统。
 
@@ -60,9 +60,9 @@ MapEditor / JSON 数据
 - 朝堂层只塑形和审计 `DirectiveEnvelope`，写入 `RulerDecisionRecord` / `CourtDecisionRecord`；它不直接生成底层 `Command`，也不直接修改 hex、单位、战区、部署或外交关系。
 - 协作验证层以 `main` 直推和 GitHub Actions 结果包为准；本机默认只跑轻量检查，Agent C 不再只凭文字汇报验收。
 
-### 0.1 v3.0-v3.7-preflight.104 隋唐迁移状态
+### 0.1 v3.0-v3.7-preflight.105 隋唐迁移状态
 
-当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.104 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地、归附善后贡赋效率落地、渡口港口粮道补给减免落地，以及 MapEditor 河边数据往返保真：
+当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.105 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地、归附善后贡赋效率落地、渡口港口粮道补给减免落地、MapEditor 河边数据往返保真，以及 MapEditor 河边绘制/擦除入口：
 
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `md/prompt/v3.0-隋唐迁移/v3.0_audit_and_contract.md`
@@ -176,6 +176,7 @@ MapEditor / JSON 数据
 - `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_tribute_efficiency_record.md`
 - `md/prompt/v3.0-隋唐迁移/v3.7_water_transit_supply_record.md`
 - `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_river_edges_roundtrip_record.md`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_river_edges_editing_record.md`
 
 这表示项目已完成 v3.0 文档合同，并在 v3.1 做了最小代码迁移：`Faction` 现在可 Codable 表达唐、洛阳隋、瓦岗、夏、薛秦、刘武周、东突厥；`GamePhase` 新增 `playerCommand` / `aiCommand`；核心敌对判断新增 `DiplomacyState.isHostile` / `canAttack`，生产主路径不再直接依赖 `.opponent`。
 
@@ -397,6 +398,8 @@ v3.7-preflight.103 已把渡口/港口地点接入粮道补给：`SupplyRules.su
 
 v3.7-preflight.104 已把 MapEditor 河边数据纳入往返保存：`MapEditorHex` 保存 `riverEdges` 并兼容旧文档缺字段；`MapEditorGameResourceBridge.makeDocument` 从 scenario tile 导入河边；`MapEditorExporter` 按 `HexDirection.ordered` 稳定写回 JSON。该层只修复数据保真，不新增河流绘制/编辑 UI，不自动镜像邻接边，不改运行时河流移动、战斗或补给规则。
 
+v3.7-preflight.105 已把 MapEditor 河边绘制/擦除入口接入地块模式：`MapEditorViewModel` 提供绘制/擦除河边动作，`MapEditorCanvasScene` 按点击点最近的六边形边修改当前 hex 的 `riverEdges` 并绘制蓝色河边反馈，`MapEditorView` 信息面板显示选中地块河边方向。该层不自动镜像邻接边，不改默认 JSON、JSON schema、运行时移动、战斗或补给规则。
+
 仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的完整忠诚/叛乱/俘虏/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
 
 迁移期间必须继续守住本文既有权威边界：hex 是战术权威，动态 theater/front/deploy 从 hex 与单位位置派生，玩家和 AI 行动仍统一进入 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
@@ -463,6 +466,7 @@ playerCommandState
 - v3.7-preflight.29 起，MapEditor 文档显式保存 `keyLocations`，右键信息面板可编辑地点名称、类型、势力和 objectiveId，导出时以文档地点字段优先。
 - v3.7-preflight.103 起，渡口、港口、海港地点可免除相邻跨河粮道的补给渡河额外成本，仍不改变移动或战斗。
 - v3.7-preflight.104 起，MapEditor 默认资源读写会保留 tile `riverEdges`，但仍不提供河流编辑 UI 或自动邻边镜像。
+- v3.7-preflight.105 起，MapEditor 地块模式可绘制/擦除当前 hex 的河边，并在画布和信息面板显示结果；仍不自动邻边镜像。
 - v3.7-preflight.100 起，默认资源桥导入 `scenario.initialUnits` 时，非法 unit faction 会被跳过并写入导入诊断，不再静默落到旧 `.allies`。
 - v3.7-preflight.101 起，归附交接后的善后风险会实际提高受影响州郡治安压力并降低顺从，仍不触发完整忠诚、叛乱、俘虏或安置系统。
 - v3.7-preflight.102 起，治安/顺从会折算受控州郡贡赋效率，高抵抗降低丁口、军械、粮草收入，安民后随顺从恢复。

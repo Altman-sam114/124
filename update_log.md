@@ -9,6 +9,50 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.105 - MapEditor 河边绘制擦除入口
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在 MapEditor 河边数据往返保真之后，补上最小编辑入口，让地图工具可以实际绘制或擦除当前 hex 的 `riverEdges`。
+
+核心更新：
+
+- `MapEditorHexTool` 增加 `.riverEdge`，地块模式新增“绘制河边 / 擦除河边”动作。
+- `MapEditorViewModel` 新增 `beginPaintingRiverEdges()`、`beginErasingRiverEdges()` 和 `applyRiverEdgeAction(at:direction:)`，只修改当前 hex 的 `riverEdges`。
+- `MapEditorCanvasScene` 根据点击点到六边形六条边的距离选择最近边，并绘制蓝色河边反馈。
+- `MapEditorView` 信息面板显示选中地块已有河边方向。
+- `MapEditorOutputTests` 增加 ViewModel 河边添加/擦除语义断言，用于云端回归保护。
+
+关键文件：
+
+- `MapEditor/MapEditorDocument.swift`
+- `MapEditor/MapEditorViewModel.swift`
+- `MapEditor/MapEditorView.swift`
+- `MapEditor/MapEditorCanvasScene.swift`
+- `WWIIHexV0/Tests/MapEditorOutputTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_river_edges_editing_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `swiftc -parse MapEditor/MapEditorDocument.swift MapEditor/MapEditorViewModel.swift MapEditor/MapEditorView.swift MapEditor/MapEditorCanvasScene.swift MapEditor/MapEditorHexMath.swift WWIIHexV0/Tests/MapEditorOutputTests.swift`：通过。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮没有启动 MapEditor 做人工点击复核；点击最近边的交互体验需后续人工或运行时截图复查。
+- 本轮不自动镜像邻接 hex 的反向河边，符合运行时既有单边/双边兼容语义。
+- 本轮不补录默认隋唐地图真实河流资产，不改运行时移动、战斗、补给或水战规则。
+
 ## v3.7-preflight.104 - MapEditor 河边数据往返保真
 
 完成日期：2026-07-07

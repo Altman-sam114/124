@@ -7,7 +7,7 @@ final class MapEditorCanvasScene: SKScene {
     weak var viewModel: MapEditorViewModel?
     var layout = MapEditorHexLayout()
     private let editorCamera = SKCameraNode()
-    private var paintedThisDrag: Set<HexCoord> = []
+    private var paintedThisDrag: Set<String> = []
     private var lastPanViewPoint: CGPoint?
     private var rightMouseDownScenePoint: CGPoint?
     private var isPanning = false
@@ -117,6 +117,10 @@ final class MapEditorCanvasScene: SKScene {
             draw(keyLocation, at: hex.coord)
         }
 
+        if viewModel.mode == .hexPainter {
+            drawRiverEdges(for: hex)
+        }
+
         if viewModel.mode == .unitPlanner,
            let unit = viewModel.document.initialUnits.first(where: { $0.coord == hex.coord }) {
             draw(unit, at: hex.coord)
@@ -170,6 +174,26 @@ final class MapEditorCanvasScene: SKScene {
         marker.strokeColor = .white
         marker.lineWidth = 1
         addChild(marker)
+    }
+
+    private func drawRiverEdges(for hex: MapEditorHex) {
+        guard !hex.riverEdges.isEmpty else { return }
+        let corners = layout.corners(for: hex.coord)
+        guard corners.count == HexDirection.ordered.count else { return }
+
+        for (index, direction) in HexDirection.ordered.enumerated() where hex.riverEdges.contains(direction) {
+            let start = corners[index]
+            let end = corners[(index + 1) % corners.count]
+            let path = CGMutablePath()
+            path.move(to: start)
+            path.addLine(to: end)
+            let river = SKShapeNode(path: path)
+            river.strokeColor = SKColor(red: 0.16, green: 0.67, blue: 1.0, alpha: 0.95)
+            river.lineWidth = 4.2
+            river.lineCap = .round
+            river.zPosition = 4
+            addChild(river)
+        }
     }
 
     private func fillColor(for hex: MapEditorHex, viewModel: MapEditorViewModel) -> SKColor {
@@ -317,10 +341,37 @@ final class MapEditorCanvasScene: SKScene {
     private func handle(_ point: CGPoint) {
         guard let viewModel else { return }
         let coord = layout.coord(at: point)
-        guard !paintedThisDrag.contains(coord) else { return }
-        paintedThisDrag.insert(coord)
-        viewModel.applyPrimaryAction(at: coord)
+        if viewModel.mode == .hexPainter, viewModel.hexTool == .riverEdge {
+            let direction = edgeDirection(at: point, in: coord)
+            let key = "\(coord.mapEditorKey):\(direction.rawValue)"
+            guard !paintedThisDrag.contains(key) else { return }
+            paintedThisDrag.insert(key)
+            viewModel.applyRiverEdgeAction(at: coord, direction: direction)
+        } else {
+            let key = coord.mapEditorKey
+            guard !paintedThisDrag.contains(key) else { return }
+            paintedThisDrag.insert(key)
+            viewModel.applyPrimaryAction(at: coord)
+        }
         redraw()
+    }
+
+    private func edgeDirection(at point: CGPoint, in coord: HexCoord) -> HexDirection {
+        let corners = layout.corners(for: coord)
+        guard corners.count == HexDirection.ordered.count else { return .east }
+
+        let nearest = HexDirection.ordered.indices.min { lhs, rhs in
+            let lhsDistance = point.mapEditorDistanceToSegment(
+                start: corners[lhs],
+                end: corners[(lhs + 1) % corners.count]
+            )
+            let rhsDistance = point.mapEditorDistanceToSegment(
+                start: corners[rhs],
+                end: corners[(rhs + 1) % corners.count]
+            )
+            return lhsDistance < rhsDistance
+        } ?? 0
+        return HexDirection.ordered[nearest]
     }
 
     private func pan(from previousViewPoint: CGPoint, to currentViewPoint: CGPoint) {
@@ -464,6 +515,20 @@ final class MapEditorCanvasScene: SKScene {
 private extension CGPoint {
     func mapEditorDistance(to other: CGPoint) -> CGFloat {
         hypot(x - other.x, y - other.y)
+    }
+
+    func mapEditorDistanceToSegment(start: CGPoint, end: CGPoint) -> CGFloat {
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        let lengthSquared = dx * dx + dy * dy
+        guard lengthSquared > 0 else {
+            return mapEditorDistance(to: start)
+        }
+
+        let projection = ((x - start.x) * dx + (y - start.y) * dy) / lengthSquared
+        let clamped = max(0, min(1, projection))
+        let closest = CGPoint(x: start.x + clamped * dx, y: start.y + clamped * dy)
+        return mapEditorDistance(to: closest)
     }
 }
 

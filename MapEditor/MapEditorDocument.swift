@@ -44,6 +44,7 @@ enum MapEditorEditAction: String, Codable, CaseIterable, Identifiable {
 enum MapEditorHexTool: String, Codable, CaseIterable, Identifiable {
     case paint
     case extend
+    case riverEdge
 
     var id: String { rawValue }
 
@@ -53,6 +54,8 @@ enum MapEditorHexTool: String, Codable, CaseIterable, Identifiable {
             return "覆盖"
         case .extend:
             return "扩展"
+        case .riverEdge:
+            return "河边"
         }
     }
 }

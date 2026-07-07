@@ -150,6 +150,24 @@ final class MapEditorViewModel: ObservableObject {
         markChanged()
     }
 
+    func beginPaintingRiverEdges() {
+        mode = .hexPainter
+        hexTool = .riverEdge
+        editAction = .adding
+        clearPendingSelection()
+        lastStatusMessage = "绘制河边中：点击地块边缘添加河边。"
+        markChanged()
+    }
+
+    func beginErasingRiverEdges() {
+        mode = .hexPainter
+        hexTool = .riverEdge
+        editAction = .deleting
+        clearPendingSelection()
+        lastStatusMessage = "擦除河边中：点击已有河边的边缘。"
+        markChanged()
+    }
+
     func beginDeleting() {
         if mode == .hexPainter {
             hexTool = .paint
@@ -199,6 +217,28 @@ final class MapEditorViewModel: ObservableObject {
         case .unitPlanner:
             stageInitialUnit(at: coord)
         }
+        markChanged()
+    }
+
+    func applyRiverEdgeAction(at coord: HexCoord, direction: HexDirection) {
+        guard mode == .hexPainter,
+              hexTool == .riverEdge,
+              editAction != .idle,
+              var hex = document.hexes[coord] else {
+            return
+        }
+
+        switch editAction {
+        case .adding:
+            hex.riverEdges.insert(direction)
+            lastStatusMessage = "已添加\(direction.displayName)向河边。"
+        case .deleting:
+            hex.riverEdges.remove(direction)
+            lastStatusMessage = "已擦除\(direction.displayName)向河边。"
+        case .idle:
+            return
+        }
+        document.setHex(hex)
         markChanged()
     }
 
