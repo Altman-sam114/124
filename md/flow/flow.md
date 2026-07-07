@@ -1,4 +1,4 @@
-# WWIIHexV0 核心流程文档（v3.7-preflight.101 隋唐迁移）
+# WWIIHexV0 核心流程文档（v3.7-preflight.102 隋唐迁移）
 
 > 本文是项目当前核心逻辑的接手文档。目标不是复述历史设计，而是按当前代码真实链路说明：数据如何进入游戏，hex / region / theater / front / deploy 如何派生，主游戏和地图编辑器如何共同维护同一套地图语义，AI / 玩家命令如何落到规则系统。
 
@@ -60,9 +60,9 @@ MapEditor / JSON 数据
 - 朝堂层只塑形和审计 `DirectiveEnvelope`，写入 `RulerDecisionRecord` / `CourtDecisionRecord`；它不直接生成底层 `Command`，也不直接修改 hex、单位、战区、部署或外交关系。
 - 协作验证层以 `main` 直推和 GitHub Actions 结果包为准；本机默认只跑轻量检查，Agent C 不再只凭文字汇报验收。
 
-### 0.1 v3.0-v3.7-preflight.101 隋唐迁移状态
+### 0.1 v3.0-v3.7-preflight.102 隋唐迁移状态
 
-当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.101 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口，以及归附善后治安压力落地：
+当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.102 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地，以及归附善后贡赋效率落地：
 
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `md/prompt/v3.0-隋唐迁移/v3.0_audit_and_contract.md`
@@ -221,7 +221,7 @@ v3.7-preflight.17 已把归附实体交接结果写入结构化审计记录：`D
 
 v3.7-preflight.18 已把 AI 归附实体交接接入 AI 自动回合：`TurnManager.executeDirectiveEnvelope` 在 AI 太守经营和 AI 使者外交后、`.endTurn` 前，最多生成一条 `Command.resolveSubmissionHandoff`。候选目标必须已归附当前 AI 势力，且仍有未毁灭军队或可通行受控 hex；命令仍由 `CommandValidator -> RuleEngine -> CommandExecutor` 校验执行，结果进入 `AgentDecisionRecord.commandResults`。该层不做批量交接、忠诚、叛乱、贡赋、俘虏、安置或交接后治理。
 
-v3.7-preflight.19 已把归附交接后的善后压力写入只读记录：`DiplomacyState` 保存 `SubmissionAftermathRecord`，`CommandExecutor.executeSubmissionHandoff` 在追加交接审计记录后追加善后压力记录，并写入一条 `.diplomacy` 日志；`DiplomacyPanelView` 展示最近善后压力、回合、影响州郡数量和边界说明。该层只提示后续安民、整军或道路粮仓治理优先级，不触发忠诚、叛乱、贡赋、俘虏、安置、资源扣减或额外归属转移。
+v3.7-preflight.19 已把归附交接后的善后压力写入复盘记录：`DiplomacyState` 保存 `SubmissionAftermathRecord`，`CommandExecutor.executeSubmissionHandoff` 在追加交接审计记录后追加善后压力记录，并写入一条 `.diplomacy` 日志；`DiplomacyPanelView` 展示最近善后压力、回合、影响州郡数量和边界说明。v3.7-preflight.101 起压力会落到治安/顺从，v3.7-preflight.102 起会进一步影响后续贡赋效率；仍不触发完整忠诚、叛乱、俘虏、安置或额外归属转移。
 
 v3.7-preflight.20 已把归附善后压力接入 AI 太守经营优先级：`TurnManager.governorCommand` 会读取最新 `SubmissionAftermathRecord`，当当前 AI 势力是接收方且压力等级为高或需安抚时，把受影响州郡排在普通朝堂太守关注点之前；候选州郡仍必须由当前势力控制且有实际受控 hex，命令仍是每回合最多一条 `Command.governRegion` 并经 `RuleEngine` 校验执行。善后州郡优先尝试安民，府库不足或经营上限不满足时回到既有屯田/修道择优；该层不新增忠诚、叛乱、贡赋、俘虏、安置或额外交接效果。
 
@@ -387,7 +387,9 @@ v3.7-preflight.100 已收口 MapEditor 非法 unit faction 导入 fallback：`Ma
 
 v3.7-preflight.101 已让归附善后压力从复盘记录落到州郡治安/顺从状态：`CommandExecutor.executeSubmissionHandoff` 生成 `SubmissionAftermathRecord` 后，会按风险等级调整受影响州郡的 `OccupationState.resistance` / `compliance`，并追加外交战报提示治安承压。该层复用既有州郡经营“安民”来抵消压力，不新增命令、存档字段、忠诚、叛乱、贡赋、俘虏、安置模型或额外归属转移。
 
-仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的完整忠诚/叛乱/贡赋/俘虏/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
+v3.7-preflight.102 已把归附善后压力接入贡赋效率：`EconomyRules.income(for:map:)` 聚合受控州郡丁口、军械、粮草收入时，会按 `RegionNode.occupationState` 折算贡赋效率。高抵抗会压低收入，顺从提高会恢复效率但不超过基础产出；因此 v3.7-preflight.101 的善后压力会影响后续府库收入，既有“安民”治理会自然恢复贡赋效率。该层不新增命令、存档字段、忠诚、叛乱、俘虏、安置模型或额外归属转移。
+
+仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的完整忠诚/叛乱/俘虏/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
 
 迁移期间必须继续守住本文既有权威边界：hex 是战术权威，动态 theater/front/deploy 从 hex 与单位位置派生，玩家和 AI 行动仍统一进入 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 
@@ -440,7 +442,7 @@ playerCommandState
 - v3.7-preflight.16 起，归附接收方可通过 `Command.resolveSubmissionHandoff` 接管归附目标未毁灭军队和可通行受控 hex；执行后仍由同步器和 bootstrapper 刷新 region、动态方面、前线与部署。
 - v3.7-preflight.17 起，归附交接完成后会追加 `SubmissionHandoffRecord` 并关联外交战报；外交面板只读展示最近交接记录和边界说明。
 - v3.7-preflight.18 起，AI 接收方会在 AI 回合最多提交一条 `Command.resolveSubmissionHandoff`，仍经 `RuleEngine` 执行并进入 AI command results。
-- v3.7-preflight.19 起，归附交接成功后会追加 `SubmissionAftermathRecord` 善后压力记录，并关联外交日志供外交面板复盘；v3.7-preflight.101 起，该压力会按风险等级写入受影响州郡 `OccupationState`。
+- v3.7-preflight.19 起，归附交接成功后会追加 `SubmissionAftermathRecord` 善后压力记录，并关联外交日志供外交面板复盘；v3.7-preflight.101 起，该压力会按风险等级写入受影响州郡 `OccupationState`；v3.7-preflight.102 起，`OccupationState` 会影响后续府库收入贡赋效率。
 - v3.7-preflight.20 起，AI 太守会在后续 AI 回合优先考虑最新高/需安抚善后压力记录的受影响州郡，仍只提交既有 `Command.governRegion`。
 - v3.7-preflight.21 起，既有州郡经营命令治理最新善后州郡后会追加 `SubmissionAftermathGovernanceRecord` 处置审计记录。
 - v3.7-preflight.22 起，外交面板会按最新善后记录显示已处置州郡数量和总受影响州郡数量。
@@ -452,7 +454,8 @@ playerCommandState
 - v3.7-preflight.28 起，MapEditor 默认读取和覆盖保存 `wude_618` 隋唐资源，覆盖默认资源时保留既有场景元数据和水路地点记录。
 - v3.7-preflight.29 起，MapEditor 文档显式保存 `keyLocations`，右键信息面板可编辑地点名称、类型、势力和 objectiveId，导出时以文档地点字段优先。
 - v3.7-preflight.100 起，默认资源桥导入 `scenario.initialUnits` 时，非法 unit faction 会被跳过并写入导入诊断，不再静默落到旧 `.allies`。
-- v3.7-preflight.101 起，归附交接后的善后风险会实际提高受影响州郡治安压力并降低顺从，仍不触发完整忠诚、叛乱、贡赋、俘虏或安置系统。
+- v3.7-preflight.101 起，归附交接后的善后风险会实际提高受影响州郡治安压力并降低顺从，仍不触发完整忠诚、叛乱、俘虏或安置系统。
+- v3.7-preflight.102 起，治安/顺从会折算受控州郡贡赋效率，高抵抗降低丁口、军械、粮草收入，安民后随顺从恢复。
 - v3.7-preflight.30 起，发布前检查面板显示当前 `GameState` 静态门禁快照，但仍不等同于运行时验证或 CI artifact 验收。
 - v3.7-preflight.31 起，legacy 势力名、旧阶段/胜负原因、军队方向和经济事件日志的玩家可见兜底已中文化。
 - v3.7-preflight.32 起，App/AI 记录、bootstrap 战报、朝堂面板和将领技能显示中的第一批玩家可见调试文案已中文化或隐藏无数据占位。
@@ -2244,7 +2247,7 @@ MapEditorGameResourceBridge.loadDefaultDocument
 - 真 LLM 尚未接入；当前只用 `SimulatedMarshalLLMClient` 模拟纯 JSON 输出，decoder 仍兼容 fenced JSON 和纯 JSON。
 - 默认 AI 上游已是 `MarshalAgent -> TheaterDirectiveEnvelope -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent`，下游执行必须是 `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 - 元帅层不能直接输出底层 `Command`，不能直接修改地图、单位、hex controller 或动态战区权威。
-- 朝堂层塑形和审计 `DirectiveEnvelope`；v3.7-preflight.9 已有玩家侧议和/纳降命令，v3.7-preflight.10 已有玩家侧州郡经营命令，v3.7-preflight.11 已有 AI 太守主动经营，v3.7-preflight.12 已有 AI 使者主动外交，v3.7-preflight.13 已有最小归附事件记录链，v3.7-preflight.14 已有归附空势力轮转收口，v3.7-preflight.15 已有归附实体盘点和事件 target 判定收口，v3.7-preflight.16 已有最小归附实体交接命令，v3.7-preflight.17 已有归附交接审计记录，v3.7-preflight.18 已有 AI 归附实体交接，v3.7-preflight.19 已有归附善后压力记录，v3.7-preflight.101 已有归附善后治安/顺从压力落地，v3.7-preflight.20 已有 AI 善后太守优先治理，v3.7-preflight.21 已有善后处置审计记录，v3.7-preflight.22 已有善后处置进度摘要，v3.7-preflight.23 已有 AI 善后未处置优先治理，v3.7-preflight.24 已有善后完成状态提示，v3.7-preflight.25 已有发布检查门禁拆分，v3.7-preflight.26 已有 AI 太守跳过诊断，v3.7-preflight.27 已有 AI 使者/归附交接跳过诊断，v3.7-preflight.28 已有 MapEditor 默认隋唐资源桥，v3.7-preflight.29 已有 MapEditor 地点字段化编辑，v3.7-preflight.30 已有发布候选静态门禁快照，v3.7-preflight.31 已有玩家可见旧英文兜底收口，v3.7-preflight.32 已有玩家可见调试文案第一批收口，v3.7-preflight.33 已有玩家可见外交/朝堂文案收口，v3.7-preflight.34 已有玩家可见 AI 诊断文案收口，v3.7-preflight.35 已有战报与总管预览文案收口，但借兵、完整忠诚/叛乱/贡赋/俘虏/安置效果、更完整归附后续事件、水战/渡河/港口补给规则仍待后续。
+- 朝堂层塑形和审计 `DirectiveEnvelope`；v3.7-preflight.9 已有玩家侧议和/纳降命令，v3.7-preflight.10 已有玩家侧州郡经营命令，v3.7-preflight.11 已有 AI 太守主动经营，v3.7-preflight.12 已有 AI 使者主动外交，v3.7-preflight.13 已有最小归附事件记录链，v3.7-preflight.14 已有归附空势力轮转收口，v3.7-preflight.15 已有归附实体盘点和事件 target 判定收口，v3.7-preflight.16 已有最小归附实体交接命令，v3.7-preflight.17 已有归附交接审计记录，v3.7-preflight.18 已有 AI 归附实体交接，v3.7-preflight.19 已有归附善后压力记录，v3.7-preflight.101 已有归附善后治安/顺从压力落地，v3.7-preflight.102 已有归附善后贡赋效率落地，v3.7-preflight.20 已有 AI 善后太守优先治理，v3.7-preflight.21 已有善后处置审计记录，v3.7-preflight.22 已有善后处置进度摘要，v3.7-preflight.23 已有 AI 善后未处置优先治理，v3.7-preflight.24 已有善后完成状态提示，v3.7-preflight.25 已有发布检查门禁拆分，v3.7-preflight.26 已有 AI 太守跳过诊断，v3.7-preflight.27 已有 AI 使者/归附交接跳过诊断，v3.7-preflight.28 已有 MapEditor 默认隋唐资源桥，v3.7-preflight.29 已有 MapEditor 地点字段化编辑，v3.7-preflight.30 已有发布候选静态门禁快照，v3.7-preflight.31 已有玩家可见旧英文兜底收口，v3.7-preflight.32 已有玩家可见调试文案第一批收口，v3.7-preflight.33 已有玩家可见外交/朝堂文案收口，v3.7-preflight.34 已有玩家可见 AI 诊断文案收口，v3.7-preflight.35 已有战报与总管预览文案收口，但借兵、完整忠诚/叛乱/俘虏/安置效果、更完整归附后续事件、水战/渡河/港口补给规则仍待后续。
 - v3.5 战报、外交、州郡摘要是信息闭环基础；v3.7-preflight.9 / .10 已分别补上玩家外交和州郡经营的 `Command` / validator / executor 最小闭环。
 - v3.6 只建立 SwiftUI 视觉基底、中文化收口和最小 SpriteKit 城池/关隘/粮仓/粮道/围城标识；v3.7-preflight.4 已补渡口/港口最小图标，v3.7-preflight.5 已补 AI 计划箭头，v3.7-preflight.6 已补普通地图层前线墨线，v3.7-preflight.8 已把这些标识的资产边界写入发布前检查；这些地图叠加层和真实运行时布局仍未重测。
 - 当前 main 直推流程中，若工作树已有未提交改动或并发子 Agent 产物，合并前需要按 `AGENTS.md` 单独审查文件归属、public API、schema 和文档口径冲突。

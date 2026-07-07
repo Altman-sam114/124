@@ -156,9 +156,22 @@ struct EconomyRules {
 
             let level = cityLevel(for: region, map: map)
             let coreBonus = region.coreOf.isEmpty || region.coreOf.contains(faction) ? 1 : 0
-            let regionManpower = max(1, level.manpowerGrowth + coreBonus * 4 + region.infrastructure)
-            let regionIndustry = max(0, region.factories + level.industryValue + region.infrastructure / 3)
-            let regionSupplies = max(1, region.supplyValue * 3 + region.factories + region.infrastructure / 2)
+            let tributeEfficiency = tributeEfficiency(for: region.occupationState)
+            let regionManpower = adjustedTributeOutput(
+                base: max(1, level.manpowerGrowth + coreBonus * 4 + region.infrastructure),
+                efficiency: tributeEfficiency,
+                minimum: 1
+            )
+            let regionIndustry = adjustedTributeOutput(
+                base: max(0, region.factories + level.industryValue + region.infrastructure / 3),
+                efficiency: tributeEfficiency,
+                minimum: 0
+            )
+            let regionSupplies = adjustedTributeOutput(
+                base: max(1, region.supplyValue * 3 + region.factories + region.infrastructure / 2),
+                efficiency: tributeEfficiency,
+                minimum: 1
+            )
 
             income.add(
                 EconomyResources(
@@ -181,6 +194,23 @@ struct EconomyRules {
         }
 
         return income
+    }
+
+    private func tributeEfficiency(for occupationState: OccupationState?) -> Double {
+        guard let occupationState else {
+            return 1.0
+        }
+
+        let resistancePenalty = Double(occupationState.resistance) * 0.004
+        let complianceBonus = Double(max(0, occupationState.compliance - 50)) * 0.002
+        return min(1.0, max(0.55, 1.0 - resistancePenalty + complianceBonus))
+    }
+
+    private func adjustedTributeOutput(base: Int, efficiency: Double, minimum: Int) -> Int {
+        guard base > 0 else {
+            return minimum
+        }
+        return max(minimum, Int((Double(base) * efficiency).rounded(.down)))
     }
 
     private func ensureLedger(for faction: Faction, in state: inout GameState) {

@@ -24,9 +24,9 @@
 - 蓝色：初始快照/基准状态，不是运行时推进状态。
 - 紫色：命令管线，玩家、AI、未来聊天命令都要走这里。
 
-## 0.1 v3.0-v3.7-preflight.101 隋唐迁移入口
+## 0.1 v3.0-v3.7-preflight.102 隋唐迁移入口
 
-这张图说明当前迁移状态已推进到 v3.7-preflight.101；最近几轮收口动态方面推进势力兜底、RegionDataSet owner/controller 兜底、场景语义 helper、胜负 fallback 门禁、MapEditor unit faction 导入诊断和归附善后治安压力，让异常缺 zone 路径不再把推进方静默落到旧东路势力，非 legacy region 数据缺 owner 时不再静默落到旧西路势力，未知自定义场景不再静默套用旧胜负规则，MapEditor 坏 unit faction 也不再静默变成旧西路势力，归附交接后的善后风险也会写入受影响州郡的治安/顺从状态。
+这张图说明当前迁移状态已推进到 v3.7-preflight.102；最近几轮收口动态方面推进势力兜底、RegionDataSet owner/controller 兜底、场景语义 helper、胜负 fallback 门禁、MapEditor unit faction 导入诊断、归附善后治安压力和贡赋效率，让异常缺 zone 路径不再把推进方静默落到旧东路势力，非 legacy region 数据缺 owner 时不再静默落到旧西路势力，未知自定义场景不再静默套用旧胜负规则，MapEditor 坏 unit faction 也不再静默变成旧西路势力，归附交接后的善后风险也会写入受影响州郡的治安/顺从状态并影响后续府库收入。
 
 ```mermaid
 flowchart TD
@@ -139,12 +139,13 @@ flowchart TD
     V99SG["v3.7-preflight.99 场景语义与胜负门禁<br/>ScenarioSemantics 集中 legacy / wude618 / 草稿 / 自定义判断<br/>未知自定义不套 legacy 胜负 fallback"]:::work
     V100ME["v3.7-preflight.100 MapEditor unit faction 导入诊断<br/>非法 unit faction 跳过并记录诊断<br/>不再静默兜底 .allies<br/>不改 JSON schema / 主游戏 DataLoader"]:::work
     V101AP["v3.7-preflight.101 归附善后治安压力<br/>SubmissionAftermathRecord 风险等级<br/>写入州郡 OccupationState<br/>不新增忠诚 / 叛乱 / 贡赋 / 俘虏 / 安置模型"]:::work
+    V102TE["v3.7-preflight.102 归附善后贡赋效率<br/>OccupationState 折算州郡收入<br/>高抵抗降贡赋 / 安民后恢复<br/>不新增命令 / 存档 schema"]:::work
     CURRENT["当前运行时状态<br/>主游戏默认优先 wude_618<br/>失败 fallback Ardennes<br/>MapEditor 默认桥指向 wude_618"]:::state
-    LATER["v3.7+<br/>完整忠诚 / 叛乱 / 贡赋 / 俘虏 / 安置<br/>水战 / 渡河 / 港口补给规则<br/>真实模型接入、完整发布运行时重测"]:::work
+    LATER["v3.7+<br/>完整忠诚 / 叛乱 / 俘虏 / 安置<br/>水战 / 渡河 / 港口补给规则<br/>真实模型接入、完整发布运行时重测"]:::work
     RULE["持续边界<br/>Command / ZoneDirective -> WarCommandExecutor -> RuleEngine<br/>hex 与动态映射仍是权威"]:::rules
 
     PROMPT --> AUDIT --> V31 --> V32 --> V33 --> V34 --> V35 --> V36 --> V37 --> V37S --> V37O --> V37W --> V37A --> V37F --> V37E --> V37R --> V37D --> V37G --> V37AG --> V37AD --> V37SE --> V37ST --> V37SP --> V37SH --> V37HA --> V37AH --> V37AF --> V37AP --> V37AGV --> V37AGS --> V37AUP --> V37AC --> V37RG --> V37GD --> V37DD --> V37ME --> V37MK --> V37SG --> V37LT --> V37DT --> V37DC --> V37AI --> V37BR --> V37ES --> V37UI --> V38UX
-    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> V98RD --> V99SG --> V100ME --> V101AP --> CURRENT
+    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> V98RD --> V99SG --> V100ME --> V101AP --> V102TE --> CURRENT
     V37MK --> LATER
     RULE --> LATER
     RULE --> V31

@@ -1,6 +1,6 @@
 # WWIIHexV0 — iOS / macOS AI 战略战棋骨架
 
-> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.101 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营命令、AI 太守/使者/归附交接、善后记录链、发布检查静态门禁、多轮玩家可见文案收口、本局执掌势力选择、MapEditor 隋唐资源桥与可见文案收口、默认数据说明和补给战报中文化、AI 元帅/方面军令摘要中文化、Legacy MockAI 与元帅解析诊断中文化、legacy fallback JSON 可见文本收口、legacy 将领档案可见文本和技能显示收口、Agent 诊断/错误兜底文案收口、自动回合与元帅诊断兜底文案收口、数据加载与导出说明可见文案收口、复核面板与记录摘要可见文案收口、MapEditor 与主游戏 raw id 可见文案复扫收口、命令错误与源头战报可见文案收口、总管与将领档案防区展示名 raw id 收口、legacy fallback 数据展示文案收口、legacy fallback 单位与防区展示文案收口、legacy static fallback 目标兼容与展示文案收口、legacy LLM prompt 语言收口、外交面板名称和记录净化收口、战报意图屏蔽与中文分类收口、MapEditor 导出元数据 fallback 收口、AI 诊断净化口径对齐、legacy 总管配置中文兜底、legacy prompt 内部编号分层收口、legacy prompt 直通文本净化、legacy prompt 决策者身份净化、legacy MockAI stance 文案收口、legacy prompt 工程说明词收口、模拟元帅输出纯 JSON 收口、UI/战报/外交记录净化 helper 顺序与词表对齐、legacy 将领与朝堂记录可见文案复扫、CommandPanel 命令消息展示净化收口、单位详情与提示 legacy 单位名展示收口、州郡详情 legacy 地名与目标名展示收口、将领与总管面板 legacy 可见文案复扫收口、MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、MapEditor 选择器与状态消息 legacy 文案收口、AppContainer 交互日志与存档反馈 legacy 文案收口、GameLogEntry 源头战报 legacy 文案收口、legacy LocalLLM prompt 临时编号别名收口、legacy fallback 行军总管配置收口、朝堂/外交实际记录 id 展示净化收口、行军总管可见称谓净化收口、源头 legacy 中文势力/国家/地名展示净化收口、将领档案/总管军令称谓净化对齐、fallback JSON 可见数据文本收口、源码层 legacy 可见兜底文本收口、静态 GameState / MapState fallback 可见文本收口、legacy objective lookup 字面量收口、RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口，阶段与旧总管展示口径收口，自动总管默认指挥风格收口，默认指挥风格共享 helper 收口，DataLoader 场景阶段兜底收口，legacy phase 存档规范化收口，动态方面推进势力兜底收口，RegionDataSet owner/controller 兜底收口，ScenarioSemantics 场景语义与胜负 fallback 门禁收口，MapEditor 非法 unit faction 导入诊断收口，以及归附善后治安压力落地。正式地图资产、交接后的完整忠诚/叛乱/贡赋/俘虏/安置实际效果、更完整朝堂决策、授权构建/启动/多回合运行验证和云端结果包验收仍未完成。
+> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.102 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营命令、AI 太守/使者/归附交接、善后记录链、发布检查静态门禁、多轮玩家可见文案收口、本局执掌势力选择、MapEditor 隋唐资源桥与可见文案收口、默认数据说明和补给战报中文化、AI 元帅/方面军令摘要中文化、Legacy MockAI 与元帅解析诊断中文化、legacy fallback JSON 可见文本收口、legacy 将领档案可见文本和技能显示收口、Agent 诊断/错误兜底文案收口、自动回合与元帅诊断兜底文案收口、数据加载与导出说明可见文案收口、复核面板与记录摘要可见文案收口、MapEditor 与主游戏 raw id 可见文案复扫收口、命令错误与源头战报可见文案收口、总管与将领档案防区展示名 raw id 收口、legacy fallback 数据展示文案收口、legacy fallback 单位与防区展示文案收口、legacy static fallback 目标兼容与展示文案收口、legacy LLM prompt 语言收口、外交面板名称和记录净化收口、战报意图屏蔽与中文分类收口、MapEditor 导出元数据 fallback 收口、AI 诊断净化口径对齐、legacy 总管配置中文兜底、legacy prompt 内部编号分层收口、legacy prompt 直通文本净化、legacy prompt 决策者身份净化、legacy MockAI stance 文案收口、legacy prompt 工程说明词收口、模拟元帅输出纯 JSON 收口、UI/战报/外交记录净化 helper 顺序与词表对齐、legacy 将领与朝堂记录可见文案复扫、CommandPanel 命令消息展示净化收口、单位详情与提示 legacy 单位名展示收口、州郡详情 legacy 地名与目标名展示收口、将领与总管面板 legacy 可见文案复扫收口、MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、MapEditor 选择器与状态消息 legacy 文案收口、AppContainer 交互日志与存档反馈 legacy 文案收口、GameLogEntry 源头战报 legacy 文案收口、legacy LocalLLM prompt 临时编号别名收口、legacy fallback 行军总管配置收口、朝堂/外交实际记录 id 展示净化收口、行军总管可见称谓净化收口、源头 legacy 中文势力/国家/地名展示净化收口、将领档案/总管军令称谓净化对齐、fallback JSON 可见数据文本收口、源码层 legacy 可见兜底文本收口、静态 GameState / MapState fallback 可见文本收口、legacy objective lookup 字面量收口、RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口，阶段与旧总管展示口径收口，自动总管默认指挥风格收口，默认指挥风格共享 helper 收口，DataLoader 场景阶段兜底收口，legacy phase 存档规范化收口，动态方面推进势力兜底收口，RegionDataSet owner/controller 兜底收口，ScenarioSemantics 场景语义与胜负 fallback 门禁收口，MapEditor 非法 unit faction 导入诊断收口，归附善后治安压力落地，以及归附善后贡赋效率落地。正式地图资产、交接后的完整忠诚/叛乱/俘虏/安置实际效果、更完整朝堂决策、授权构建/启动/多回合运行验证和云端结果包验收仍未完成。
 
 ---
 
@@ -85,6 +85,12 @@ MapEditor/
 ---
 
 ## 当前完成进度
+
+### v3.7-preflight.102：归附善后贡赋效率落地
+
+- `EconomyRules.income(for:map:)` 聚合受控州郡收入时，会按 `OccupationState` 计算贡赋效率。
+- 抵抗会折减丁口、军械、粮草收入；顺从提高会恢复效率，但不超过既有基础产出。
+- 边界：不新增命令、存档字段、叛军单位、额外归属转移、忠诚、俘虏或安置系统；完整归附善后实际规则仍待后续独立切片。
 
 ### v3.7-preflight.101：归附善后治安压力落地
 
@@ -503,7 +509,7 @@ MapEditor/
 - 玩家侧 `Command.updateDiplomacy`、`Command.governRegion` 接入统一规则管线。
 - AI/观战自动回合可保守生成太守经营、使者外交、归附实体交接。
 - 归附事件、空势力轮转、实体盘点、交接审计、善后压力、善后治理记录、进度摘要、完成状态和跳过诊断已接入。
-- 忠诚、叛乱、贡赋、俘虏、安置等实际善后效果仍待后续。
+- 善后治安压力和贡赋效率已接入；忠诚、叛乱、俘虏、安置等实际善后效果仍待后续。
 
 ### v3.7-preflight.1-.8：胜负、存档、引导、地图叠加
 
@@ -541,6 +547,6 @@ MapEditor/
 
 - 未做真实 iOS/macOS 启动、MapEditor 点击、导入导出往返、覆盖保存后主游戏加载、多回合观察者验证或云端 artifact 验收。
 - 正式地图资产、图标资产和运行时截图检查尚未完成。
-- 归附后的忠诚、叛乱、贡赋、俘虏、安置等实际规则仍未实现。
+- 归附后的治安压力和贡赋效率已有最小规则；忠诚、叛乱、俘虏、安置等实际规则仍未实现。
 - DataLoader 的部分开发校验错误、legacy 人物英文正名和内部 prompt 仍保留英文技术信息，主要服务兼容与历史回归参考。
 - 完整 v3.7 发布候选仍需要授权构建、运行、交互烟测和 CI 结果包验收。

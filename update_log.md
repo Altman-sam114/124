@@ -9,6 +9,44 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.102 - 归附善后贡赋效率落地
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在归附善后治安压力落地之后，继续处理总提示词 §0.2 的“完整忠诚、叛乱、贡赋、俘虏、安置等归附善后实际规则”，先把“贡赋”做成可验证的低风险经济后果：受影响州郡的治安/顺从状态会影响后续府库收入效率。
+
+核心更新：
+
+- `EconomyRules.income(for:map:)` 在聚合受控州郡丁口、军械、粮草收入时，会读取 `RegionNode.occupationState` 计算贡赋效率。
+- 高抵抗会折减州郡收入；较高顺从会恢复效率，上限仍不超过既有基础产出。
+- `.101` 归附善后压力提高抵抗、降低顺从后，会自然降低后续回合收入；既有“安民”治理降低抵抗、提高顺从后，会自然恢复贡赋效率。
+- 本轮不新增命令、存档字段、叛军单位、忠诚/俘虏/安置模型或额外归属转移。
+
+关键文件：
+
+- `WWIIHexV0/Rules/EconomyRules.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_tribute_efficiency_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `swiftc -parse WWIIHexV0/Rules/EconomyRules.swift`：通过。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只把“贡赋”落到经济收入效率，没有实现独立忠诚、叛乱、俘虏或安置模型。
+- 未启动 App 做归附交接后多回合收入变化、安民恢复收入和 UI 展示的人工运行复核；需由 GitHub Actions 与后续 Agent C 云端结果包验收继续确认。
+
 ## v3.7-preflight.101 - 归附善后治安压力落地
 
 完成日期：2026-07-07
