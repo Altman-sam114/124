@@ -440,7 +440,27 @@ struct EconomyRules {
             return (hex, state.map.region(for: hex))
         }
 
+        let portHexes = controlledPortDeploymentHexes(for: faction, in: state)
+        if let hex = portHexes.first {
+            return (hex, state.map.region(for: hex))
+        }
+
         return nil
+    }
+
+    private func controlledPortDeploymentHexes(for faction: Faction, in state: GameState) -> [HexCoord] {
+        state.map.featureMarkers.compactMap { marker in
+            guard marker.kind == .port || marker.kind == .harbor,
+                  let tile = state.map.tile(at: marker.coord),
+                  tile.isPassable,
+                  tile.controller == faction,
+                  state.division(at: marker.coord) == nil,
+                  !isEnemyAdjacent(to: marker.coord, faction: faction, in: state) else {
+                return nil
+            }
+
+            return marker.coord
+        }
     }
 
     private func hasControlledHex(in region: RegionNode, faction: Faction, map: MapState) -> Bool {

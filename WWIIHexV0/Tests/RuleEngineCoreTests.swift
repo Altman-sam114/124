@@ -563,6 +563,71 @@ final class RuleEngineCoreTests: XCTestCase {
         XCTAssertNotEqual(enemyControlledState.division(id: "a")?.supplyState, .supplied)
     }
 
+    func testControlledPortCanReceiveProducedDivisionWhenNoSupplySourceIsAvailable() throws {
+        let portCoord = HexCoord(q: 1, r: 0)
+        var map = Self.basicMap(width: 2, height: 1, supplySources: [])
+        map.featureMarkers = [
+            MapFeatureMarker(
+                id: "port",
+                name: "Test Port",
+                kind: .port,
+                coord: portCoord,
+                faction: nil,
+                objectiveId: nil
+            )
+        ]
+        if var portTile = map.tile(at: portCoord) {
+            portTile.controller = .allies
+            map.setTile(portTile)
+        }
+        var state = Self.testState(activeFaction: .allies, map: map, divisions: [])
+        state.economyState.updateLedger(
+            FactionEconomyLedger(
+                faction: .allies,
+                productionQueue: [
+                    ProductionOrder(
+                        id: "ready_infantry",
+                        faction: .allies,
+                        kind: .infantryDivision,
+                        remainingTurns: 0,
+                        createdTurn: 1
+                    )
+                ]
+            )
+        )
+
+        EconomyRules().resolveFactionTurn(for: .allies, in: &state)
+
+        let produced = try XCTUnwrap(state.divisions.first { $0.faction == .allies })
+        XCTAssertEqual(produced.coord, portCoord)
+        XCTAssertTrue(state.economyState.ledger(for: .allies).productionQueue.isEmpty)
+
+        if var portTile = map.tile(at: portCoord) {
+            portTile.controller = .germany
+            map.setTile(portTile)
+        }
+        var enemyControlledState = Self.testState(activeFaction: .allies, map: map, divisions: [])
+        enemyControlledState.economyState.updateLedger(
+            FactionEconomyLedger(
+                faction: .allies,
+                productionQueue: [
+                    ProductionOrder(
+                        id: "blocked_infantry",
+                        faction: .allies,
+                        kind: .infantryDivision,
+                        remainingTurns: 0,
+                        createdTurn: 1
+                    )
+                ]
+            )
+        )
+
+        EconomyRules().resolveFactionTurn(for: .allies, in: &enemyControlledState)
+
+        XCTAssertTrue(enemyControlledState.divisions.isEmpty)
+        XCTAssertEqual(enemyControlledState.economyState.ledger(for: .allies).productionQueue.count, 1)
+    }
+
     func testSupplyModifiersReduceDerivedStatsAndEncirclementAttritionPreservesOneHP() {
         var lowSupply = Self.division(id: "low", faction: .allies, coord: HexCoord(q: 1, r: 1))
         lowSupply.supplyState = .lowSupply

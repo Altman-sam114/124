@@ -9,6 +9,46 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.109 - 己控港口海港生产部署点
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在受控水路补给投送点、默认水路地点河边资产和移动渡河减免之后，继续补“港口部署点”的低风险子切片：让己方控制的港口/海港可作为新征发部队的后方部署点。
+
+核心更新：
+
+- `EconomyRules.deploymentHex` 在既有合格州郡和永久 `SupplySource` fallback 之后，新增己控港口/海港部署点 fallback。
+- 只有 `MapFeatureKind.port` / `harbor` 可作为生产部署点；`ferry` 不作为募兵部署点。
+- 港口/海港部署点必须满足 marker 所在 hex 可通行、`controller == faction`、无驻军、非敌邻接。
+- 本轮不把港口/海港写入 `MapState.supplySources`，不改变省级补给、战术补给线、经济收入、移动、战斗、水战、命令或 JSON schema。
+- `RuleEngineCoreTests` 增加己控港口接收就绪征发部队、敌控港口不部署且订单保留的语义断言，用于云端回归保护。
+
+关键文件：
+
+- `WWIIHexV0/Rules/EconomyRules.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_port_deployment_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RuleEngineCoreTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 未启动 App 或运行多回合生产流程截图复核。
+- 本轮只实现港口/海港生产部署 fallback，不实现永久港口补给源、完整水战、河面控制或水师部署规则。
+
 ## v3.7-preflight.108 - 己控渡口港口移动渡河减免
 
 完成日期：2026-07-07
