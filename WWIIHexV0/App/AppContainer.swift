@@ -924,9 +924,18 @@ final class AppContainer: ObservableObject {
         gameState = nextState
         lastWarDirectiveRecords = Array((lastWarDirectiveRecords + [record]).suffix(12))
         lastCommandMessage = playerDirectiveMessage(for: execution, diagnostics: diagnostics)
-        appendInteractionEvent("总管军令已提交：\(Self.displayFrontZoneName(refreshedZone)) \(directive.type.displayName)。")
+        appendInteractionEvent(
+            "\(playerDirectiveSignerLabel(for: refreshedZone))已提交：\(Self.displayFrontZoneName(refreshedZone)) \(directive.type.displayName)。"
+        )
         refreshSelectionAfterStateChange()
         persistCurrentGame()
+    }
+
+    private func playerDirectiveSignerLabel(for zone: FrontZone) -> String {
+        guard let general = generalRegistry.general(id: zone.generalAssignment?.generalId) else {
+            return "总管军令"
+        }
+        return "\(Self.displayMapName(general.localizedName, fallback: "将领"))军令"
     }
 
     private func playerDirectiveMessage(

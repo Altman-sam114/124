@@ -9,6 +9,7 @@ struct GeneralCommandPanelView: View {
     let targetZone: FrontZone?
     let hqUnderAttack: Bool
     let plannedOperations: [PlayerPlannedOperation]
+    let generalRegistry: GeneralRegistry
     let canHoldLine: Bool
     let canAttackRegion: Bool
     let onShowProfile: () -> Void
@@ -17,7 +18,7 @@ struct GeneralCommandPanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("总管军令")
+            Text("名将军令")
                 .font(.headline)
 
             if let zone {
@@ -187,7 +188,17 @@ struct GeneralCommandPanelView: View {
     private func operationSummary(_ operation: PlayerPlannedOperation) -> String {
         let target = operationTargetLabel(operation)
         let type = operation.directiveType.displayName
-        return "\(type)：\(target)"
+        return "\(operationSignerLabel(operation))：\(type)：\(target)"
+    }
+
+    private func operationSignerLabel(_ operation: PlayerPlannedOperation) -> String {
+        if let signedGeneral = generalRegistry.general(id: operation.createdByGeneralId) {
+            return "\(displayGeneralName(signedGeneral))军令"
+        }
+        if let general, general.id == operation.createdByGeneralId {
+            return "\(displayGeneralName(general))军令"
+        }
+        return "总管军令"
     }
 
     private func operationTargetLabel(_ operation: PlayerPlannedOperation) -> String {

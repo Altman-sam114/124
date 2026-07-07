@@ -1,6 +1,6 @@
 # WWIIHexV0 — iOS / macOS AI 战略战棋骨架
 
-> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.115 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路仍是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营、AI 太守/使者/归附交接、善后记录、MapEditor 隋唐资源桥、多轮玩家可见 legacy 文案收口、场景语义与胜负 fallback 门禁、归附善后治安/贡赋效率、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免、河边数据保真与编辑、受控水路补给投送点、默认水路地点河边资产、移动渡河减免、隔河近战水路控制校验、港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化、骑兵基础机动/冲击强化，以及水路补给 anchor 粮道显示对齐。正式地图资产、完整叛乱触发/俘虏处置/安置命令、完整水战/河面控制、真实 LLM 接入、授权运行时验证和 Agent C artifact 级验收仍未完成。
+> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.116 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路仍是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营、AI 太守/使者/归附交接、善后记录、MapEditor 隋唐资源桥、多轮玩家可见 legacy 文案收口、场景语义与胜负 fallback 门禁、归附善后治安/贡赋效率、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免、河边数据保真与编辑、受控水路补给投送点、默认水路地点河边资产、移动渡河减免、隔河近战水路控制校验、港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化、骑兵基础机动/冲击强化、水路补给 anchor 粮道显示对齐，以及名将军令署名显示。正式地图资产、完整叛乱触发/俘虏处置/安置命令、完整水战/河面控制、真实 LLM 接入、授权运行时验证和 Agent C artifact 级验收仍未完成。
 
 ---
 
@@ -89,6 +89,12 @@ MapEditor/
 ---
 
 ## 当前完成进度
+
+### v3.7-preflight.116：名将军令署名显示
+
+- `GeneralCommandPanelView` 标题从“总管军令”转为“名将军令”，让军令入口更贴近隋唐英雄人物体验。
+- 预备军令会用 `PlayerPlannedOperation.createdByGeneralId` 和 `GeneralRegistry` 解析署名，显示为“李世民军令：进军：洛阳”等人物化摘要；旧记录缺少可解析将领时保守显示“总管军令”。
+- 边界：只改 UI 展示和调用传参，不改 `PlayerPlannedOperation` 存档字段、命令管线、AI 决策、规则执行、JSON schema 或将领技能消费。
 
 ### v3.7-preflight.115：水路补给 anchor 粮道显示对齐
 

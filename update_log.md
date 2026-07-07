@@ -9,6 +9,47 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.116 - 名将军令署名显示
+
+完成日期：2026-07-07
+
+性质：响应人工最新方向的英雄人物存在感切片。古代战争体验不能只停留在抽象防区和现代战线口径，本轮把已有总管/将领分配用于玩家军令显示，让预备军令和提交反馈出现“某将军令”。
+
+核心更新：
+
+- `GeneralCommandPanelView` 标题从“总管军令”调整为“名将军令”。
+- 预备军令摘要会用 `PlayerPlannedOperation.createdByGeneralId` 经 `GeneralRegistry` 解析将领名，可解析时显示“某将军令：进军/固守：目标”。
+- 旧记录或缺失将领 id 时保守显示“总管军令”，不影响历史存档和无将领防区。
+- `RootGameView` 把 `AppContainer.generalRegistry` 传入军令面板。
+- `AppContainer` 玩家军令提交反馈同步显示“某将军令已提交”，缺少将领时保留“总管军令已提交”。
+- 文档补齐长期参考边界：可参考《三国志14》等古代战略游戏的局势、粮道、人物和据点体验，但不得照搬资产、文本、数值或受版权保护内容。
+
+关键文件：
+
+- `WWIIHexV0/UI/GeneralCommandPanelView.swift`
+- `WWIIHexV0/UI/RootGameView.swift`
+- `WWIIHexV0/App/AppContainer.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_general_command_signature_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只做署名显示，不实现将领技能消费、忠诚/满意影响、统率数值加成或战报全链路署名。
+- 未启动 App 复核军令面板在小屏和长人名下的布局。
+
 ## v3.7-preflight.115 - 水路补给 anchor 粮道显示对齐
 
 完成日期：2026-07-07
