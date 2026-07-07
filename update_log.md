@@ -9,6 +9,44 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.103 - 渡口港口粮道补给减免落地
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在归附善后贡赋效率落地之后，转入总提示词 §0.2 的“水战、渡河、港口补给与粮道扩展规则”低风险子切片：先让既有渡口、港口、海港地点影响补给路径，不扩展移动、战斗或水战系统。
+
+核心更新：
+
+- `SupplyRules.supplyPathCost(from:to:for:in:)` 跨 `riverEdges` 计算粮道成本时，不再一律增加固定渡河成本。
+- 若跨河路径的起点或终点 hex 存在 `MapFeatureKind.ferry` / `port` / `harbor` 标识，则免除该段补给渡河额外成本。
+- 该规则消费既有 `MapState.featureMarkers` 和 `MapFeatureKind.isWaterTransit`，不改 JSON schema、命令管线、移动范围、战斗隔河防御或存档字段。
+- 水战、移动渡河减免、港口新增补给源、MapEditor riverEdges 往返保存仍待后续独立切片。
+
+关键文件：
+
+- `WWIIHexV0/Rules/SupplyRules.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_water_transit_supply_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `swiftc -parse WWIIHexV0/Rules/SupplyRules.swift`：通过。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只影响补给路径跨河成本，不改变移动、战斗、水师、水战或港口补给源规则。
+- MapEditor 导出仍可能丢失 tile `riverEdges`，后续若做渡河数据往返，需要单独处理 MapEditor 文档字段和导出逻辑。
+
 ## v3.7-preflight.102 - 归附善后贡赋效率落地
 
 完成日期：2026-07-07

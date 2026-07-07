@@ -222,7 +222,7 @@ struct SupplyRules {
 
                 var nextCost = current.cost + supplyCost(entering: toTile)
                 if movementRules.hasRiverCrossing(from: fromTile, to: toTile, direction: direction) {
-                    nextCost += 2
+                    nextCost += riverSupplyCrossingCost(from: current.coord, to: next, in: state)
                 }
 
                 guard nextCost <= maxSupplyPathCost,
@@ -236,6 +236,19 @@ struct SupplyRules {
         }
 
         return Int.max
+    }
+
+    private func riverSupplyCrossingCost(from: HexCoord, to: HexCoord, in state: GameState) -> Int {
+        if hasWaterTransit(at: from, in: state) || hasWaterTransit(at: to, in: state) {
+            return 0
+        }
+        return 2
+    }
+
+    private func hasWaterTransit(at coord: HexCoord, in state: GameState) -> Bool {
+        state.map.featureMarkers.contains { marker in
+            marker.coord == coord && marker.kind.isWaterTransit
+        }
     }
 
     private func canSupplyPass(through coord: HexCoord, tile: HexTile, for faction: Faction, in state: GameState) -> Bool {
