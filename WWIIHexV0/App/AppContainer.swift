@@ -1109,10 +1109,9 @@ final class AppContainer: ObservableObject {
         guard !factionSet.isEmpty else {
             return [state.playerFaction]
         }
+        let semantics = ScenarioSemantics(scenarioId: state.scenarioId)
         let preferred = Faction.suitangTurnOrder.filter { factionSet.contains($0) }
-        let legacy = state.scenarioId.hasPrefix("wude_618")
-            ? []
-            : Faction.legacyCombatants.filter { factionSet.contains($0) }
+        let legacy = semantics.isLegacy ? Faction.legacyCombatants.filter { factionSet.contains($0) } : []
         let known = Set(preferred + legacy)
         let remaining = factionSet
             .subtracting(known)
@@ -1125,7 +1124,7 @@ final class AppContainer: ObservableObject {
         if playable.contains(faction) {
             return faction
         }
-        if state.scenarioId.hasPrefix("wude_618"), playable.contains(.tang) {
+        if ScenarioSemantics(scenarioId: state.scenarioId).prefersSuitangAssets, playable.contains(.tang) {
             return .tang
         }
         return playable.first ?? faction

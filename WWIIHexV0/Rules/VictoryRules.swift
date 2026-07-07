@@ -67,12 +67,15 @@ struct VictoryRules {
             return
         }
 
-        if state.scenarioId == Wude618VictoryEvaluator.scenarioId {
+        let semantics = ScenarioSemantics(scenarioId: state.scenarioId)
+        if semantics.family == .wude618 {
             state.victoryState.apply(Wude618VictoryEvaluator.assess(in: state))
             return
         }
 
-        updateLegacyFallbackVictoryState(in: &state)
+        if semantics.isLegacy {
+            updateLegacyFallbackVictoryState(in: &state)
+        }
     }
 
     private func updateLegacyFallbackVictoryState(in state: inout GameState) {

@@ -25,7 +25,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testHexToRegionCoversAllDisplayHexes() throws {
         let (_, data) = try makeLoader()
-        let regions = data.toRegions()
+        let regions = try legacyRegions(from: data)
         let hexToRegion = data.toHexToRegion()
 
         for (_, node) in regions {
@@ -39,7 +39,10 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testValidateRegionGraphPasses() throws {
         let (loader, data) = try makeLoader()
-        XCTAssertNoThrow(try loader.validate(data), "Province data failed region graph validation")
+        XCTAssertNoThrow(
+            try loader.validate(data, ownershipFallback: .legacy(.allies)),
+            "Province data failed region graph validation"
+        )
     }
 
     func testValidateRegionGraphOnMountedMapStateIsEmpty() throws {
@@ -52,7 +55,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testAllNeighborsExist() throws {
         let (_, data) = try makeLoader()
-        let regions = data.toRegions()
+        let regions = try legacyRegions(from: data)
         let validIds = Set(regions.keys)
 
         for (id, node) in regions {
@@ -64,7 +67,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testNeighborsBidirectional() throws {
         let (_, data) = try makeLoader()
-        let regions = data.toRegions()
+        let regions = try legacyRegions(from: data)
 
         for (id, node) in regions {
             for neighbor in node.neighbors {
@@ -76,7 +79,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testRepresentativeHexBelongsToDisplayHexes() throws {
         let (_, data) = try makeLoader()
-        let regions = data.toRegions()
+        let regions = try legacyRegions(from: data)
 
         for (id, node) in regions {
             XCTAssertTrue(node.displayHexes.contains(node.representativeHex), "Region \(id.rawValue) representativeHex not in its displayHexes")
@@ -85,7 +88,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testDeclaredEdgesAreAdjacent() throws {
         let (_, data) = try makeLoader()
-        let map = makeProbeMap(from: data)
+        let map = try makeProbeMap(from: data)
 
         for edge in data.edges {
             XCTAssertTrue(map.areAdjacent(edge.from, edge.to), "Edge \(edge.from.rawValue)-\(edge.to.rawValue) is not adjacent.")
@@ -95,7 +98,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testRegionGraphIsConnectedFromFirstRegion() throws {
         let (_, data) = try makeLoader()
-        let map = makeProbeMap(from: data)
+        let map = try makeProbeMap(from: data)
         let regionIds = data.regions.map(\.id).sorted { $0.rawValue < $1.rawValue }
         let start = try XCTUnwrap(regionIds.first)
 
@@ -108,7 +111,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testSupplySourcesPointToValidRegions() throws {
         let (_, data) = try makeLoader()
-        let validIds = Set(data.toRegions().keys)
+        let validIds = Set(try legacyRegions(from: data).keys)
 
         for source in data.supplySources {
             XCTAssertTrue(validIds.contains(source.regionId), "Supply source \(source.id) points to missing region \(source.regionId.rawValue)")
@@ -119,7 +122,7 @@ final class ArdennesV02DataTests: XCTestCase {
 
     func testObjectivesPointToValidRegions() throws {
         let (_, data) = try makeLoader()
-        let validIds = Set(data.toRegions().keys)
+        let validIds = Set(try legacyRegions(from: data).keys)
 
         for objective in data.objectives {
             XCTAssertTrue(validIds.contains(objective.regionId), "Objective \(objective.id) points to missing region \(objective.regionId.rawValue)")
@@ -168,16 +171,20 @@ final class ArdennesV02DataTests: XCTestCase {
     // MARK: - 辅助
 
     /// 用省份数据构造探针 MapState（只填 province 层，tiles 留空），供邻接/路径测试用。
-    private func makeProbeMap(from data: RegionDataSet) -> MapState {
+    private func makeProbeMap(from data: RegionDataSet) throws -> MapState {
         MapState(
             width: 11,
             height: 9,
             tiles: [:],
             supplySources: [],
             objectives: [],
-            regions: data.toRegions(),
+            regions: try legacyRegions(from: data),
             hexToRegion: data.toHexToRegion(),
             regionEdges: data.toRegionEdges()
         )
+    }
+
+    private func legacyRegions(from data: RegionDataSet) throws -> [RegionId: RegionNode] {
+        try data.toRegions(ownershipFallback: .legacy(.allies))
     }
 }

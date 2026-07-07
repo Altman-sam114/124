@@ -24,9 +24,9 @@
 - 蓝色：初始快照/基准状态，不是运行时推进状态。
 - 紫色：命令管线，玩家、AI、未来聊天命令都要走这里。
 
-## 0.1 v3.0-v3.7-preflight.97 隋唐迁移入口
+## 0.1 v3.0-v3.7-preflight.100 隋唐迁移入口
 
-这张图说明当前迁移状态已推进到 v3.7-preflight.97；最近一轮收口动态方面推进势力兜底，让异常缺 zone 路径不再把隋唐或自定义推进方静默落到旧东路势力。
+这张图说明当前迁移状态已推进到 v3.7-preflight.100；最近几轮收口动态方面推进势力兜底、RegionDataSet owner/controller 兜底、场景语义 helper、胜负 fallback 门禁和 MapEditor unit faction 导入诊断，让异常缺 zone 路径不再把推进方静默落到旧东路势力，非 legacy region 数据缺 owner 时不再静默落到旧西路势力，未知自定义场景不再静默套用旧胜负规则，MapEditor 坏 unit faction 也不再静默变成旧西路势力。
 
 ```mermaid
 flowchart TD
@@ -135,12 +135,15 @@ flowchart TD
     V95DL["v3.7-preflight.95 DataLoader 场景阶段兜底<br/>无效 phase 隋唐默认玩家军令<br/>GameState / 战报 phase 复用<br/>不改 GamePhase rawValue / 规则"]:::work
     V96PN["v3.7-preflight.96 legacy phase 存档规范化<br/>GamePhase.normalized<br/>加载 / 校验 / 推进 / 自动回合复用<br/>保留合法 legacy rawValue"]:::work
     V97TF["v3.7-preflight.97 动态方面推进势力兜底<br/>WarCommandExecutor 不再 .germany fallback<br/>zone faction / 行动军队推断<br/>缺失则跳过并记录"]:::work
+    V98RD["v3.7-preflight.98 RegionDataSet owner 兜底收口<br/>非 legacy 缺 owner 抛校验错误<br/>仅明确旧战局保留 .allies 兼容 fallback<br/>不改 JSON schema / 动态权威"]:::work
+    V99SG["v3.7-preflight.99 场景语义与胜负门禁<br/>ScenarioSemantics 集中 legacy / wude618 / 草稿 / 自定义判断<br/>未知自定义不套 legacy 胜负 fallback"]:::work
+    V100ME["v3.7-preflight.100 MapEditor unit faction 导入诊断<br/>非法 unit faction 跳过并记录诊断<br/>不再静默兜底 .allies<br/>不改 JSON schema / 主游戏 DataLoader"]:::work
     CURRENT["当前运行时状态<br/>主游戏默认优先 wude_618<br/>失败 fallback Ardennes<br/>MapEditor 默认桥指向 wude_618"]:::state
     LATER["v3.7+<br/>忠诚 / 叛乱 / 安置等善后实际效果<br/>水战 / 渡河 / 港口补给规则<br/>真实模型接入、完整发布运行时重测"]:::work
     RULE["持续边界<br/>Command / ZoneDirective -> WarCommandExecutor -> RuleEngine<br/>hex 与动态映射仍是权威"]:::rules
 
     PROMPT --> AUDIT --> V31 --> V32 --> V33 --> V34 --> V35 --> V36 --> V37 --> V37S --> V37O --> V37W --> V37A --> V37F --> V37E --> V37R --> V37D --> V37G --> V37AG --> V37AD --> V37SE --> V37ST --> V37SP --> V37SH --> V37HA --> V37AH --> V37AF --> V37AP --> V37AGV --> V37AGS --> V37AUP --> V37AC --> V37RG --> V37GD --> V37DD --> V37ME --> V37MK --> V37SG --> V37LT --> V37DT --> V37DC --> V37AI --> V37BR --> V37ES --> V37UI --> V38UX
-    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> CURRENT
+    V38UX --> V39UX --> V40PF --> V41ME --> V42DN --> V43MS --> V44LG --> V45JD --> V46GP --> V47DE --> V48MF --> V49DX --> V50RP --> V51RI --> V52CE --> V53ZD --> V54LD --> V55UR --> V56SO --> V57LP --> V58DP --> V59EL --> V60ME --> V61AP --> V62LG --> V63PI --> V64PS --> V65PA --> V66MS --> V67PW --> V68MJ --> V69SH --> V70GC --> V71CM --> V72UT --> V73RI --> V74GP --> V75MA --> V76ME --> V77AC --> V78EL --> V79PA --> V80MF --> V81CR --> V82MT --> V83ST --> V84GP --> V85FJ --> V86SF --> V87SM --> V88OL --> V89RV --> V90VE --> V91CK --> V92PD --> V93CS --> V94CH --> V95DL --> V96PN --> V97TF --> V98RD --> V99SG --> V100ME --> CURRENT
     V37MK --> LATER
     RULE --> LATER
     RULE --> V31
@@ -241,6 +244,9 @@ flowchart TD
     RULE --> V95DL
     RULE --> V96PN
     RULE --> V97TF
+    RULE --> V98RD
+    RULE --> V99SG
+    RULE --> V100ME
 
     classDef doc fill:#fef3c7,stroke:#d97706,color:#1f1600
     classDef state fill:#ede9fe,stroke:#7c3aed,color:#1f143d
@@ -496,7 +502,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     START["触发 AI 行动<br/>AppContainer.advanceOrRunAI / runAIIfNeeded<br/>玩家点下一回合，或命令后轮到 AI"]:::input
-    CHECK{"当前阵营该由 AI 控制吗?<br/>德军 AI 阶段一定可跑；盟军只有观察者模式才跑"}:::decision
+    CHECK{"当前阵营该由 AI 控制吗?<br/>phase 按 activeFaction / playerFaction 规范化<br/>玩家势力仅观察者模式代跑，其他 AI 势力可自动行动"}:::decision
     STOP["不运行 AI<br/>等待玩家操作或阶段切换"]:::stop
     REFRESH["行动前刷新运行时战略层<br/>StrategicStateBootstrapper.refreshRuntimeState<br/>避免 AI 读到旧前线/旧部署"]:::rules
     TM["AI 回合编排器<br/>TurnManager.runAITurn<br/>默认 pipelineMode = marshalDirective"]:::rules
@@ -557,7 +563,7 @@ flowchart TD
     SCEN["场景 JSON<br/>ScenarioDefinition<br/>保存 hex、地点、目标、初始单位"]:::data
     REG["州郡 JSON<br/>RegionDataSet<br/>保存 hexToRegion、州郡、边、初始 theaterId"]:::data
     NEI["自动推导州郡邻接<br/>真实 hex 邻接 -> Region.neighbors / RegionEdge<br/>避免手写邻接出错"]:::derived
-    BRIDGE["默认资源桥<br/>MapEditorGameResourceBridge<br/>读取或覆盖项目默认地图资源"]:::loader
+    BRIDGE["默认资源桥<br/>MapEditorGameResourceBridge<br/>读取或覆盖项目默认地图资源<br/>坏 unit faction 诊断并跳过"]:::loader
     META["导出元数据保护<br/>MapEditorExportMetadata<br/>保留胜负/回合/势力/objective/dataNotes<br/>未知自定义文档走隋唐草稿<br/>明确 legacy / Ardennes / WWII / 阿登 / 旧战局才走阿登<br/>keyLocationsAreAuthoritative=false 时兜底地点"]:::loader
     FILES["项目默认数据文件<br/>WWIIHexV0/Data<br/>wude_618_scenario.json + wude_618_regions.json"]:::data
     LOAD["游戏启动加载<br/>DataLoader.loadGameState<br/>DEBUG 下优先读源码 JSON"]:::loader

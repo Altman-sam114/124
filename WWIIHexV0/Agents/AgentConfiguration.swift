@@ -117,22 +117,10 @@ extension GameAgent {
 
     private static func defaultCommandFaction(in state: GameState) -> Faction {
         let available = Set(state.divisions.filter { !$0.isDestroyed }.map(\.faction))
-        if !state.scenarioId.hasPrefix("wude_618"), available.contains(.germany) {
-            return .germany
-        }
-        if available.contains(state.playerFaction) {
-            return state.playerFaction
-        }
-        if let suitang = Faction.suitangTurnOrder.first(where: { available.contains($0) }) {
-            return suitang
-        }
-        if available.contains(.germany) {
-            return .germany
-        }
-        if available.contains(.allies) {
-            return .allies
-        }
-        return state.playerFaction
+        return ScenarioSemantics(scenarioId: state.scenarioId).preferredCommandFaction(
+            available: available,
+            playerFaction: state.playerFaction
+        )
     }
 
     private static func displayFactionName(_ faction: Faction) -> String {

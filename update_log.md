@@ -9,6 +9,135 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.100 - MapEditor 非法 unit faction 导入诊断收口
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在 ScenarioSemantics 与胜负 fallback 门禁收口之后，继续处理总提示词 §0.2 的 P3：`MapEditorGameResourceBridge.makeDocument` 导入默认游戏资源时，非法 `unit.faction` 会静默落到旧 `.allies`。
+
+核心更新：
+
+- `MapEditorGameResourceBridge` 新增 `MapEditorGameResourceImportDiagnostic` / `MapEditorGameResourceImportResult`，默认资源导入可携带诊断信息。
+- `MapEditorGameResourceBridge.makeDocument` 解析 `scenario.initialUnits` 时，无法识别的 unit faction 不再 fallback `.allies`，而是跳过该坏 unit 并记录具体 unit id 与原始势力值。
+- `MapEditorViewModel.loadDefaultGameResources()` 改用 `loadDefaultDocumentResult()`，在读取默认隋唐资源状态消息中展示跳过数量和原因。
+- 总提示词 §0.2 / §0.4 将 P3 标记为 v3.7-preflight.100 已收口，当前可执行队列不再保留 P3。
+- `md/flow/flow.md` 与 `md/flow/flowchart.md` 已同步 MapEditor 默认资源桥的导入诊断语义。
+
+关键文件：
+
+- `MapEditor/MapEditorGameResourceBridge.swift`
+- `MapEditor/MapEditorViewModel.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_unit_faction_import_diagnostic_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `update_log.md`
+
+轻量检查：
+
+- P3 聚焦扫描：`MapEditorGameResourceBridge.swift` 不再命中 `Faction(rawValue: unit.faction) ?? .allies`，新增 `MapEditorGameResourceImportDiagnostic`、`loadDefaultDocumentResult` 和“已跳过”状态消息命中。
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
+- 本轮未改 JSON、plist、scheme 或 workflow，未运行对应解析检查。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 未启动 MapEditor 读取默认隋唐资源或人工构造坏 unit faction JSON 做运行时导入复核。
+- Swift 单文件 parse 未执行成功，因为当前容器缺少 `swiftc`。
+- 本轮尚未 commit / push，云端 GitHub Actions 尚未触发。
+
+## v3.7-preflight.99 - 场景语义与胜负 fallback 门禁收口
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在 RegionDataSet owner/controller 兜底收口之后，继续处理总提示词 §0.2 的 P2-a / P2-b：非 `wude_618` 自定义场景默认 agent / player faction 仍可能按 legacy 势力推断，且非精确 `wude_618_guanzhong_luoyang` 场景仍会静默进入旧 Bastogne / St Vith 胜负 fallback。
+
+核心更新：
+
+- 新增共享 `ScenarioSemantics`，集中判断明确旧战局、明确 `wude_618`、隋唐草稿和未知自定义场景。
+- `DataLoader`、`GameState`、`AgentConfiguration` 和 `AppContainer` 复用 `ScenarioSemantics` 解析默认 phase、玩家势力、AI 势力、自动总管势力、可选势力和 region owner legacy fallback 判定。
+- `VictoryRules` / `RegionVictoryRules` 只有明确 `wude_618` 才走 `Wude618VictoryEvaluator`，只有明确旧战局才走 legacy fallback；隋唐草稿和未知自定义场景保持未决，不套旧目标点。
+- 并发子 Agent 已只读确认 P3 MapEditor 非法 unit faction fallback 仍存在，本轮未实现，保留为后续独立切片。
+
+关键文件：
+
+- `WWIIHexV0/Core/Faction.swift`
+- `WWIIHexV0/Data/DataLoader.swift`
+- `WWIIHexV0/Core/GameState.swift`
+- `WWIIHexV0/Agents/AgentConfiguration.swift`
+- `WWIIHexV0/App/AppContainer.swift`
+- `WWIIHexV0/Rules/VictoryRules.swift`
+- `WWIIHexV0/Rules/RegionVictoryRules.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_scenario_semantics_victory_gating_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `update_log.md`
+
+轻量检查：
+
+- P2-a 聚焦扫描：散落 `wude_618` / `ardennes` 默认势力判断已集中到 `ScenarioSemantics`，其余命中为函数名、JSON 字段或 helper 内部预期命中。
+- P2-b 聚焦扫描：legacy 胜负 fallback 入口已由 `ScenarioSemantics.isLegacy` gating，旧 Bastogne / St Vith 字面量仅保留在明确 legacy 私有路径和旧静态地图数据中。
+- `swiftc -parse ...`：未执行成功；当前容器缺少 `swiftc`，返回 `command not found`。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 未运行默认隋唐、旧阿登、隋唐草稿或未知自定义场景。
+- P3 MapEditor 非法 unit faction fallback 已确认仍存在，下一轮应单独修复 `MapEditorGameResourceBridge.makeDocument`。
+- 本轮未 commit / push，云端 GitHub Actions 未触发。
+
+## v3.7-preflight.98 - RegionDataSet owner/controller 兜底收口
+
+完成日期：2026-07-06
+
+性质：完整 v3.7 发布候选前置补洞。在动态方面推进势力兜底收口之后，继续处理总提示词 §0.2 的 P0 数据 fallback：`RegionDataSet.toRegions()` 的注释写着 owner/controller 为 null 可表达中立，但 `RegionNode.owner/controller` 实际是非 optional，旧实现会把任意缺省 region 静默兜底为 `.allies`。本轮只改 RegionDataSet 到 Core 的映射和 DataLoader 调用，不新增 neutral，不改 JSON schema，不处理 P2 场景语义 helper 或 P3 MapEditor unit faction fallback。
+
+核心更新：
+
+- `RegionDataSet.toRegions()` 改为 `throws`，非 legacy 数据缺少 owner 时抛出 `DataLoaderError.validationFailed`，错误包含具体州郡 id。
+- `controller` 仍按既有语义缺省回退 owner；owner 不再对任意数据静默回退旧 `.allies`。
+- 明确旧战局 RegionDataSet 判定：`scenarioId` / `displayName` 能识别为旧战局时，保留 `.allies` 兼容 fallback，避免破坏现有 legacy `ardennes_v02_regions.json`。
+- `DataLoader.validate(_ regionData:)` 与 `DataLoader.apply(_:to:)` 传播 RegionDataSet ownership 校验错误；`loadInitialGameState()` 的最末 legacy region 叠加只有在转换成功时挂载。
+- 总提示词 §0.2 / §0.4 将 P0 标记为 v3.7-preflight.98 已收口，后续队列保留 P2、P3 等独立切片。
+
+关键文件：
+
+- `WWIIHexV0/Data/RegionDataSet.swift`
+- `WWIIHexV0/Data/DataLoader.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_region_dataset_ownership_fallback_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `README.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
+- P0 ownership 聚焦扫描：`RegionOwnershipFallback`、`toRegions(ownershipFallback:)`、`validationFailed`、`.legacy(.allies)` 均有预期命中；legacy `.allies` 仅作为明确旧战局 fallback 入口保留。
+- 后续候选聚焦扫描：`MapEditorGameResourceBridge` 仍命中 `Faction(rawValue: unit.faction) ?? .allies`；`AgentConfiguration.defaultCommandFaction`、`VictoryRules.updateLegacyFallbackVictoryState`、`RegionVictoryRules.assessLegacyFallbackVictory` 仍命中，已在总提示词拆为 P2-a、P2-b、P3 后续切片。
+- 本轮改动文档尾随空白扫描：无命中。
+- 本轮改动文件行首冲突标记扫描：无命中。
+- `git diff --check`：通过，无输出。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮未运行默认隋唐数据、旧阿登 fallback 数据或故意缺 owner 的自定义 region JSON。
+- 单文件 Swift parse 是否可执行取决于当前容器是否存在 `swiftc`。
+- 并发源码扫描还指出 MapEditor 非法 unit faction fallback、非 `wude_618` 自定义场景默认势力推断和非 wude 胜负 fallback 等候选，后续应单独切片处理。
+
 ## v3.7-preflight.97 - 动态方面推进势力兜底收口
 
 完成日期：2026-07-06

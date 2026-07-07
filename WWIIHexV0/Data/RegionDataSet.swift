@@ -13,8 +13,22 @@ struct RegionDataSet: Codable, Equatable {
     let objectives: [RegionObjectiveDefinition]
 }
 
+enum RegionOwnershipFallback: Equatable {
+    case strict
+    case legacy(Faction)
+
+    var faction: Faction? {
+        switch self {
+        case .strict:
+            return nil
+        case .legacy(let faction):
+            return faction
+        }
+    }
+}
+
 /// JSON 中的省份定义。映射到 Core.RegionNode。
-/// controller 省略时回退 owner；owner/controller 为 null 时映射 nil（中立）。
+/// controller 省略时回退 owner；owner 不得省略，除非明确旧战局数据走 legacy 兼容兜底。
 struct RegionNodeDefinition: Codable, Equatable {
     let id: RegionId
     let name: String
@@ -264,16 +278,26 @@ struct RegionObjectiveDefinition: Codable, Equatable {
 // MARK: - RegionDataSet → Core 映射
 
 extension RegionDataSet {
-    /// 转 RegionNode 字典。controller 缺省回退 owner。
-    func toRegions() -> [RegionId: RegionNode] {
+    /// 转 RegionNode 字典。controller 缺省回退 owner；缺 owner 的非 legacy 数据会作为数据错误抛出。
+    func toRegions(ownershipFallback: RegionOwnershipFallback = .strict) throws -> [RegionId: RegionNode] {
         var result: [RegionId: RegionNode] = [:]
+        var errors: [DataValidationError] = []
+        let fallbackFaction = ownershipFallback.faction
         for def in regions {
-            let resolvedController = def.controller ?? def.owner
+            guard let owner = def.owner ?? fallbackFaction else {
+                errors.append(
+                    DataValidationError(
+                        message: "州郡 \(def.id.rawValue) 缺少 owner；当前 RegionNode 不能表达中立归属，请在数据中显式填写势力。"
+                    )
+                )
+                continue
+            }
+            let resolvedController = def.controller ?? def.owner ?? owner
             result[def.id] = RegionNode(
                 id: def.id,
                 name: def.name,
-                owner: def.owner ?? .allies,
-                controller: resolvedController ?? .allies,
+                owner: owner,
+                controller: resolvedController,
                 terrain: def.terrain,
                 neighbors: def.neighbors,
                 displayHexes: def.displayHexes,
@@ -287,6 +311,9 @@ extension RegionDataSet {
                 occupationState: def.occupationState?.toOccupationState(),
                 isPassable: def.isPassable
             )
+        }
+        if !errors.isEmpty {
+            throw DataLoaderError.validationFailed(errors)
         }
         return result
     }

@@ -36,8 +36,9 @@ struct DataLoader {
 
         // v0.2: 叠加省份数据。加载失败时 fallback 纯 hex（不破现有行为）。
         // 省份是战略层叠加，hex 仍是战术层权威；tiles/objectives/supplySources 不变。
-        if let regionData = try? loadArdennesV02Regions() {
-            state.map.regions = regionData.toRegions()
+        if let regionData = try? loadArdennesV02Regions(),
+           let regions = try? regionData.toRegions(ownershipFallback: .legacy(.allies)) {
+            state.map.regions = regions
             state.map.hexToRegion = regionData.toHexToRegion()
             state.map.regionEdges = regionData.toRegionEdges()
             // 反向填 HexTile.regionId，让 tile.regionId == hexToRegion[tile.coord]
@@ -110,7 +111,11 @@ struct DataLoader {
         let scenario = try loadScenarioDefinition(named: scenarioName)
         let regionData = try loadRegionDataSet(named: regionName)
         var map = try makeMapState(from: scenario)
-        try apply(regionData, to: &map)
+        try apply(
+            regionData,
+            to: &map,
+            ownershipFallback: regionOwnershipFallback(regionName: regionName, scenarioId: scenario.id)
+        )
         map = RegionOccupationRules().mapByAggregatingControllers(in: map)
         let divisions = try makeDivisions(
             from: scenario.initialUnits,
@@ -143,15 +148,16 @@ struct DataLoader {
             registry: (try? loadGeneralRegistry(named: generalRegistryName)) ?? .empty
         )
 
-        let initialPhase = initialPhase(for: scenario)
-        let initialActiveFaction = initialActiveFaction(for: scenario, phase: initialPhase)
+        let semantics = ScenarioSemantics(scenarioId: scenario.id)
+        let initialPhase = initialPhase(for: scenario, semantics: semantics)
+        let initialActiveFaction = initialActiveFaction(for: scenario, phase: initialPhase, semantics: semantics)
 
         return GameState(
             scenarioId: scenario.id,
             turn: turn,
             maxTurns: scenario.maxTurns,
             activeFaction: initialActiveFaction,
-            playerFaction: initialPlayerFaction(for: scenario),
+            playerFaction: initialPlayerFaction(for: scenario, semantics: semantics),
             phase: initialPhase,
             map: map,
             theaterState: theaterState,
@@ -172,31 +178,31 @@ struct DataLoader {
         )
     }
 
-    private func initialPhase(for scenario: ScenarioDefinition) -> GamePhase {
+    private func initialPhase(for scenario: ScenarioDefinition, semantics: ScenarioSemantics) -> GamePhase {
         if let phase = GamePhase(rawValue: scenario.initialPhase) {
             return phase
         }
-        return scenario.id.hasPrefix("ardennes") ? .alliedPlayer : .playerCommand
+        return semantics.defaultInitialPhase
     }
 
-    private func initialPlayerFaction(for scenario: ScenarioDefinition) -> Faction {
-        Faction(rawValue: scenario.playerFaction) ??
-            (scenario.id.hasPrefix("ardennes") ? .allies : .tang)
+    private func initialPlayerFaction(for scenario: ScenarioDefinition, semantics: ScenarioSemantics) -> Faction {
+        semantics.resolvedPlayerFaction(
+            rawValue: scenario.playerFaction,
+            scenarioFactions: scenario.factions
+        )
     }
 
-    private func initialActiveFaction(for scenario: ScenarioDefinition, phase: GamePhase) -> Faction {
-        switch phase {
-        case .alliedPlayer:
-            return Faction(rawValue: scenario.playerFaction) ?? .allies
-        case .germanAI:
-            return Faction(rawValue: scenario.aiFaction) ?? .germany
-        case .playerCommand:
-            return Faction(rawValue: scenario.playerFaction) ?? .tang
-        case .aiCommand:
-            return Faction(rawValue: scenario.aiFaction) ?? .luoyangSui
-        case .resolution:
-            return Faction(rawValue: scenario.playerFaction) ?? .tang
-        }
+    private func initialActiveFaction(
+        for scenario: ScenarioDefinition,
+        phase: GamePhase,
+        semantics: ScenarioSemantics
+    ) -> Faction {
+        semantics.resolvedActiveFaction(
+            phase: phase,
+            playerRawValue: scenario.playerFaction,
+            aiRawValue: scenario.aiFaction,
+            scenarioFactions: scenario.factions
+        )
     }
 
     func loadTerrainRules() throws -> TerrainRuleDefinition {
@@ -225,7 +231,7 @@ struct DataLoader {
     }
 
     func loadGeneralRegistry(for scenarioId: String) throws -> GeneralRegistry {
-        if scenarioId.hasPrefix("wude_618") {
+        if ScenarioSemantics(scenarioId: scenarioId).prefersSuitangAssets {
             return try loadGeneralRegistry(named: "suitang_generals")
         }
         return try loadGeneralRegistry()
@@ -239,8 +245,11 @@ struct DataLoader {
 
     /// v0.2: 校验省份数据集一致性。复用 RegionGraph.validate + hexToRegion/overlap 检查。
     /// 错误聚合为 DataLoaderError.validationFailed，便于 Agent 5 测试断言。
-    func validate(_ regionData: RegionDataSet) throws {
-        let regions = regionData.toRegions()
+    func validate(
+        _ regionData: RegionDataSet,
+        ownershipFallback: RegionOwnershipFallback = .strict
+    ) throws {
+        let regions = try regionData.toRegions(ownershipFallback: ownershipFallback)
         let hexToRegion = regionData.toHexToRegion()
         let regionEdges = regionData.toRegionEdges()
 
@@ -490,8 +499,12 @@ struct DataLoader {
         )
     }
 
-    private func apply(_ regionData: RegionDataSet, to map: inout MapState) throws {
-        map.regions = regionData.toRegions()
+    private func apply(
+        _ regionData: RegionDataSet,
+        to map: inout MapState,
+        ownershipFallback: RegionOwnershipFallback
+    ) throws {
+        map.regions = try regionData.toRegions(ownershipFallback: ownershipFallback)
         map.hexToRegion = regionData.toHexToRegion()
         map.regionEdges = regionData.toRegionEdges()
 
@@ -505,6 +518,13 @@ struct DataLoader {
         if !errors.isEmpty {
             throw DataLoaderError.validationFailed(errors)
         }
+    }
+
+    private func regionOwnershipFallback(regionName: String, scenarioId: String) -> RegionOwnershipFallback {
+        if regionName == "ardennes_v02_regions" || ScenarioSemantics(scenarioId: scenarioId).isLegacy {
+            return .legacy(.allies)
+        }
+        return .strict
     }
 
     private func assignGenerals(

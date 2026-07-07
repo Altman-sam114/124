@@ -48,9 +48,9 @@ MapEditor / JSON 数据
 
 迁移目标不是换皮，不是把 Germany 改成 Tang、Allies 改成 Sui，而是把现有引擎逐步迁移为一个可发布的 AI Agent 驱动隋末唐初历史策略游戏。
 
-### 0.1 当前交接状态（v3.7-preflight.97）
+### 0.1 当前交接状态（v3.7-preflight.100）
 
-截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.97`：
+截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.100`：
 
 - v3.1 已完成多势力兼容、通用阶段和外交关系入口。
 - v3.2 已接入默认 `wude_618_guanzhong_luoyang` 数据，主游戏和 MapEditor 默认桥优先隋唐路径，旧阿登路径仅作 fallback / 回归兼容。
@@ -59,18 +59,24 @@ MapEditor / JSON 数据
 - v3.5 已形成玩家军令、州郡、外交、战报的最小信息闭环。
 - v3.6 已接入 `SuitangDesignTokens`、地图最小历史视觉、粮道、围城、前线墨线和 AI 计划箭头。
 - v3.7-preflight 已连续补齐胜负、本地存档、引导/设置、外交/州郡命令、AI 太守/使者、归附交接、善后记录、MapEditor 隋唐桥和大量玩家可见 legacy 文案收口。
-- v3.7-preflight.89-.97 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，并让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力。
+- v3.7-preflight.89-.100 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力，让 `RegionDataSet.toRegions()` 不再把任意缺省 owner/controller 静默兜底到旧西路势力，用 `ScenarioSemantics` 收口默认场景语义与胜负 fallback 门禁，并让 MapEditor 导入坏 unit faction 时不再静默落到旧 `.allies`。
 
-后续 Agent 不能把下方 v3.0-v3.7 路线当作“尚未开始”的待办清单。它们是历史路线和架构合同；当前实际工作应优先从“v3.7+ 剩余风险与 v3.8+ 队列”中切片，并以当前源码和轻量检查结果为准。
+后续 Agent 不能把下方 v3.0-v3.7 路线当作“尚未开始”的待办清单。它们是历史路线和架构合同；当前实际工作应优先从“v3.7+ 剩余风险与 v3.8+ 队列”中切片，并以当前源码和轻量检查结果为准。若 `md/flow/*`、`update_log.md` 或阶段记录仍停留在更早口径，下一轮必须先把文档同步列为切片的一部分，不能让总提示词单独领先核心流程文档。
 
 ### 0.2 v3.7+ / v3.8+ 当前候选队列
 
-后续小步实现优先从以下队列切片，保持单轮文件范围清晰，禁止把多个高风险方向混在一轮。本队列不是全量待办；每轮只能选一项或一个明确子问题，先定位根因，再更新源码、文档和轻量检查记录。
+后续小步实现优先从以下队列切片，保持单轮文件范围清晰，禁止把多个高风险方向混在一轮。本队列不是全量待办；每轮只能选一项或一个明确子问题，先定位根因，再更新源码、文档和轻量检查记录。§5 只作历史架构合同，不是待办；Agent B 每轮只能从“当前可执行队列”或人工新目标中选择一个未关闭切片。已关闭 P 项不得重复实现，只能在运行时重测、云端失败或源码复扫重新命中时复查。
 
-- P0 数据 fallback：`WWIIHexV0/Data/RegionDataSet.swift` 的 null owner/controller 注释与实际 fallback 不一致，后续应避免把缺省州郡落回旧 `.allies`。
-- P1 动态战区推进 fallback：已由 v3.7-preflight.97 收口。`WWIIHexV0/Commands/WarCommandExecutor.swift` 现在优先按 advancing zone 推断推进势力，异常缺 zone 时回退实际行动军队，两者都缺失时跳过本次动态方面推进并记录原因，不再静默兜底旧东路势力。
-- P2 场景语义分类：非 `wude_618` 自定义场景的默认 agent / player faction 仍可能按 legacy 势力推断；后续宜抽出场景语义 helper，区分明确 legacy、明确隋唐和未知自定义。
-- P3 MapEditor 导入 fallback：MapEditor 非法 unit faction fallback 应避免从坏数据静默落到旧 `.allies`，优先显式诊断、保留错误或按场景 metadata 推断。
+已关闭风险：
+
+- P0 数据 fallback：已由 v3.7-preflight.98 收口。`WWIIHexV0/Data/RegionDataSet.swift` 的 `toRegions()` 现在会对非 legacy 数据缺 owner 抛出数据校验错误；只有明确旧战局 RegionDataSet 才保留 `.allies` 兼容 fallback。后续仅在运行时/云端验证中复查默认隋唐、旧战局和坏 region JSON 加载诊断。
+- P1 动态战区推进 fallback：已由 v3.7-preflight.97 收口。`WWIIHexV0/Commands/WarCommandExecutor.swift` 现在优先按 advancing zone 推断推进势力，异常缺 zone 时回退实际行动军队，两者都缺失时跳过本次动态方面推进并记录原因，不再静默兜底旧东路势力。后续仅在运行时/云端验证中复查 directive move、异常缺 zone 和旧阿登兼容路径。
+- P2-a 场景语义 helper：已由 v3.7-preflight.99 收口。`ScenarioSemantics` 集中判断明确 legacy、明确 `wude_618`、隋唐草稿和未知自定义场景；`DataLoader`、`GameState`、`AgentConfiguration` 和 `AppContainer` 复用该 helper，不再各自散落默认玩家 / AI / agent 势力推断。
+- P2-b 胜负 fallback gating：已由 v3.7-preflight.99 收口。`VictoryRules` / `RegionVictoryRules` 只有明确旧战局才走 legacy Bastogne / St Vith fallback，隋唐草稿和未知自定义场景保持未决，不静默套用旧胜负规则。
+- P3 MapEditor 导入 fallback：已由 v3.7-preflight.100 收口。`MapEditorGameResourceBridge.makeDocument` 解析默认游戏资源时，非法 unit faction 不再静默落到旧 `.allies`；导入会跳过坏 unit，生成 `MapEditorGameResourceImportDiagnostic`，并由 `MapEditorViewModel` 在读取默认资源状态消息中说明跳过原因。
+
+当前可执行队列：
+
 - 正式地图资产、图标资产和运行时截图复核：首屏必须是可玩地图，不是说明页或营销页。
 - 忠诚、叛乱、贡赋、俘虏、安置等归附善后实际规则。
 - 水战、渡河、港口补给与粮道扩展规则。
@@ -106,10 +112,11 @@ MapEditor / JSON 数据
 
 这些建议只用于下一轮拆任务，不替代源码审计。每轮仍要重新确认命中和风险。
 
-- P0 `RegionDataSet.toRegions()`：只处理 null owner/controller fallback。先确认 `RegionNode.owner/controller` 是否支持中立语义；不得一轮内新增 `.neutral` 或扩大 JSON schema。若当前结构不能表达 nil / 中立，应改为显式诊断、校验失败或按场景 metadata 推断，不能静默落到旧 `.allies`。
+- P0 `RegionDataSet.toRegions()`：已由 v3.7-preflight.98 收口。后续只需在运行时重测中关注默认隋唐 region 数据、旧战局 fallback 数据和自定义坏 region JSON 的加载诊断。
 - P1 `WarCommandExecutor.applyStrategicAdvance`：已由 v3.7-preflight.97 收口。后续只需在运行时重测中关注 directive move 推进、异常缺 zone 场景和旧阿登兼容路径。
-- P2 场景语义 helper：先抽 `ScenarioSemantics` 或同等 helper，区分明确 legacy、明确隋唐和未知自定义。首轮只替换 `AgentConfiguration.defaultCommandFaction`、`GameState` 默认执掌势力、`DataLoader` 已有 id-prefix 分支等低风险入口；不要混入 MapEditor unit import 或 theater 推进。
-- P3 MapEditor 非法 unit faction：只处理 `MapEditorGameResourceBridge` 导入坏 unit faction 的 fallback。不要把坏数据静默转 `.allies`；应记录诊断、跳过坏 unit 或按导入 scenario metadata 推断。若依赖 P2 helper，先写明依赖关系。
+- P2-a `ScenarioSemantics` 最小切片：已由 v3.7-preflight.99 收口。后续只需在运行时重测中关注默认隋唐、明确旧战局、隋唐草稿和未知自定义场景的默认 phase / player faction / agent faction。
+- P2-b 胜负 fallback gating 最小切片：已由 v3.7-preflight.99 收口。后续只需在运行时重测中关注明确旧战局胜负仍兼容、隋唐正式剧本仍走 `Wude618VictoryEvaluator`、未知自定义保持未决。
+- P3 MapEditor 非法 unit faction 最小切片：已由 v3.7-preflight.100 收口。后续只需在 MapEditor 导入重测中关注默认隋唐资源是否无诊断读取、坏 unit faction 是否被跳过并在状态消息中说明原因。
 
 ### 0.5 总提示词维护与冻结标准
 
@@ -460,7 +467,7 @@ rg -n "enum Faction|enum GamePhase|struct Division|enum ComponentType|EconomyRes
 
 ## 5. 版本路线
 
-本节是历史归档和架构合同，不是 Agent B 的默认实现任务清单。v3.0-v3.7 已经是完成过的历史路线；其中的“目标 / 推荐文件 / 验收”用于理解当时设计边界，不代表当前应重做。当前仓库规则以 `AGENTS.md` 为准：默认在 `main` 上小步提交和云端验证，不再按下面的历史阶段标签新建工作分支，除非人工明确授权。后续 Agent 应从 §0.2 的当前队列或人工新目标切片，不得回到 v3.0-v3.7 重做已完成路线。
+本节是历史归档和架构合同，不是 Agent B 的默认实现任务清单。v3.0-v3.7 已经是完成过的历史路线；其中的“目标 / 推荐文件 / 验收”用于理解当时设计边界，不代表当前应重做。当前仓库规则以 `AGENTS.md` 为准：默认在 `main` 上小步提交和云端验证，不再按下面的历史阶段标签新建工作分支，除非人工明确授权。后续 Agent 应从 §0.2 的当前队列或人工新目标切片，不得回到 v3.0-v3.7 重做已完成路线。除非人工明确指定历史补录，不要阅读本节后直接实现其中目标；当前执行入口只有 §0.2 / §0.4 或人工新目标。
 
 ### v3.0：迁移审计、兼容层和题材合同
 
@@ -1044,7 +1051,7 @@ GitHub Actions 结果包核对不是可选发布功能：凡 Agent B push `main`
 
 执行任何版本前必须读 `md/test/test.md`。当前默认只允许轻量检查。
 
-通用允许项；以下是本阶段建议的轻量文本检查模板，若与 `md/test/test.md` 冲突，以 `md/test/test.md` 为准：
+通用允许项；以下是本阶段建议的轻量文本检查模板，若与 `md/test/test.md` 冲突，以 `md/test/test.md` 为准。轻量检查优先针对本轮改动文件执行；只有文档同步、并发整合或冲突扫描需要时，才扩大到相关目录。禁止用本机 Xcode/build/test 替代云端验证。
 
 ```sh
 rg -n "[[:blank:]]+$" AGENTS.md README.md update_log.md md/test/test.md md/flow/flow.md md/flow/flowchart.md md/prompt/v3.0-隋唐迁移

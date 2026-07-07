@@ -197,10 +197,7 @@ struct GameState: Codable, Equatable {
     }
 
     private static func defaultPlayerFaction(scenarioId: String, activeFaction: Faction) -> Faction {
-        if activeFaction.usesDefaultHumanControl {
-            return activeFaction
-        }
-        return scenarioId.hasPrefix("wude_618") ? .tang : .allies
+        ScenarioSemantics(scenarioId: scenarioId).playerFactionForMissingSave(activeFaction: activeFaction)
     }
 
     func division(id: String) -> Division? {

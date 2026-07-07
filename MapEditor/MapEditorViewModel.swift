@@ -380,13 +380,14 @@ final class MapEditorViewModel: ObservableObject {
 
     func loadDefaultGameResources() {
         do {
-            document = try MapEditorGameResourceBridge.loadDefaultDocument()
+            let importResult = try MapEditorGameResourceBridge.loadDefaultDocumentResult()
+            document = importResult.document
             selectedRegionId = document.regions.keys.sorted { $0.rawValue < $1.rawValue }.first
             selectedTheaterId = document.theaters.keys.sorted { $0.rawValue < $1.rawValue }.first
             clearInspection()
             syncBackgroundControlsFromDocument()
             lastErrorMessage = nil
-            lastStatusMessage = "已读取默认隋唐游戏资源。"
+            lastStatusMessage = importResult.statusMessage(successMessage: "已读取默认隋唐游戏资源。")
             markChanged()
         } catch {
             lastErrorMessage = displayMessage(for: error)

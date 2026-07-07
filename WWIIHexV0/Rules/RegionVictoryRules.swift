@@ -4,11 +4,16 @@ typealias RegionVictoryAssessment = VictoryAssessment
 
 struct RegionVictoryRules {
     func assessVictory(in state: GameState) -> RegionVictoryAssessment {
-        if state.scenarioId == Wude618VictoryEvaluator.scenarioId {
+        let semantics = ScenarioSemantics(scenarioId: state.scenarioId)
+        if semantics.family == .wude618 {
             return Wude618VictoryEvaluator.assess(in: state)
         }
 
-        return assessLegacyFallbackVictory(in: state)
+        if semantics.isLegacy {
+            return assessLegacyFallbackVictory(in: state)
+        }
+
+        return .ongoing
     }
 
     private func assessLegacyFallbackVictory(in state: GameState) -> RegionVictoryAssessment {

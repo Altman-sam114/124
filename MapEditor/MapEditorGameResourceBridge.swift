@@ -14,6 +14,24 @@ enum MapEditorGameResourceBridgeError: Error, CustomStringConvertible {
     }
 }
 
+struct MapEditorGameResourceImportDiagnostic: Equatable {
+    let message: String
+}
+
+struct MapEditorGameResourceImportResult: Equatable {
+    let document: MapEditorDocument
+    let diagnostics: [MapEditorGameResourceImportDiagnostic]
+
+    func statusMessage(successMessage: String) -> String {
+        guard !diagnostics.isEmpty else {
+            return successMessage
+        }
+        let summary = diagnostics.prefix(3).map(\.message).joined(separator: "；")
+        let suffix = diagnostics.count > 3 ? "；另有 \(diagnostics.count - 3) 项导入诊断。" : ""
+        return "\(successMessage) 已跳过 \(diagnostics.count) 项异常资料：\(summary)\(suffix)"
+    }
+}
+
 enum MapEditorGameResourceBridge {
     static let scenarioResourceName = "wude_618_scenario"
     static let regionResourceName = "wude_618_regions"
@@ -27,6 +45,10 @@ enum MapEditorGameResourceBridge {
     }
 
     static func loadDefaultDocument() throws -> MapEditorDocument {
+        try loadDefaultDocumentResult().document
+    }
+
+    static func loadDefaultDocumentResult() throws -> MapEditorGameResourceImportResult {
         let scenarioURL = gameDataDirectory.appending(path: scenarioResourceName).appendingPathExtension("json")
         let regionURL = gameDataDirectory.appending(path: regionResourceName).appendingPathExtension("json")
         guard FileManager.default.fileExists(atPath: scenarioURL.path) else {
@@ -71,9 +93,10 @@ enum MapEditorGameResourceBridge {
     private static func makeDocument(
         scenario: ScenarioDefinition,
         regionData: RegionDataSet
-    ) throws -> MapEditorDocument {
+    ) throws -> MapEditorGameResourceImportResult {
         let regionMapping = regionData.toHexToRegion()
         var hexes: [HexCoord: MapEditorHex] = [:]
+        var diagnostics: [MapEditorGameResourceImportDiagnostic] = []
         for tile in scenario.map.tiles {
             let coord = HexCoord(q: tile.q, r: tile.r)
             guard let terrain = BaseTerrain(rawValue: tile.terrain) else {
@@ -115,18 +138,29 @@ enum MapEditorGameResourceBridge {
         let theaters = Dictionary(uniqueKeysWithValues: Set(regionTheaterAssignments.values).map { theaterId in
             (theaterId, MapEditorTheaterDraft(id: theaterId))
         })
-        let units = scenario.initialUnits.map { unit in
-            MapEditorUnitDraft(
-                id: unit.id,
-                name: unit.name,
-                faction: Faction(rawValue: unit.faction) ?? .allies,
-                templateId: unit.templateId,
-                coord: HexCoord(q: unit.coord.q, r: unit.coord.r),
-                facing: HexDirection(rawValue: unit.facing) ?? .west,
-                hp: unit.hp,
-                retreatMode: unit.retreatMode.flatMap(RetreatMode.init(rawValue:)) ?? .retreatable,
-                supplyState: SupplyState(rawValue: unit.supplyState) ?? .supplied,
-                assignedAgentId: unit.assignedAgentId
+        var units: [MapEditorUnitDraft] = []
+        for unit in scenario.initialUnits {
+            guard let faction = Faction(rawValue: unit.faction) else {
+                diagnostics.append(
+                    MapEditorGameResourceImportDiagnostic(
+                        message: "军队 \(unit.id) 的势力值 \(unit.faction) 无法识别。"
+                    )
+                )
+                continue
+            }
+            units.append(
+                MapEditorUnitDraft(
+                    id: unit.id,
+                    name: unit.name,
+                    faction: faction,
+                    templateId: unit.templateId,
+                    coord: HexCoord(q: unit.coord.q, r: unit.coord.r),
+                    facing: HexDirection(rawValue: unit.facing) ?? .west,
+                    hp: unit.hp,
+                    retreatMode: unit.retreatMode.flatMap(RetreatMode.init(rawValue:)) ?? .retreatable,
+                    supplyState: SupplyState(rawValue: unit.supplyState) ?? .supplied,
+                    assignedAgentId: unit.assignedAgentId
+                )
             )
         }
         let keyLocations = scenario.keyLocations.map { location in
@@ -140,18 +174,21 @@ enum MapEditorGameResourceBridge {
             )
         }
 
-        return MapEditorDocument(
-            id: scenario.id,
-            displayName: scenario.displayName,
-            width: scenario.map.width,
-            height: scenario.map.height,
-            hexes: hexes,
-            regions: regions,
-            theaters: theaters,
-            regionTheaterAssignments: regionTheaterAssignments,
-            initialUnits: units,
-            keyLocations: keyLocations,
-            keyLocationsAreAuthoritative: true
+        return MapEditorGameResourceImportResult(
+            document: MapEditorDocument(
+                id: scenario.id,
+                displayName: scenario.displayName,
+                width: scenario.map.width,
+                height: scenario.map.height,
+                hexes: hexes,
+                regions: regions,
+                theaters: theaters,
+                regionTheaterAssignments: regionTheaterAssignments,
+                initialUnits: units,
+                keyLocations: keyLocations,
+                keyLocationsAreAuthoritative: true
+            ),
+            diagnostics: diagnostics
         )
     }
 }
