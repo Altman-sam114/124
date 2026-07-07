@@ -19,6 +19,7 @@ enum CommandValidationError: String, Codable, Equatable {
     case invalidDiplomaticTarget
     case submissionNotAccepted
     case noSubmissionPresence
+    case waterCrossingBlocked
 
     var displayName: String {
         switch self {
@@ -58,6 +59,8 @@ enum CommandValidationError: String, Codable, Equatable {
             return "尚未形成可交接归附关系"
         case .noSubmissionPresence:
             return "归附目标没有可交接实体"
+        case .waterCrossingBlocked:
+            return "缺少己控水路通行点"
         }
     }
 }

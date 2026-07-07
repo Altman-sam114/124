@@ -109,8 +109,8 @@ struct MockAIClient: DecisionProvider {
                         type: .resupply,
                         divisionId: division.id,
                         toRegionId: division.regionId,
-                        stance: "前线整补",
-                        reason: "行军部署：军队补给状态为\(division.supplyState.displayName)，先整军再投入前线行动。"
+                        stance: "接敌整补",
+                        reason: "行军部署：军队补给状态为\(division.supplyState.displayName)，先整军再投入接敌行动。"
                     )
                 )
                 usedDivisionIds.insert(division.id)
@@ -131,8 +131,8 @@ struct MockAIClient: DecisionProvider {
                                 type: .attack,
                                 divisionId: unitId,
                                 targetDivisionId: target.id,
-                                stance: segment.isEncircled ? "收紧包围" : "前线进攻",
-                                reason: "行军部署：前线军队在所属地段发起进攻。"
+                                stance: segment.isEncircled ? "收紧包围" : "接敌进攻",
+                                reason: "行军部署：接敌军队在所属地段发起进攻。"
                             )
                         )
                     } else {
@@ -141,8 +141,8 @@ struct MockAIClient: DecisionProvider {
                                 type: .hold,
                                 divisionId: unitId,
                                 toRegionId: division.regionId,
-                                stance: segment.isEncircled ? "围堵敌军" : "固守前线",
-                                reason: "行军部署：前线军队固守所属地段。"
+                                stance: segment.isEncircled ? "围堵敌军" : "固守接敌处",
+                                reason: "行军部署：接敌军队固守所属地段。"
                             )
                         )
                     }
@@ -168,7 +168,7 @@ struct MockAIClient: DecisionProvider {
                             divisionId: unitId,
                             toRegionId: targetRegion,
                             stance: "纵深驰援",
-                            reason: "行军部署：纵深预备军驰援最近前线地段。"
+                            reason: "行军部署：纵深预备军驰援最近接触地段。"
                         )
                     )
                 } else {
@@ -178,7 +178,7 @@ struct MockAIClient: DecisionProvider {
                             divisionId: unitId,
                             toRegionId: division.regionId,
                             stance: "纵深待命",
-                            reason: "行军部署：纵深预备军暂无相邻安全前线目标，继续待命。"
+                            reason: "行军部署：纵深预备军暂无相邻安全接触目标，继续待命。"
                         )
                     )
                 }
@@ -210,7 +210,7 @@ struct MockAIClient: DecisionProvider {
                   let regionId = division.regionId else {
                 continue
             }
-            let stance = frontRegionIds.contains(regionId) ? "前线待命" : "战役预备"
+            let stance = frontRegionIds.contains(regionId) ? "接敌待命" : "战役预备"
             orders.append(
                 AgentOrder(
                     type: .hold,
@@ -227,7 +227,7 @@ struct MockAIClient: DecisionProvider {
             schemaVersion: 2,
             agentId: context.agentId,
             turn: context.turn,
-            intent: "按行军防区部署：前线军队固守或进攻，纵深预备军驰援，驻防军队留守。",
+            intent: "按行军防区部署：接敌军队固守或进攻，纵深预备军驰援，驻防军队留守。",
             orders: orders
         )
     }

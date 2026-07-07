@@ -13,7 +13,7 @@ struct ReleaseChecklistView: View {
         "本地存档读取、保存和删除反馈可查看",
         "长安、洛阳、洛口仓、潼关胜负条件已生效",
         "玩家军令、州郡、外交、战报和朝堂记录已有中文闭环",
-        "渡口、港口、军议箭头和前线墨线已有最小地图显示",
+        "渡口、港口、军议箭头和接触墨线已有最小地图显示",
         "外交议和和纳降已进入统一战局判定",
         "州郡修道、屯田、安民已进入统一战局判定",
         "太守会在自动回合最多执行一条州郡经营命令",
@@ -56,9 +56,9 @@ struct ReleaseChecklistView: View {
     ]
 
     private let assetBoundaries = [
-        "当前城池、关隘、粮仓、渡口、港口和前线标识均为临时绘制或根据局势生成",
+        "当前城池、关隘、粮仓、渡口、港口和接触态势标识均为临时绘制或根据局势生成",
         "不引入版权不明外部素材；后续画面稳定后再替换正式资产",
-        "水路标识、军议箭头和前线墨线仅作地图提示，不改变移动、补给或战斗判定"
+        "水路标识、军议箭头和接触墨线仅作地图提示，不改变移动、补给或战斗判定"
     ]
 
     var body: some View {
@@ -221,7 +221,7 @@ struct ReleaseChecklistView: View {
             ("胜负状态", victorySnapshotTitle),
             ("地图数据", "\(gameState.map.tiles.count) 地块 · \(gameState.map.regions.count) 州郡 · \(gameState.map.regionEdges.count) 邻接"),
             ("地点数据", "\(gameState.map.objectives.count) 目标 · \(gameState.map.featureMarkers.count) 地点 · \(gameState.map.supplySources.count) 补给源"),
-            ("军队与战线", "\(gameState.divisions.count) 军队 · \(gameState.frontLineState.frontLines.count) 前线"),
+            ("军队与接触态势", "\(gameState.divisions.count) 军队 · \(gameState.frontLineState.frontLines.count) 接触处"),
             ("方面与防区", "\(gameState.theaterState.theaters.count) 方面 · \(gameState.warDeploymentState.frontZones.count) 防区"),
             ("外交档案", "\(gameState.diplomacyState.countries.count) 国家 · \(gameState.diplomacyState.relations.count) 关系"),
             ("军情记录", "\(gameState.warDirectiveRecords.count) 军令 · \(gameState.diplomacyState.courtRecords.count) 朝堂 · \(gameState.diplomacyState.diplomacyEventRecords.count) 外交"),

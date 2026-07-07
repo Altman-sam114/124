@@ -78,6 +78,10 @@ struct CommandValidator {
             return .invalid(.targetOutOfRange)
         }
 
+        guard canAttackAcrossWaterIfNeeded(attacker: attacker, target: target, in: state) else {
+            return .invalid(.waterCrossingBlocked)
+        }
+
         return .valid
     }
 
@@ -123,6 +127,34 @@ struct CommandValidator {
         }
 
         return .valid
+    }
+
+    private func canAttackAcrossWaterIfNeeded(attacker: Division, target: Division, in state: GameState) -> Bool {
+        guard !attacker.hasRangedSupport,
+              attacker.coord.distance(to: target.coord) == 1,
+              let direction = attacker.coord.direction(to: target.coord),
+              let attackerTile = state.map.tile(at: attacker.coord),
+              let targetTile = state.map.tile(at: target.coord),
+              movementRules.hasRiverCrossing(from: attackerTile, to: targetTile, direction: direction) else {
+            return true
+        }
+
+        if attacker.components.contains(where: { $0.type == .naval && $0.weight > 0 }) {
+            return true
+        }
+
+        return hasControlledWaterTransit(at: attacker.coord, for: attacker.faction, in: state) ||
+            hasControlledWaterTransit(at: target.coord, for: attacker.faction, in: state)
+    }
+
+    private func hasControlledWaterTransit(at coord: HexCoord, for faction: Faction, in state: GameState) -> Bool {
+        guard state.map.tile(at: coord)?.controller == faction else {
+            return false
+        }
+
+        return state.map.featureMarkers.contains { marker in
+            marker.coord == coord && marker.kind.isWaterTransit
+        }
     }
 
     private func validateEndTurn(in state: GameState) -> CommandValidation {

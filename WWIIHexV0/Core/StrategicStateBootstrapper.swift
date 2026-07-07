@@ -41,7 +41,7 @@ struct StrategicStateBootstrapper {
                 turn: next.turn
             )
             next.appendEvent(
-                "前线态势已按方面接触初始化。",
+                "接触态势已按方面接触初始化。",
                 category: .frontChange,
                 relatedRecordId: nil
             )

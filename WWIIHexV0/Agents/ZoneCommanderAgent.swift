@@ -931,7 +931,7 @@ struct MarshalAgentConfig: Codable, Equatable, Identifiable {
                 id: "strategist_legacy_secondary",
                 name: "旧剧本势力行军总管",
                 faction: .allies,
-                personality: "善于协调防线的行军总管，偏好稳定前线、保留预备队，并组织有限反击。",
+                personality: "善于协调防务的行军总管，偏好稳定接触态势、保留预备队，并组织有限反击。",
                 strategicBias: .balanced,
                 theaterGroupZoneIds: zoneIds
             )
@@ -976,7 +976,7 @@ struct MarshalAgentConfig: Codable, Equatable, Identifiable {
                 id: "strategist_\(faction.rawValue)",
                 name: "\(faction.displayName)总管",
                 faction: faction,
-                personality: "施压型边地统帅，偏好袭扰、有限进攻，并利用敌方薄弱前线。",
+                personality: "施压型边地统帅，偏好袭扰、有限进攻，并利用敌方薄弱接触地段。",
                 strategicBias: .offensive,
                 theaterGroupZoneIds: zoneIds
             )
@@ -1332,7 +1332,7 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
                 supportRegionIds: front.enemyRegionIds,
                 reserveBias: max(1, min(3, front.depthUnitCount)),
                 maxCommittedUnits: front.frontUnitCount,
-                rationale: "模拟军议：因前线态势为\(frontStatusDisplayName(front.status))，选用\(tactic.displayName)。"
+                rationale: "模拟军议：因战区态势为\(frontStatusDisplayName(front.status))，选用\(tactic.displayName)。"
             )
         }
 
@@ -1342,7 +1342,7 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
             faction: summary.faction,
             strategicIntent: strategicIntent(summary: summary, bias: config.strategicBias),
             directives: directives,
-            summary: "\(summary.marshalName)：根据前线汇总生成 \(directives.count) 条方面军令。"
+            summary: "\(summary.marshalName)：根据战场态势汇总生成 \(directives.count) 条方面军令。"
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -1428,9 +1428,9 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
         case .offensive:
             return "集中优势方面主动进取，受压方面以少量预备稳住阵脚。"
         case .balanced:
-            return "保持前线稳定，只在汇总战机足够明确处投入攻势。"
+            return "保持接触态势稳定，只在汇总战机足够明确处投入攻势。"
         case .defensive:
-            return "先稳住受威胁前线，保留预备队等待反击机会。"
+            return "先稳住受威胁接触地段，保留预备队等待反击机会。"
         }
     }
 
@@ -1447,7 +1447,7 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
         case "stable_contact":
             return "接触稳定"
         default:
-            return "前线待判"
+            return "态势待判"
         }
     }
 }

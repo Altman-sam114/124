@@ -1245,12 +1245,12 @@ struct WarCommandExecutor {
         let theaterName = displayTheaterName(state.theaterState.theaters[advancingTheaterId]?.name)
         let regionName = state.map.region(id: regionId)?.name ?? "相关州郡"
         state.appendEvent(
-            "\(regionName) 前沿地块已纳入 \(theaterName) 推进范围。",
+            "\(regionName) 接触地段已纳入 \(theaterName) 推进范围。",
             category: .theaterChange,
             relatedRecordId: relatedRecordId
         )
         state.appendEvent(
-            "\(regionName) 周边前线已更新。",
+            "\(regionName) 周边接触态势已更新。",
             category: .frontChange,
             relatedRecordId: relatedRecordId
         )

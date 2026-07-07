@@ -222,8 +222,115 @@ struct SubmissionAftermathRecord: Identifiable, Codable, Equatable {
     let transferredDivisionCount: Int
     let transferredHexCount: Int
     let affectedRegionIds: [RegionId]
+    let loyaltyPressure: SubmissionAftermathRiskLevel
+    let rebellionRisk: SubmissionAftermathRiskLevel
+    let captiveReviewDivisionCount: Int
+    let settlementRegionIds: [RegionId]
     let summary: String
     let boundaryNote: String
+
+    init(
+        id: String,
+        turn: Int,
+        submitted: Faction,
+        recipient: Faction,
+        linkedHandoffRecordId: String,
+        riskLevel: SubmissionAftermathRiskLevel,
+        transferredDivisionCount: Int,
+        transferredHexCount: Int,
+        affectedRegionIds: [RegionId],
+        loyaltyPressure: SubmissionAftermathRiskLevel? = nil,
+        rebellionRisk: SubmissionAftermathRiskLevel? = nil,
+        captiveReviewDivisionCount: Int? = nil,
+        settlementRegionIds: [RegionId]? = nil,
+        summary: String,
+        boundaryNote: String
+    ) {
+        let sortedRegionIds = affectedRegionIds.sorted { $0.rawValue < $1.rawValue }
+        self.id = id
+        self.turn = turn
+        self.submitted = submitted
+        self.recipient = recipient
+        self.linkedHandoffRecordId = linkedHandoffRecordId
+        self.riskLevel = riskLevel
+        self.transferredDivisionCount = max(0, transferredDivisionCount)
+        self.transferredHexCount = max(0, transferredHexCount)
+        self.affectedRegionIds = sortedRegionIds
+        self.loyaltyPressure = loyaltyPressure ?? riskLevel
+        self.rebellionRisk = rebellionRisk ?? Self.defaultRebellionRisk(
+            riskLevel: riskLevel,
+            affectedRegionCount: sortedRegionIds.count
+        )
+        self.captiveReviewDivisionCount = max(0, captiveReviewDivisionCount ?? transferredDivisionCount)
+        self.settlementRegionIds = (settlementRegionIds ?? sortedRegionIds).sorted { $0.rawValue < $1.rawValue }
+        self.summary = summary
+        self.boundaryNote = boundaryNote
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case turn
+        case submitted
+        case recipient
+        case linkedHandoffRecordId
+        case riskLevel
+        case transferredDivisionCount
+        case transferredHexCount
+        case affectedRegionIds
+        case loyaltyPressure
+        case rebellionRisk
+        case captiveReviewDivisionCount
+        case settlementRegionIds
+        case summary
+        case boundaryNote
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let riskLevel = try container.decode(SubmissionAftermathRiskLevel.self, forKey: .riskLevel)
+        let transferredDivisionCount = try container.decode(Int.self, forKey: .transferredDivisionCount)
+        let affectedRegionIds = try container.decode([RegionId].self, forKey: .affectedRegionIds)
+
+        self.init(
+            id: try container.decode(String.self, forKey: .id),
+            turn: try container.decode(Int.self, forKey: .turn),
+            submitted: try container.decode(Faction.self, forKey: .submitted),
+            recipient: try container.decode(Faction.self, forKey: .recipient),
+            linkedHandoffRecordId: try container.decode(String.self, forKey: .linkedHandoffRecordId),
+            riskLevel: riskLevel,
+            transferredDivisionCount: transferredDivisionCount,
+            transferredHexCount: try container.decode(Int.self, forKey: .transferredHexCount),
+            affectedRegionIds: affectedRegionIds,
+            loyaltyPressure: try container.decodeIfPresent(
+                SubmissionAftermathRiskLevel.self,
+                forKey: .loyaltyPressure
+            ),
+            rebellionRisk: try container.decodeIfPresent(
+                SubmissionAftermathRiskLevel.self,
+                forKey: .rebellionRisk
+            ),
+            captiveReviewDivisionCount: try container.decodeIfPresent(
+                Int.self,
+                forKey: .captiveReviewDivisionCount
+            ),
+            settlementRegionIds: try container.decodeIfPresent(
+                [RegionId].self,
+                forKey: .settlementRegionIds
+            ),
+            summary: try container.decode(String.self, forKey: .summary),
+            boundaryNote: try container.decode(String.self, forKey: .boundaryNote)
+        )
+    }
+
+    private static func defaultRebellionRisk(
+        riskLevel: SubmissionAftermathRiskLevel,
+        affectedRegionCount: Int
+    ) -> SubmissionAftermathRiskLevel {
+        guard affectedRegionCount > 0 else {
+            return .low
+        }
+        return riskLevel
+    }
 }
 
 struct SubmissionAftermathGovernanceRecord: Identifiable, Codable, Equatable {
@@ -253,7 +360,7 @@ enum RulerStrategicPosture: String, Codable, Equatable, CaseIterable {
         case .coalitionMaintenance:
             return "维系盟从"
         case .stabilizeFront:
-            return "稳固战线"
+            return "稳固边境"
         }
     }
 }
@@ -1007,7 +1114,7 @@ struct DiplomacyState: Codable, Equatable {
     private func diplomacyEventBoundaryNote(status: DiplomaticStatus) -> String {
         switch status {
         case .submitted:
-            return "归附事件当前只记录关系结果，不转移地块、州郡、军队、当前方面、前线或部署归属。"
+            return "归附事件当前只记录关系结果，不转移地块、州郡、军队、当前方面、接触态势或部署归属。"
         case .truce:
             return "停战事件当前只记录关系结果，不撤销已存在的战术占领或军队位置。"
         default:

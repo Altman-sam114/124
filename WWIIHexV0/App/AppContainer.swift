@@ -292,7 +292,7 @@ final class AppContainer: ObservableObject {
 
     func orderSelectedGeneralAttackRegion() {
         guard let target = selectedAttackTarget else {
-            appendInteractionEvent("总管军令被拒绝：请选择敌方前线州郡。")
+            appendInteractionEvent("总管军令被拒绝：请选择敌方接触州郡。")
             return
         }
         guard let zone = selectedGeneralCommandZone else {

@@ -233,7 +233,7 @@ struct RulerAgent {
         case .coalitionMaintenance:
             return "君主要求维系盟从与预备兵力，当前活跃防区 \(snapshot.frontZoneCount) 处。"
         case .stabilizeFront:
-            return "君主要求先稳住前沿争夺，避免军势过伸。"
+            return "君主要求先稳住边境争夺，避免军势过伸。"
         }
     }
 
@@ -339,7 +339,7 @@ struct CourtAgent {
                 id: "court_\(state.turn)_\(faction.rawValue)_strategist",
                 role: .strategist,
                 agentId: strategistAgentId,
-                summary: theaterEnvelope?.strategicIntent ?? envelope.theaterContext ?? "按当前前线生成方面目标",
+                summary: theaterEnvelope?.strategicIntent ?? envelope.theaterContext ?? "按当前战场态势生成方面目标",
                 targetZoneIds: targetZoneIds,
                 targetRegionIds: targetRegionIds,
                 directiveCount: envelope.directives.count,

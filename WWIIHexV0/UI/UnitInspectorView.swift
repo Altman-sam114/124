@@ -55,7 +55,7 @@ struct UnitInspectorView: View {
                     Text(strategicState.deploymentRole.displayName)
                 }
 
-                LabeledContent("前线") {
+                LabeledContent("接敌") {
                     Text(frontLineSummary(strategicState.frontLineIds))
                         .multilineTextAlignment(.trailing)
                 }
@@ -203,7 +203,7 @@ struct UnitInspectorView: View {
     }
 
     private func frontLineSummary(_ ids: [FrontLineId]) -> String {
-        ids.isEmpty ? "无" : "\(ids.count) 条接战线"
+        ids.isEmpty ? "无" : "\(ids.count) 处接触"
     }
 }
 
@@ -242,7 +242,7 @@ private extension UnitDeploymentRole {
     var displayName: String {
         switch self {
         case .frontUnit:
-            return "前线"
+            return "先阵"
         case .depthUnit:
             return "纵深"
         case .garrisonUnit:

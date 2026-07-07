@@ -11,13 +11,17 @@
 7. 相关源码、配置和必要时的测试文件：优先用 `rg` / `rg --files` 定位；测试文件默认只作语义参考，不默认执行。
 若文档、源码、轻量检查结果冲突，以当前源码和真实检查结果为准，并在本轮结束时同步修正文档。
 ## 2. 项目基本规则
-- 本项目是 Swift + SwiftUI + SpriteKit 的 iOS 二战回合制 hex 战棋。
+- 本项目是 Swift + SwiftUI + SpriteKit 的 iOS hex 战棋；历史工程骨架源自二战原型，当前迁移目标是隋末唐初 AI Agent 历史策略游戏。
 - Hex 是战术权威：单位位置、移动、攻击、真实占领、视野、补给落点以 hex 为准。
 - Region 是战略聚合层：资源、人力、补给、胜利点、控制比例从 hex 状态聚合，不替代 hex。
 - `regionToTheater` 是初始/基础战区归属和地图编辑器种子，不是运行时推进层。
 - `hexToTheater` 是运行时动态战区权威；突破一个 hex 只能推进该 hex 的动态归属。
 - `hexToFrontZone` 是部署层动态归属权威；`regionToFrontZone` 只能作 dominant / fallback。
 - 前线来自双方动态战区的真实 hex 邻接，不等于 region 边界或静态 theater 边界。
+- 隋唐迁移的玩家体验必须按古代战争重塑：古代作战不存在现代连续“战线”概念；底层 `FrontLine` / `FrontZone` 可作为兼容派生名保留，但玩家可见文案、AI rationale 和新设计应优先使用“接触态势、边境压力、战场态势、行军道、关隘、粮道”等古代口径。
+- 古代战斗应突出骑兵强机动与冲击力、粮草补给和粮仓/渡口/关隘争夺；后续规则切片应持续强化骑军、粮道、府库粮草、补给中断、屯田和粮仓节点的重要性。
+- 产品气质应突出“天下局势”沉浸感和隋唐英雄人物存在感；首屏、战报、军令、外交和 AI 决策说明应让玩家感到是在经营群雄逐鹿的历史局势，而不是现代战线推演。
+- 可参考《三国志14》等古代战略游戏的局势、粮道、人物和据点体验，但不得照搬具体资产、文本、数值或受版权保护内容。
 - 玩家、AI、聊天命令和 MockAI 都必须落到 `Command` / `ZoneDirective`，再经 `WarCommandExecutor`、`CommandValidator`、`RuleEngine` 执行；禁止绕过规则系统直接改 `GameState`。
 - Legacy Agent D 管线保留作回归参考，默认战争 AI 主路径不得退回旧管线。
 - 不恢复 organization；当前战斗核心是 strength、retreat、supply、encirclement。

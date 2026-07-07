@@ -488,7 +488,7 @@ private enum LogDisplayCategory {
         case .supply:
             return "粮道"
         case .frontChange:
-            return "前线"
+            return "态势"
         case .theaterChange:
             return "方面"
         case .regionOwnerChange:

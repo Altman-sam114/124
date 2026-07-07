@@ -275,6 +275,22 @@ struct DiplomacyPanelView: View {
                     Text(record.riskLevel.displayName)
                         .fontWeight(.semibold)
                 }
+                LabeledContent("忠诚压力") {
+                    Text(record.loyaltyPressure.displayName)
+                        .multilineTextAlignment(.trailing)
+                }
+                LabeledContent("叛乱风险") {
+                    Text(record.rebellionRisk.displayName)
+                        .multilineTextAlignment(.trailing)
+                }
+                LabeledContent("俘虏整编") {
+                    Text(record.captiveReviewDivisionCount > 0 ? "\(record.captiveReviewDivisionCount) 支" : "无")
+                        .monospacedDigit()
+                }
+                LabeledContent("安置州郡") {
+                    Text(record.settlementRegionIds.isEmpty ? "无" : "\(record.settlementRegionIds.count) 处")
+                        .monospacedDigit()
+                }
                 LabeledContent("最近") {
                     Text(displayRecordText(record.summary))
                         .multilineTextAlignment(.trailing)
@@ -415,7 +431,7 @@ struct DiplomacyPanelView: View {
 
     private func displayBoundaryNote(_ note: String) -> String {
         if note.contains("归附事件") {
-            return "归附已记入外交档案；州郡、军队和战线仍按后续军情另行处置。"
+            return "归附已记入外交档案；州郡、军队和接触态势仍按后续军情另行处置。"
         }
         if note.contains("停战事件") {
             return "停战已记入外交档案；既有驻防和占领保持当前局势。"
@@ -424,7 +440,7 @@ struct DiplomacyPanelView: View {
             return "本记录说明本次交接结果，后续安置仍需另行处理。"
         }
         if note.contains("善后压力") {
-            return "本记录提示后续安民、整军或道路粮仓治理重点。"
+            return "本记录提示忠诚、叛乱、俘虏整编和安置复核重点；当前只影响安民、整军或道路粮仓治理优先级。"
         }
         if note.contains("善后处置") {
             return "本记录说明本次州郡处置结果，后续安置仍需继续观察。"

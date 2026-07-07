@@ -1,4 +1,4 @@
-# WWIIHexV0 核心流程文档（v3.7-preflight.110 隋唐迁移）
+# WWIIHexV0 核心流程文档（v3.7-preflight.114 隋唐迁移）
 
 > 本文是项目当前核心逻辑的接手文档。目标不是复述历史设计，而是按当前代码真实链路说明：数据如何进入游戏，hex / region / theater / front / deploy 如何派生，主游戏和地图编辑器如何共同维护同一套地图语义，AI / 玩家命令如何落到规则系统。
 
@@ -60,9 +60,9 @@ MapEditor / JSON 数据
 - 朝堂层只塑形和审计 `DirectiveEnvelope`，写入 `RulerDecisionRecord` / `CourtDecisionRecord`；它不直接生成底层 `Command`，也不直接修改 hex、单位、战区、部署或外交关系。
 - 协作验证层以 `main` 直推和 GitHub Actions 结果包为准；本机默认只跑轻量检查，Agent C 不再只凭文字汇报验收。
 
-### 0.1 v3.0-v3.7-preflight.110 隋唐迁移状态
+### 0.1 v3.0-v3.7-preflight.114 隋唐迁移状态
 
-当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.110 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地、归附善后贡赋效率落地、渡口港口粮道补给减免落地、MapEditor 河边数据往返保真、MapEditor 河边绘制/擦除入口、受控渡口港口补给投送点、默认水路地点河边资产补录、己控渡口港口移动渡河减免、己控港口海港生产部署点，以及己控港口海港战略补给源：
+当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.114 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地、归附善后贡赋效率落地、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免落地、MapEditor 河边数据往返保真、MapEditor 河边绘制/擦除入口、受控渡口港口补给投送点、默认水路地点河边资产补录、己控渡口港口移动渡河减免、隔河近战水路控制校验、己控港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化，以及骑兵基础机动/冲击强化：
 
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `md/prompt/v3.0-隋唐迁移/v3.0_audit_and_contract.md`
@@ -228,7 +228,7 @@ v3.7-preflight.17 已把归附实体交接结果写入结构化审计记录：`D
 
 v3.7-preflight.18 已把 AI 归附实体交接接入 AI 自动回合：`TurnManager.executeDirectiveEnvelope` 在 AI 太守经营和 AI 使者外交后、`.endTurn` 前，最多生成一条 `Command.resolveSubmissionHandoff`。候选目标必须已归附当前 AI 势力，且仍有未毁灭军队或可通行受控 hex；命令仍由 `CommandValidator -> RuleEngine -> CommandExecutor` 校验执行，结果进入 `AgentDecisionRecord.commandResults`。该层不做批量交接、忠诚、叛乱、贡赋、俘虏、安置或交接后治理。
 
-v3.7-preflight.19 已把归附交接后的善后压力写入复盘记录：`DiplomacyState` 保存 `SubmissionAftermathRecord`，`CommandExecutor.executeSubmissionHandoff` 在追加交接审计记录后追加善后压力记录，并写入一条 `.diplomacy` 日志；`DiplomacyPanelView` 展示最近善后压力、回合、影响州郡数量和边界说明。v3.7-preflight.101 起压力会落到治安/顺从，v3.7-preflight.102 起会进一步影响后续贡赋效率；仍不触发完整忠诚、叛乱、俘虏、安置或额外归属转移。
+v3.7-preflight.19 已把归附交接后的善后压力写入复盘记录：`DiplomacyState` 保存 `SubmissionAftermathRecord`，`CommandExecutor.executeSubmissionHandoff` 在追加交接审计记录后追加善后压力记录，并写入一条 `.diplomacy` 日志；`DiplomacyPanelView` 展示最近善后压力、回合、影响州郡数量和边界说明。v3.7-preflight.101 起压力会落到治安/顺从，v3.7-preflight.102 起会进一步影响后续贡赋效率，v3.7-preflight.111 起记录忠诚压力、叛乱风险、俘虏整编数量和安置州郡候选；仍不触发实际叛乱、俘虏处置、安置命令或额外归属转移。
 
 v3.7-preflight.20 已把归附善后压力接入 AI 太守经营优先级：`TurnManager.governorCommand` 会读取最新 `SubmissionAftermathRecord`，当当前 AI 势力是接收方且压力等级为高或需安抚时，把受影响州郡排在普通朝堂太守关注点之前；候选州郡仍必须由当前势力控制且有实际受控 hex，命令仍是每回合最多一条 `Command.governRegion` 并经 `RuleEngine` 校验执行。善后州郡优先尝试安民，府库不足或经营上限不满足时回到既有屯田/修道择优；该层不新增忠诚、叛乱、贡赋、俘虏、安置或额外交接效果。
 
@@ -394,7 +394,9 @@ v3.7-preflight.100 已收口 MapEditor 非法 unit faction 导入 fallback：`Ma
 
 v3.7-preflight.101 已让归附善后压力从复盘记录落到州郡治安/顺从状态：`CommandExecutor.executeSubmissionHandoff` 生成 `SubmissionAftermathRecord` 后，会按风险等级调整受影响州郡的 `OccupationState.resistance` / `compliance`，并追加外交战报提示治安承压。该层复用既有州郡经营“安民”来抵消压力，不新增命令、存档字段、忠诚、叛乱、贡赋、俘虏、安置模型或额外归属转移。
 
-v3.7-preflight.102 已把归附善后压力接入贡赋效率：`EconomyRules.income(for:map:)` 聚合受控州郡丁口、军械、粮草收入时，会按 `RegionNode.occupationState` 折算贡赋效率。高抵抗会压低收入，顺从提高会恢复效率但不超过基础产出；因此 v3.7-preflight.101 的善后压力会影响后续府库收入，既有“安民”治理会自然恢复贡赋效率。该层不新增命令、存档字段、忠诚、叛乱、俘虏、安置模型或额外归属转移。
+v3.7-preflight.102 已把归附善后压力接入贡赋效率：`EconomyRules.income(for:map:)` 聚合受控州郡丁口、军械、粮草收入时，会按 `RegionNode.occupationState` 折算贡赋效率。高抵抗会压低收入，顺从提高会恢复效率但不超过基础产出；因此 v3.7-preflight.101 的善后压力会影响后续府库收入，既有“安民”治理会自然恢复贡赋效率。该层不新增命令、存档字段、忠诚状态机、叛乱触发、俘虏处置、安置命令或额外归属转移。
+
+v3.7-preflight.111 已把归附善后四类审计字段接入 `SubmissionAftermathRecord`：每次归附交接善后记录会带出 `loyaltyPressure`、`rebellionRisk`、`captiveReviewDivisionCount` 和 `settlementRegionIds`，外交面板“善后”区展示忠诚压力、叛乱风险、俘虏整编数量和安置州郡候选。旧存档缺这些字段时会按既有风险、交接军队数量和受影响州郡派生默认值。该层只做结构化复盘和后续治理提示，不新增叛乱触发、俘虏处置、安置命令、资源扣减、AI 行动次数、额外归属转移或 JSON 数据 schema。
 
 v3.7-preflight.103 已把渡口/港口地点接入粮道补给：`SupplyRules.supplyPathCost(from:to:for:in:)` 跨 `riverEdges` 计算补给路径成本时，若跨河两端任一 hex 有 `MapFeatureKind.ferry` / `port` / `harbor`，该段补给渡河额外成本免除；普通跨河补给仍保留原本额外成本。该层不改移动、战斗、水师、水战、港口补给源、JSON schema、命令管线或存档字段。
 
@@ -412,7 +414,13 @@ v3.7-preflight.109 已把己控港口/海港接入生产部署 fallback：`Econo
 
 v3.7-preflight.110 已把己控港口/海港接入 region 战略补给源：`RegionSupplyRules.strategicSupplySources(for:in:)` 在既有永久 `SupplySource` 和己控 `supplyValue > 0` 州郡之外，会把己控、可通行 `MapFeatureKind.port` / `harbor` marker 所在 region 加入战略补给源。该层不让 `ferry` 成为州郡级补给源，不写入 `MapState.supplySources`，不改战术补给 anchor、经济收入、生产部署、移动、战斗、水战、命令或 JSON schema。
 
-仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的完整忠诚/叛乱/俘虏/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
+v3.7-preflight.112 已把水路控制接入隔河近战校验：`CommandValidator.validateAttack` 在相邻、隔 `riverEdges`、且攻击方没有远程支援时，会要求攻击方控制攻击端或防守端的 `MapFeatureKind.ferry` / `port` / `harbor` marker；否则返回 `CommandValidationError.waterCrossingBlocked`。水师、弓弩、攻城器械等带远程支援的攻击不受该近战门禁阻断。该层只限制普通陆军隔河冲击，不新增水战命令、水域控制模型、运输/登船、AI 管线、JSON schema、移动或补给规则。
+
+v3.7-preflight.113 已把首轮玩家可见接触态势术语古代化：`MapDisplayLayer`、发布检查、州郡/军队/外交/将领面板、战报类别、`AppContainer` 交互提示、`StrategicStateBootstrapper` 初始化战报、`WarCommandExecutor` 动态推进战报，以及 `MockAIClient`、`ZoneCommanderAgent`、`RulerAgent` 的自由文本，继续把“前线/战线”展示口径改成“接触态势、边境压力、接敌、先阵、接触地段”等古代口径。底层 `FrontLine` / `FrontZone` 类型名、rawValue、schema、派生算法和历史兼容记录仍保留。
+
+v3.7-preflight.114 已把骑兵基础冲击和机动强化：`ComponentType.cavalry` 基础攻击提高到 7、移动提高到 6，防御保持 4；`CombatRules.effectiveAttack` 的平原骑兵冲击加成提高到 `+0.3`，让骑军在开阔地具备更明确的古代战场差异。该层不改单位模板 JSON、AI tactic 权重、将领技能消费、补给、水战、命令 schema 或存档字段。
+
+仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、完整水战/河面控制/运输、siege progress、真实多模型协作、归附交接后的实际叛乱触发/俘虏处置/安置命令、正式地图资产替换决策、完整 UI 文案穷尽审计、骑兵技能/名将统率消费和完整发布候选运行时重测流程尚未迁移。
 
 迁移期间必须继续守住本文既有权威边界：hex 是战术权威，动态 theater/front/deploy 从 hex 与单位位置派生，玩家和 AI 行动仍统一进入 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 
@@ -484,8 +492,9 @@ playerCommandState
 - v3.7-preflight.108 起，己控 `ferry` / `port` / `harbor` 会免除相邻非道路跨河移动的额外成本；敌控或未控水路点不减免，完整水战仍未实现。
 - v3.7-preflight.109 起，己控 `port` / `harbor` 可作为生产完成后的安全部署 fallback；完整水战仍未实现。
 - v3.7-preflight.110 起，己控 `port` / `harbor` 所在州郡可作为 region 战略补给源；完整水战和更细水域控制仍未实现。
+- v3.7-preflight.112 起，无远程支援的隔河近战攻击需要己控 `ferry` / `port` / `harbor` 才能通过校验；完整水战、河面控制、运输和水域 ZOC 仍未实现。
 - v3.7-preflight.100 起，默认资源桥导入 `scenario.initialUnits` 时，非法 unit faction 会被跳过并写入导入诊断，不再静默落到旧 `.allies`。
-- v3.7-preflight.101 起，归附交接后的善后风险会实际提高受影响州郡治安压力并降低顺从，仍不触发完整忠诚、叛乱、俘虏或安置系统。
+- v3.7-preflight.101 起，归附交接后的善后风险会实际提高受影响州郡治安压力并降低顺从；v3.7-preflight.111 起，善后记录会展示忠诚压力、叛乱风险、俘虏整编数量和安置州郡候选，仍不触发实际叛乱、俘虏处置或安置命令。
 - v3.7-preflight.102 起，治安/顺从会折算受控州郡贡赋效率，高抵抗降低丁口、军械、粮草收入，安民后随顺从恢复。
 - v3.7-preflight.30 起，发布前检查面板显示当前 `GameState` 静态门禁快照，但仍不等同于运行时验证或 CI artifact 验收。
 - v3.7-preflight.31 起，legacy 势力名、旧阶段/胜负原因、军队方向和经济事件日志的玩家可见兜底已中文化。

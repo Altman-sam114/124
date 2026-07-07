@@ -90,7 +90,7 @@ struct RegionInspectorView: View {
                 Text(displayOptionalMapName(state.frontZoneId?.rawValue, fallback: "行军防区"))
             }
 
-            LabeledContent("前线压力") {
+            LabeledContent("边境压力") {
                 Text(state.frontPressure, format: .number.precision(.fractionLength(2)))
             }
 
@@ -279,7 +279,7 @@ struct RegionInspectorView: View {
             notes.append("可供征发")
         }
         if state.frontPressure >= 1 {
-            notes.append("前线承压")
+            notes.append("边境承压")
         }
         if !state.visibleEnemyDivisions.isEmpty {
             notes.append("敌军可见")

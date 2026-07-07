@@ -23,7 +23,7 @@ enum ComponentType: String, Codable, Equatable, CaseIterable {
         case .artillery:
             return EffectiveStats(attack: 7, defense: 2, movement: 2, range: 2, vision: 2)
         case .cavalry:
-            return EffectiveStats(attack: 6, defense: 4, movement: 5, range: 1, vision: 3)
+            return EffectiveStats(attack: 7, defense: 4, movement: 6, range: 1, vision: 3)
         case .archer:
             return EffectiveStats(attack: 5, defense: 3, movement: 3, range: 2, vision: 2)
         case .siegeEngine:

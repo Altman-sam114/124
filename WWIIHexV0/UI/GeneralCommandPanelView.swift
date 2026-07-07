@@ -370,7 +370,7 @@ func generalSkillDisplayName(_ skill: String) -> String {
     case "popular_support":
         return "民望"
     case "pressure_management":
-        return "前线施压"
+        return "接敌施压"
     case "raiding":
         return "袭扰"
     case "reserve_control", "reserve_coordination":

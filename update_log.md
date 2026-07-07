@@ -9,6 +9,182 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.114 - 骑兵冲击与机动强化
+
+完成日期：2026-07-07
+
+性质：响应人工最新方向的古代作战规则切片。隋唐战场不应继续沿用现代战线平推感觉，本轮先用低风险数值入口突出骑兵在开阔地的机动和冲击。
+
+核心更新：
+
+- `ComponentType.cavalry` 基础攻击从 6 提高到 7。
+- `ComponentType.cavalry` 基础移动从 5 提高到 6。
+- `CombatRules.effectiveAttack` 的平原骑兵冲击加成从 `+0.2` 提高到 `+0.3`。
+- `RuleEngineCoreTests` 增加骑兵古代冲击档案语义断言，保护骑兵攻击、移动和平原有效攻击结果。
+- 本轮不改单位模板 JSON、AI tactic 权重、将领技能消费、水战、补给、命令 schema 或存档字段。
+
+关键文件：
+
+- `WWIIHexV0/Core/Division.swift`
+- `WWIIHexV0/Rules/CombatRules.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_cavalry_shock_tuning_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RuleEngineCoreTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 骑兵强化尚未接入 AI 目标权重、追击/截粮/包抄专用规则或名将技能消费。
+- 未启动 App 复核玩家体感和战斗 UI 反馈。
+
+## v3.7-preflight.113 - 玩家可见接触态势术语古代化
+
+完成日期：2026-07-07
+
+性质：响应人工最新方向的玩家体验与文案切片。古代作战不存在现代连续“战线”概念，本轮先收口主游戏玩家可见和 AI 自由文本中的现代化口径。
+
+核心更新：
+
+- `MapDisplayLayer.frontLine.displayName` 改为“接触态势”。
+- 发布检查、州郡详情、军队详情、外交面板、将领军令面板、战报类别和 App 交互提示继续弱化“前线/战线”口径，转为“接触态势、边境压力、接敌、先阵、接触地段”等表达。
+- `StrategicStateBootstrapper`、`WarCommandExecutor`、`MockAIClient`、`ZoneCommanderAgent` 和 `RulerAgent` 的玩家可见战报/AI rationale 文本同步古代化。
+- README、AGENTS 和总提示词写入长期原则：底层 `FrontLine` / `FrontZone` 兼容名可保留，但展示层和 AI 说明应按古代边境接触、行军道、关隘、粮道、天下局势表达。
+- 本轮不改 `FrontLine` / `FrontZone` 类型名、rawValue、schema、派生算法、部署池、命令管线或存档字段。
+
+关键文件：
+
+- `AGENTS.md`
+- `README.md`
+- `WWIIHexV0/Core/MapDisplayLayer.swift`
+- `WWIIHexV0/UI/ReleaseChecklistView.swift`
+- `WWIIHexV0/UI/RegionInspectorView.swift`
+- `WWIIHexV0/UI/UnitInspectorView.swift`
+- `WWIIHexV0/UI/EventLogView.swift`
+- `WWIIHexV0/UI/GeneralCommandPanelView.swift`
+- `WWIIHexV0/UI/DiplomacyPanelView.swift`
+- `WWIIHexV0/App/AppContainer.swift`
+- `WWIIHexV0/Core/StrategicStateBootstrapper.swift`
+- `WWIIHexV0/Commands/WarCommandExecutor.swift`
+- `WWIIHexV0/Agents/MockAIClient.swift`
+- `WWIIHexV0/Agents/ZoneCommanderAgent.swift`
+- `WWIIHexV0/Agents/RulerAgent.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ancient_contact_terminology_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 本轮是展示文案和自由文本切片，不新增 XCTest；最终仍以云端 build 和后续运行时截图复核确认。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 底层兼容类型、历史记录、旧版本 update_log 和部分内部架构文档仍会保留 `FrontLine` / “前线”等词，用于工程定位和历史追溯。
+- 未启动 App 逐屏复核所有玩家路径，仍需后续运行时截图或人工验收补充。
+
+## v3.7-preflight.112 - 隔河近战水路控制校验
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在受控水路移动、补给、部署和战略补给源之后，转入“完整水战与更细水域控制”的低风险战斗校验切片：先让普通近战攻击不能无条件跨河冲击。
+
+核心更新：
+
+- `CommandValidationError` 新增 `waterCrossingBlocked`，显示为“缺少己控水路通行点”。
+- `CommandValidator.validateAttack` 对相邻、隔 `riverEdges`、且无远程支援的攻击增加水路门禁。
+- 攻击方若控制攻击端或防守端的 `ferry` / `port` / `harbor`，该隔河近战攻击可继续校验通过。
+- 水师、弓弩和攻城器械等带远程支援的攻击不受该近战门禁阻断。
+- 本轮不新增水战命令、水域控制模型、运输/登船、AI 决策管线、JSON schema、移动或补给规则。
+- `RuleEngineCoreTests` 增加无己控水路点拒绝、己控渡口允许和水师跨河攻击允许的语义断言，用于云端回归保护。
+
+关键文件：
+
+- `WWIIHexV0/Commands/CommandValidation.swift`
+- `WWIIHexV0/Rules/CommandValidator.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_water_attack_control_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RuleEngineCoreTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只限制隔河近战攻击，不实现完整水战、河面控制、船队运输、登船/下船、水师部署或水域 ZOC。
+- 未启动 App 复核战斗提示和玩家交互反馈。
+
+## v3.7-preflight.111 - 归附善后四类审计字段
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在归附交接、善后压力、治理进度和贡赋效率之后，补上完整归附善后系统前的低风险审计字段：让忠诚压力、叛乱风险、俘虏整编和安置州郡先进入结构化记录与外交面板复盘。
+
+核心更新：
+
+- `SubmissionAftermathRecord` 新增 `loyaltyPressure`、`rebellionRisk`、`captiveReviewDivisionCount` 和 `settlementRegionIds`。
+- 新字段由既有 `riskLevel`、交接军队数量和受影响州郡派生；旧存档缺字段时会用兼容默认值解码。
+- `DiplomacyPanelView` 善后区显示忠诚压力、叛乱风险、俘虏整编数量和安置州郡候选。
+- 本轮不新增叛乱触发、忠诚状态机、俘虏处置命令、安置命令、资源扣减、额外归属转移、AI 行动次数或 JSON 数据 schema。
+- `RuleEngineCoreTests` 增加归附善后四类审计字段的语义断言，用于云端回归保护。
+
+关键文件：
+
+- `WWIIHexV0/Core/DiplomacyState.swift`
+- `WWIIHexV0/UI/DiplomacyPanelView.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_audit_fields_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RuleEngineCoreTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只做结构化审计和 UI 复盘，不实现真正忠诚状态机、叛乱生成、俘虏处置、安置命令或多回合善后任务队列。
+- 未启动 App 复核外交面板视觉布局和多回合善后体验。
+
 ## v3.7-preflight.110 - 己控港口海港战略补给源
 
 完成日期：2026-07-07

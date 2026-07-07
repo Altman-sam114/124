@@ -65,7 +65,7 @@ struct CombatRules {
 
         var multiplier = 1.0
         if attacker.hasCavalryShock && defenderTile.baseTerrain == .plain {
-            multiplier += 0.2
+            multiplier += 0.3
         }
         if attacker.hasCavalryShock && defenderTile.baseTerrain.armorSlowdownCost > 0 {
             multiplier -= 0.1

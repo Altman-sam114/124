@@ -30,6 +30,22 @@ final class RuleEngineCoreTests: XCTestCase {
         XCTAssertEqual(fortress.baseTerrain.defenseBonus, 4)
     }
 
+    func testCavalryHasStrongerAncientShockProfile() {
+        let cavalry = Division(
+            id: "cavalry",
+            name: "cavalry",
+            faction: .allies,
+            coord: HexCoord(q: 0, r: 0),
+            components: [DivisionComponent(type: .cavalry, weight: 1.0)]
+        )
+        let defender = Self.division(id: "defender", faction: .germany, coord: HexCoord(q: 1, r: 0))
+        let state = Self.testState(activeFaction: .allies, divisions: [cavalry, defender])
+
+        XCTAssertEqual(cavalry.attack, 7)
+        XCTAssertEqual(cavalry.movement, 6)
+        XCTAssertEqual(CombatRules().effectiveAttack(for: cavalry, against: defender, in: state), 9)
+    }
+
     func testLegalMoveChangesCoordFacingAndActedState() {
         let state = Self.testState(
             activeFaction: .allies,
@@ -144,6 +160,41 @@ final class RuleEngineCoreTests: XCTestCase {
         )
     }
 
+    func testSubmissionAftermathRecordsLoyaltyRebellionCaptiveAndSettlementAudit() {
+        var diplomacyState = DiplomacyState()
+
+        let record = diplomacyState.appendSubmissionAftermathRecord(
+            submitted: .wagang,
+            recipient: .tang,
+            transferredDivisionCount: 2,
+            transferredHexCount: 6,
+            affectedRegionIds: [RegionId("region_b"), RegionId("region_a")],
+            linkedHandoffRecordId: "handoff_1",
+            turn: 4
+        )
+
+        XCTAssertEqual(record.riskLevel, .high)
+        XCTAssertEqual(record.loyaltyPressure, .high)
+        XCTAssertEqual(record.rebellionRisk, .high)
+        XCTAssertEqual(record.captiveReviewDivisionCount, 2)
+        XCTAssertEqual(record.settlementRegionIds, [RegionId("region_a"), RegionId("region_b")])
+
+        let noRegionRecord = diplomacyState.appendSubmissionAftermathRecord(
+            submitted: .xia,
+            recipient: .tang,
+            transferredDivisionCount: 1,
+            transferredHexCount: 0,
+            affectedRegionIds: [],
+            linkedHandoffRecordId: "handoff_2",
+            turn: 5
+        )
+
+        XCTAssertEqual(noRegionRecord.loyaltyPressure, .low)
+        XCTAssertEqual(noRegionRecord.rebellionRisk, .low)
+        XCTAssertEqual(noRegionRecord.captiveReviewDivisionCount, 1)
+        XCTAssertTrue(noRegionRecord.settlementRegionIds.isEmpty)
+    }
+
     func testMoveValidationDistinguishesOutOfBoundsNoPathAndInsufficientMovement() {
         let start = HexCoord(q: 0, r: 0)
         let isolatedDestination = HexCoord(q: 2, r: 2)
@@ -231,6 +282,75 @@ final class RuleEngineCoreTests: XCTestCase {
         XCTAssertTrue(result.succeeded)
         XCTAssertEqual(result.state.division(id: "g_artillery")?.hp, 7)
         XCTAssertEqual(result.state.division(id: "a")?.hp, 10)
+    }
+
+    func testRiverMeleeAttackRequiresControlledWaterTransit() {
+        let start = HexCoord(q: 1, r: 1)
+        let target = HexCoord(q: 2, r: 1)
+        var map = Self.basicMap(width: 4, height: 3)
+        if var startTile = map.tile(at: start) {
+            startTile.controller = .allies
+            startTile.riverEdges = [.east]
+            map.setTile(startTile)
+        }
+        if var targetTile = map.tile(at: target) {
+            targetTile.controller = .germany
+            map.setTile(targetTile)
+        }
+        let attacker = Self.division(id: "a", faction: .allies, coord: start)
+        let defender = Self.division(id: "g", faction: .germany, coord: target)
+
+        let blocked = RuleEngine().execute(
+            .attack(attackerId: "a", targetId: "g"),
+            in: Self.testState(activeFaction: .allies, map: map, divisions: [attacker, defender])
+        )
+
+        XCTAssertFalse(blocked.succeeded)
+        XCTAssertEqual(blocked.validation.errors, [.waterCrossingBlocked])
+
+        map.featureMarkers = [
+            MapFeatureMarker(
+                id: "test_ferry",
+                name: "Test Ferry",
+                kind: .ferry,
+                coord: start,
+                faction: nil,
+                objectiveId: nil
+            )
+        ]
+
+        let allowed = RuleEngine().execute(
+            .attack(attackerId: "a", targetId: "g"),
+            in: Self.testState(activeFaction: .allies, map: map, divisions: [attacker, defender])
+        )
+
+        XCTAssertTrue(allowed.succeeded)
+    }
+
+    func testNavalUnitCanAttackAcrossRiverWithoutTransitMarker() {
+        let start = HexCoord(q: 1, r: 1)
+        let target = HexCoord(q: 2, r: 1)
+        var map = Self.basicMap(width: 4, height: 3)
+        if var startTile = map.tile(at: start) {
+            startTile.controller = .allies
+            startTile.riverEdges = [.east]
+            map.setTile(startTile)
+        }
+        let attacker = Division(
+            id: "naval",
+            name: "naval",
+            faction: .allies,
+            coord: start,
+            components: [DivisionComponent(type: .naval, weight: 1.0)]
+        )
+        let defender = Self.division(id: "g", faction: .germany, coord: target)
+
+        let result = RuleEngine().execute(
+            .attack(attackerId: "naval", targetId: "g"),
+            in: Self.testState(activeFaction: .allies, map: map, divisions: [attacker, defender])
+        )
+
+        XCTAssertTrue(result.succeeded)
     }
 
     func testOutOfRangeAttackIsRejected() {
