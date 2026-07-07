@@ -9,6 +9,47 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.106 - 受控渡口港口补给投送点
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在渡口港口粮道跨河减免、MapEditor 河边保真和河边编辑入口之后，继续补“港口补给与粮道扩展规则”的低风险子切片：让己控渡口、港口、海港成为战术补给投送点。
+
+核心更新：
+
+- `SupplyRules` 新增内部 `effectiveSupplyAnchors(for:in:)`，合并既有 `state.map.supplySources(for:)` 与己方控制的水路通行地点坐标。
+- 己控水路通行地点由 `MapFeatureKind.ferry` / `port` / `harbor` 标识，并以 marker 所在 hex 的 `HexTile.controller == faction` 为控制权依据。
+- `hasSupplyLine`、`isSafeRetreatTile` 和 `retreatSortKey` 改用 effective anchors，受控渡口/港口可参与补给线、安全撤退和撤退排序。
+- 该规则不写入 `MapState.supplySources`，因此不改变永久补给源列表、经济部署点、默认 JSON schema 或省级 `RegionSupplyRules`。
+- `RuleEngineCoreTests` 增加己控 ferry 作为补给 anchor 的语义断言，用于云端回归保护。
+
+关键文件：
+
+- `WWIIHexV0/Rules/SupplyRules.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_water_transit_supply_anchor_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `swiftc -parse WWIIHexV0/Rules/SupplyRules.swift WWIIHexV0/Tests/RuleEngineCoreTests.swift`：通过。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮没有启动 App 做水路投送点的运行时路径复核；需云端构建和后续人工/运行时检查确认体验。
+- 本轮不改变省级补给、经济部署点或新兵落点；如需港口作为部署/集结点，必须单独切片。
+- 水运点若处在敌 ZOC 且无友军驻守，仍会按既有 `canSupplyPass` 被阻断；这是当前保守边界。
+
 ## v3.7-preflight.105 - MapEditor 河边绘制擦除入口
 
 完成日期：2026-07-07

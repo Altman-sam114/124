@@ -487,6 +487,40 @@ final class RuleEngineCoreTests: XCTestCase {
         XCTAssertTrue([SupplyState.lowSupply, .encircled].contains(supplyState))
     }
 
+    func testControlledWaterTransitCanActAsSupplyAnchor() throws {
+        let ferryCoord = HexCoord(q: 1, r: 1)
+        var map = Self.basicMap(width: 3, height: 3, supplySources: [])
+        map.featureMarkers = [
+            MapFeatureMarker(
+                id: "ferry",
+                name: "Test Ferry",
+                kind: .ferry,
+                coord: ferryCoord,
+                faction: nil,
+                objectiveId: nil
+            )
+        ]
+        if var ferryTile = map.tile(at: ferryCoord) {
+            ferryTile.controller = .allies
+            map.setTile(ferryTile)
+        }
+        let division = Self.division(id: "a", faction: .allies, coord: ferryCoord, supplyState: .lowSupply)
+        var state = Self.testState(activeFaction: .allies, map: map, divisions: [division])
+
+        SupplyRules().updateSupplyStates(in: &state)
+
+        XCTAssertEqual(state.division(id: "a")?.supplyState, .supplied)
+
+        if var ferryTile = map.tile(at: ferryCoord) {
+            ferryTile.controller = .germany
+            map.setTile(ferryTile)
+        }
+        var enemyControlledState = Self.testState(activeFaction: .allies, map: map, divisions: [division])
+        SupplyRules().updateSupplyStates(in: &enemyControlledState)
+
+        XCTAssertNotEqual(enemyControlledState.division(id: "a")?.supplyState, .supplied)
+    }
+
     func testSupplyModifiersReduceDerivedStatsAndEncirclementAttritionPreservesOneHP() {
         var lowSupply = Self.division(id: "low", faction: .allies, coord: HexCoord(q: 1, r: 1))
         lowSupply.supplyState = .lowSupply

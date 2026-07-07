@@ -111,8 +111,8 @@ struct SupplyRules {
     }
 
     func hasSupplyLine(for division: Division, in state: GameState) -> Bool {
-        state.map.supplySources(for: division.faction).contains { source in
-            supplyPathCost(from: division.coord, to: source.coord, for: division.faction, in: state) <= maxSupplyPathCost
+        effectiveSupplyAnchors(for: division.faction, in: state).contains { coord in
+            supplyPathCost(from: division.coord, to: coord, for: division.faction, in: state) <= maxSupplyPathCost
         }
     }
 
@@ -171,8 +171,8 @@ struct SupplyRules {
             return false
         }
 
-        return state.map.supplySources(for: faction).contains { source in
-            supplyPathCost(from: coord, to: source.coord, for: faction, in: state) <= maxSupplyPathCost
+        return effectiveSupplyAnchors(for: faction, in: state).contains { anchor in
+            supplyPathCost(from: coord, to: anchor, for: faction, in: state) <= maxSupplyPathCost
         }
     }
 
@@ -251,6 +251,34 @@ struct SupplyRules {
         }
     }
 
+    private func effectiveSupplyAnchors(for faction: Faction, in state: GameState) -> [HexCoord] {
+        orderedUnique(
+            state.map.supplySources(for: faction).map(\.coord) +
+                controlledWaterTransitCoords(for: faction, in: state)
+        )
+    }
+
+    private func controlledWaterTransitCoords(for faction: Faction, in state: GameState) -> [HexCoord] {
+        state.map.featureMarkers.compactMap { marker in
+            guard marker.kind.isWaterTransit,
+                  let tile = state.map.tile(at: marker.coord),
+                  tile.isPassable,
+                  tile.controller == faction else {
+                return nil
+            }
+            return marker.coord
+        }
+    }
+
+    private func orderedUnique(_ coords: [HexCoord]) -> [HexCoord] {
+        var seen: Set<HexCoord> = []
+        var result: [HexCoord] = []
+        for coord in coords where seen.insert(coord).inserted {
+            result.append(coord)
+        }
+        return result
+    }
+
     private func canSupplyPass(through coord: HexCoord, tile: HexTile, for faction: Faction, in state: GameState) -> Bool {
         if let division = state.division(at: coord), division.faction != faction {
             return false
@@ -273,12 +301,12 @@ struct SupplyRules {
     }
 
     private func retreatSortKey(for coord: HexCoord, faction: Faction, in state: GameState) -> RetreatSortKey {
-        let supplySources = state.map.supplySources(for: faction)
-        let pathCost = supplySources
-            .map { supplyPathCost(from: coord, to: $0.coord, for: faction, in: state) }
+        let anchors = effectiveSupplyAnchors(for: faction, in: state)
+        let pathCost = anchors
+            .map { supplyPathCost(from: coord, to: $0, for: faction, in: state) }
             .min() ?? Int.max
-        let sourceDistance = supplySources
-            .map { coord.distance(to: $0.coord) }
+        let sourceDistance = anchors
+            .map { coord.distance(to: $0) }
             .min() ?? Int.max
         let tileCost = state.map.tile(at: coord).map(supplyCost(entering:)) ?? Int.max
 
