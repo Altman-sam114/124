@@ -786,7 +786,7 @@ struct DiplomacyState: Codable, Equatable {
                 transferredHexCount: transferredHexCount,
                 affectedRegionCount: sortedRegionIds.count
             ),
-            boundaryNote: "善后压力只读记录用于提示后续安民、整军或道路粮仓治理优先级，不触发叛乱、忠诚、贡赋、俘虏、资源扣减或额外归属转移。"
+            boundaryNote: "善后压力会写入受影响州郡的治安/顺从压力，用于提示后续安民、整军或道路粮仓治理优先级；不触发叛乱、忠诚、贡赋、俘虏、资源扣减或额外归属转移。"
         )
         submissionAftermathRecords.append(record)
         if submissionAftermathRecords.count > 80 {
@@ -814,7 +814,7 @@ struct DiplomacyState: Codable, Equatable {
             policy: policy,
             linkedAftermathRecordId: linkedAftermathRecordId,
             summary: "\(displayFactionName(faction)) 善后处置：\(regionName) \(policy.displayName)",
-            boundaryNote: "善后处置记录只关联既有州郡经营命令，不抵消或删除善后压力，不触发忠诚、叛乱、贡赋、俘虏、安置或额外资源变化。"
+            boundaryNote: "善后处置记录关联既有州郡经营命令；安民等政策通过州郡经营调整治安/顺从，但不删除善后压力记录，不触发忠诚、叛乱、贡赋、俘虏、安置或额外资源变化。"
         )
         submissionAftermathGovernanceRecords.append(record)
         if submissionAftermathGovernanceRecords.count > 80 {

@@ -319,6 +319,10 @@ struct CommandExecutor {
             linkedHandoffRecordId: record.id,
             turn: state.turn
         )
+        let pressuredRegionNames = applySubmissionAftermathPressure(
+            from: aftermathRecord,
+            in: &state
+        )
         state.appendEvent(
             "\(recipient.displayName) 接管 \(submitted.displayName) 归附实体：军队 \(transferredDivisionCount)，地块 \(transferredHexCount)。",
             category: .diplomacy,
@@ -329,6 +333,50 @@ struct CommandExecutor {
             category: .diplomacy,
             relatedRecordId: aftermathRecord.id
         )
+        if !pressuredRegionNames.isEmpty {
+            state.appendEvent(
+                "善后压力落地：\(pressuredRegionNames.joined(separator: "、")) 治安承压，需太守安民或整修支撑。",
+                category: .diplomacy,
+                relatedRecordId: aftermathRecord.id
+            )
+        }
+    }
+
+    private func applySubmissionAftermathPressure(
+        from record: SubmissionAftermathRecord,
+        in state: inout GameState
+    ) -> [String] {
+        let pressure = submissionAftermathOccupationPressure(for: record.riskLevel)
+        var affectedRegionNames: [String] = []
+
+        for regionId in record.affectedRegionIds {
+            guard var region = state.map.regions[regionId] else {
+                continue
+            }
+
+            let previous = region.occupationState ?? OccupationState(resistance: 10, compliance: 55)
+            region.occupationState = OccupationState(
+                resistance: previous.resistance + pressure.resistanceIncrease,
+                compliance: previous.compliance - pressure.complianceDecrease
+            )
+            state.map.regions[regionId] = region
+            affectedRegionNames.append(region.name)
+        }
+
+        return affectedRegionNames
+    }
+
+    private func submissionAftermathOccupationPressure(
+        for riskLevel: SubmissionAftermathRiskLevel
+    ) -> (resistanceIncrease: Int, complianceDecrease: Int) {
+        switch riskLevel {
+        case .low:
+            return (resistanceIncrease: 4, complianceDecrease: 4)
+        case .guarded:
+            return (resistanceIncrease: 8, complianceDecrease: 8)
+        case .high:
+            return (resistanceIncrease: 12, complianceDecrease: 12)
+        }
     }
 
     private func executeEndTurn(in state: inout GameState) {

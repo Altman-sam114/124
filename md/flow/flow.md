@@ -1,4 +1,4 @@
-# WWIIHexV0 核心流程文档（v3.7-preflight.100 隋唐迁移）
+# WWIIHexV0 核心流程文档（v3.7-preflight.101 隋唐迁移）
 
 > 本文是项目当前核心逻辑的接手文档。目标不是复述历史设计，而是按当前代码真实链路说明：数据如何进入游戏，hex / region / theater / front / deploy 如何派生，主游戏和地图编辑器如何共同维护同一套地图语义，AI / 玩家命令如何落到规则系统。
 
@@ -60,9 +60,9 @@ MapEditor / JSON 数据
 - 朝堂层只塑形和审计 `DirectiveEnvelope`，写入 `RulerDecisionRecord` / `CourtDecisionRecord`；它不直接生成底层 `Command`，也不直接修改 hex、单位、战区、部署或外交关系。
 - 协作验证层以 `main` 直推和 GitHub Actions 结果包为准；本机默认只跑轻量检查，Agent C 不再只凭文字汇报验收。
 
-### 0.1 v3.0-v3.7-preflight.100 隋唐迁移状态
+### 0.1 v3.0-v3.7-preflight.101 隋唐迁移状态
 
-当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.100 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口，以及 MapEditor 非法 unit faction 导入诊断收口：
+当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.101 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口，以及归附善后治安压力落地：
 
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `md/prompt/v3.0-隋唐迁移/v3.0_audit_and_contract.md`
@@ -385,7 +385,9 @@ v3.7-preflight.99 已收口场景语义和胜负 fallback 门禁：`ScenarioSema
 
 v3.7-preflight.100 已收口 MapEditor 非法 unit faction 导入 fallback：`MapEditorGameResourceBridge.makeDocument` 导入默认游戏资源时不再把无法识别的 `unit.faction` 静默落到旧 `.allies`，而是跳过该坏 unit 并生成 `MapEditorGameResourceImportDiagnostic`；`MapEditorViewModel.loadDefaultGameResources()` 会把跳过数量和原因写入状态消息。该层不改主游戏 `DataLoader`、`Faction` enum、JSON schema、MapEditor 导出 schema、命令管线、规则执行或动态权威。
 
-仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的忠诚/叛乱/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
+v3.7-preflight.101 已让归附善后压力从复盘记录落到州郡治安/顺从状态：`CommandExecutor.executeSubmissionHandoff` 生成 `SubmissionAftermathRecord` 后，会按风险等级调整受影响州郡的 `OccupationState.resistance` / `compliance`，并追加外交战报提示治安承压。该层复用既有州郡经营“安民”来抵消压力，不新增命令、存档字段、忠诚、叛乱、贡赋、俘虏、安置模型或额外归属转移。
+
+仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、水战、siege progress、真实多模型协作、归附交接后的完整忠诚/叛乱/贡赋/俘虏/安置实际效果、正式地图资产替换决策、完整 UI 文案穷尽审计和完整发布候选运行时重测流程尚未迁移。
 
 迁移期间必须继续守住本文既有权威边界：hex 是战术权威，动态 theater/front/deploy 从 hex 与单位位置派生，玩家和 AI 行动仍统一进入 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 
@@ -438,7 +440,7 @@ playerCommandState
 - v3.7-preflight.16 起，归附接收方可通过 `Command.resolveSubmissionHandoff` 接管归附目标未毁灭军队和可通行受控 hex；执行后仍由同步器和 bootstrapper 刷新 region、动态方面、前线与部署。
 - v3.7-preflight.17 起，归附交接完成后会追加 `SubmissionHandoffRecord` 并关联外交战报；外交面板只读展示最近交接记录和边界说明。
 - v3.7-preflight.18 起，AI 接收方会在 AI 回合最多提交一条 `Command.resolveSubmissionHandoff`，仍经 `RuleEngine` 执行并进入 AI command results。
-- v3.7-preflight.19 起，归附交接成功后会追加 `SubmissionAftermathRecord` 善后压力只读记录，并关联外交日志供外交面板复盘。
+- v3.7-preflight.19 起，归附交接成功后会追加 `SubmissionAftermathRecord` 善后压力记录，并关联外交日志供外交面板复盘；v3.7-preflight.101 起，该压力会按风险等级写入受影响州郡 `OccupationState`。
 - v3.7-preflight.20 起，AI 太守会在后续 AI 回合优先考虑最新高/需安抚善后压力记录的受影响州郡，仍只提交既有 `Command.governRegion`。
 - v3.7-preflight.21 起，既有州郡经营命令治理最新善后州郡后会追加 `SubmissionAftermathGovernanceRecord` 处置审计记录。
 - v3.7-preflight.22 起，外交面板会按最新善后记录显示已处置州郡数量和总受影响州郡数量。
@@ -450,6 +452,7 @@ playerCommandState
 - v3.7-preflight.28 起，MapEditor 默认读取和覆盖保存 `wude_618` 隋唐资源，覆盖默认资源时保留既有场景元数据和水路地点记录。
 - v3.7-preflight.29 起，MapEditor 文档显式保存 `keyLocations`，右键信息面板可编辑地点名称、类型、势力和 objectiveId，导出时以文档地点字段优先。
 - v3.7-preflight.100 起，默认资源桥导入 `scenario.initialUnits` 时，非法 unit faction 会被跳过并写入导入诊断，不再静默落到旧 `.allies`。
+- v3.7-preflight.101 起，归附交接后的善后风险会实际提高受影响州郡治安压力并降低顺从，仍不触发完整忠诚、叛乱、贡赋、俘虏或安置系统。
 - v3.7-preflight.30 起，发布前检查面板显示当前 `GameState` 静态门禁快照，但仍不等同于运行时验证或 CI artifact 验收。
 - v3.7-preflight.31 起，legacy 势力名、旧阶段/胜负原因、军队方向和经济事件日志的玩家可见兜底已中文化。
 - v3.7-preflight.32 起，App/AI 记录、bootstrap 战报、朝堂面板和将领技能显示中的第一批玩家可见调试文案已中文化或隐藏无数据占位。
@@ -751,7 +754,7 @@ courtRecords: [CourtDecisionRecord]
 - 朝堂层不能绕过 `WarCommandExecutor` / `RuleEngine`。
 - 朝堂层不能直接修改 `HexTile.controller`、`Division.coord`、`regionToTheater`、`hexToTheater` 或 `hexToFrontZone`。
 - v3.7-preflight.10 后玩家侧太守经营可通过 `Command.governRegion` 执行；v3.7-preflight.11 后 AI 太守会在 AI/观战自动回合最多生成一条 `Command.governRegion`，仍交给 `RuleEngine` 校验执行。
-- v3.7-preflight.9 后玩家侧使者可通过 `Command.updateDiplomacy` 执行议和/纳降；v3.7-preflight.12 后 AI 使者会在保守条件下最多生成一条停战或归附关系命令；v3.7-preflight.13 后外交关系变化会生成 `DiplomacyEventRecord` 并关联战报；v3.7-preflight.14 后已归附且无实体存在的势力会退出通用回合轮转；v3.7-preflight.15 后外交面板会盘点归附目标残余实体；v3.7-preflight.16 后归附接收方可通过 `Command.resolveSubmissionHandoff` 接管残余军队和可通行受控 hex，仍交给 `RuleEngine` 校验执行；v3.7-preflight.17 后交接结果会生成 `SubmissionHandoffRecord` 并关联外交战报；v3.7-preflight.18 后 AI 接收方会在 AI 回合最多执行一条归附实体交接命令；v3.7-preflight.19 后交接成功会生成 `SubmissionAftermathRecord` 善后压力只读记录；v3.7-preflight.20 后 AI 太守会把高/需安抚善后州郡纳入优先经营候选；v3.7-preflight.21 后治理这些善后州郡会生成 `SubmissionAftermathGovernanceRecord` 处置审计记录；v3.7-preflight.22 后外交面板会汇总本次善后处置进度；v3.7-preflight.23 后 AI 太守会优先治理尚未处置的善后州郡；v3.7-preflight.24 后外交面板会显示待处置数量和完成状态，AI 太守在全部处置后不再特殊优先该善后记录；v3.7-preflight.25 后发布检查面板会把代码接入、运行时门禁和后续功能拆开展示；v3.7-preflight.26 后 AI 太守跳过经营时会把原因写入诊断；v3.7-preflight.27 后 AI 使者和归附交接跳过行动时也会把原因写入诊断；v3.7-preflight.28 后 MapEditor 默认资源桥对齐到 `wude_618` 并保留既有场景元数据；v3.7-preflight.29 后 MapEditor 可字段化维护 scenario `keyLocations`；v3.7-preflight.30 后发布检查面板可展示当前 `GameState` 静态门禁快照；v3.7-preflight.31 后部分 legacy 势力名、阶段、胜负原因和事件日志显示兜底已中文化；v3.7-preflight.32 后第一批 App/AI 记录、bootstrap 战报、朝堂面板和将领技能调试文案已中文化；v3.7-preflight.33 后外交/朝堂面板、记录摘要、详情面板和可访问性入口的一批 raw/debug 文案已收口；v3.7-preflight.34 后 AI 诊断、命令结果摘要和 legacy Agent D 失败路径的一批英文/工程词已收口；v3.7-preflight.35 后战报 metadata、战报重点摘要和总管预备军令预览的一批 raw/debug 文案已收口。
+- v3.7-preflight.9 后玩家侧使者可通过 `Command.updateDiplomacy` 执行议和/纳降；v3.7-preflight.12 后 AI 使者会在保守条件下最多生成一条停战或归附关系命令；v3.7-preflight.13 后外交关系变化会生成 `DiplomacyEventRecord` 并关联战报；v3.7-preflight.14 后已归附且无实体存在的势力会退出通用回合轮转；v3.7-preflight.15 后外交面板会盘点归附目标残余实体；v3.7-preflight.16 后归附接收方可通过 `Command.resolveSubmissionHandoff` 接管残余军队和可通行受控 hex，仍交给 `RuleEngine` 校验执行；v3.7-preflight.17 后交接结果会生成 `SubmissionHandoffRecord` 并关联外交战报；v3.7-preflight.18 后 AI 接收方会在 AI 回合最多执行一条归附实体交接命令；v3.7-preflight.19 后交接成功会生成 `SubmissionAftermathRecord` 善后压力记录；v3.7-preflight.101 后善后压力会写入受影响州郡治安/顺从状态；v3.7-preflight.20 后 AI 太守会把高/需安抚善后州郡纳入优先经营候选；v3.7-preflight.21 后治理这些善后州郡会生成 `SubmissionAftermathGovernanceRecord` 处置审计记录；v3.7-preflight.22 后外交面板会汇总本次善后处置进度；v3.7-preflight.23 后 AI 太守会优先治理尚未处置的善后州郡；v3.7-preflight.24 后外交面板会显示待处置数量和完成状态，AI 太守在全部处置后不再特殊优先该善后记录；v3.7-preflight.25 后发布检查面板会把代码接入、运行时门禁和后续功能拆开展示；v3.7-preflight.26 后 AI 太守跳过经营时会把原因写入诊断；v3.7-preflight.27 后 AI 使者和归附交接跳过行动时也会把原因写入诊断；v3.7-preflight.28 后 MapEditor 默认资源桥对齐到 `wude_618` 并保留既有场景元数据；v3.7-preflight.29 后 MapEditor 可字段化维护 scenario `keyLocations`；v3.7-preflight.30 后发布检查面板可展示当前 `GameState` 静态门禁快照；v3.7-preflight.31 后部分 legacy 势力名、阶段、胜负原因和事件日志显示兜底已中文化；v3.7-preflight.32 后第一批 App/AI 记录、bootstrap 战报、朝堂面板和将领技能调试文案已中文化；v3.7-preflight.33 后外交/朝堂面板、记录摘要、详情面板和可访问性入口的一批 raw/debug 文案已收口；v3.7-preflight.34 后 AI 诊断、命令结果摘要和 legacy Agent D 失败路径的一批英文/工程词已收口；v3.7-preflight.35 后战报 metadata、战报重点摘要和总管预备军令预览的一批 raw/debug 文案已收口。
 - 元帅 JSON 解码失败时仍先使用 `TheaterCommanderPool` fallback，再进入朝堂层审计和塑形，不执行半成品 JSON。
 
 ### 1.8 EconomyState / EconomyRules
@@ -2241,7 +2244,7 @@ MapEditorGameResourceBridge.loadDefaultDocument
 - 真 LLM 尚未接入；当前只用 `SimulatedMarshalLLMClient` 模拟纯 JSON 输出，decoder 仍兼容 fenced JSON 和纯 JSON。
 - 默认 AI 上游已是 `MarshalAgent -> TheaterDirectiveEnvelope -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent`，下游执行必须是 `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 - 元帅层不能直接输出底层 `Command`，不能直接修改地图、单位、hex controller 或动态战区权威。
-- 朝堂层塑形和审计 `DirectiveEnvelope`；v3.7-preflight.9 已有玩家侧议和/纳降命令，v3.7-preflight.10 已有玩家侧州郡经营命令，v3.7-preflight.11 已有 AI 太守主动经营，v3.7-preflight.12 已有 AI 使者主动外交，v3.7-preflight.13 已有最小归附事件记录链，v3.7-preflight.14 已有归附空势力轮转收口，v3.7-preflight.15 已有归附实体盘点和事件 target 判定收口，v3.7-preflight.16 已有最小归附实体交接命令，v3.7-preflight.17 已有归附交接审计记录，v3.7-preflight.18 已有 AI 归附实体交接，v3.7-preflight.19 已有归附善后压力只读记录，v3.7-preflight.20 已有 AI 善后太守优先治理，v3.7-preflight.21 已有善后处置审计记录，v3.7-preflight.22 已有善后处置进度摘要，v3.7-preflight.23 已有 AI 善后未处置优先治理，v3.7-preflight.24 已有善后完成状态提示，v3.7-preflight.25 已有发布检查门禁拆分，v3.7-preflight.26 已有 AI 太守跳过诊断，v3.7-preflight.27 已有 AI 使者/归附交接跳过诊断，v3.7-preflight.28 已有 MapEditor 默认隋唐资源桥，v3.7-preflight.29 已有 MapEditor 地点字段化编辑，v3.7-preflight.30 已有发布候选静态门禁快照，v3.7-preflight.31 已有玩家可见旧英文兜底收口，v3.7-preflight.32 已有玩家可见调试文案第一批收口，v3.7-preflight.33 已有玩家可见外交/朝堂文案收口，v3.7-preflight.34 已有玩家可见 AI 诊断文案收口，v3.7-preflight.35 已有战报与总管预览文案收口，但借兵、忠诚/叛乱/安置实际效果、更完整归附后续事件、水战/渡河/港口补给规则仍待后续。
+- 朝堂层塑形和审计 `DirectiveEnvelope`；v3.7-preflight.9 已有玩家侧议和/纳降命令，v3.7-preflight.10 已有玩家侧州郡经营命令，v3.7-preflight.11 已有 AI 太守主动经营，v3.7-preflight.12 已有 AI 使者主动外交，v3.7-preflight.13 已有最小归附事件记录链，v3.7-preflight.14 已有归附空势力轮转收口，v3.7-preflight.15 已有归附实体盘点和事件 target 判定收口，v3.7-preflight.16 已有最小归附实体交接命令，v3.7-preflight.17 已有归附交接审计记录，v3.7-preflight.18 已有 AI 归附实体交接，v3.7-preflight.19 已有归附善后压力记录，v3.7-preflight.101 已有归附善后治安/顺从压力落地，v3.7-preflight.20 已有 AI 善后太守优先治理，v3.7-preflight.21 已有善后处置审计记录，v3.7-preflight.22 已有善后处置进度摘要，v3.7-preflight.23 已有 AI 善后未处置优先治理，v3.7-preflight.24 已有善后完成状态提示，v3.7-preflight.25 已有发布检查门禁拆分，v3.7-preflight.26 已有 AI 太守跳过诊断，v3.7-preflight.27 已有 AI 使者/归附交接跳过诊断，v3.7-preflight.28 已有 MapEditor 默认隋唐资源桥，v3.7-preflight.29 已有 MapEditor 地点字段化编辑，v3.7-preflight.30 已有发布候选静态门禁快照，v3.7-preflight.31 已有玩家可见旧英文兜底收口，v3.7-preflight.32 已有玩家可见调试文案第一批收口，v3.7-preflight.33 已有玩家可见外交/朝堂文案收口，v3.7-preflight.34 已有玩家可见 AI 诊断文案收口，v3.7-preflight.35 已有战报与总管预览文案收口，但借兵、完整忠诚/叛乱/贡赋/俘虏/安置效果、更完整归附后续事件、水战/渡河/港口补给规则仍待后续。
 - v3.5 战报、外交、州郡摘要是信息闭环基础；v3.7-preflight.9 / .10 已分别补上玩家外交和州郡经营的 `Command` / validator / executor 最小闭环。
 - v3.6 只建立 SwiftUI 视觉基底、中文化收口和最小 SpriteKit 城池/关隘/粮仓/粮道/围城标识；v3.7-preflight.4 已补渡口/港口最小图标，v3.7-preflight.5 已补 AI 计划箭头，v3.7-preflight.6 已补普通地图层前线墨线，v3.7-preflight.8 已把这些标识的资产边界写入发布前检查；这些地图叠加层和真实运行时布局仍未重测。
 - 当前 main 直推流程中，若工作树已有未提交改动或并发子 Agent 产物，合并前需要按 `AGENTS.md` 单独审查文件归属、public API、schema 和文档口径冲突。

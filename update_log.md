@@ -9,6 +9,46 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.101 - 归附善后治安压力落地
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在 MapEditor 非法 unit faction 导入诊断收口之后，继续处理总提示词 §0.2 的“忠诚、叛乱、贡赋、俘虏、安置等归附善后实际规则”，先做低风险子切片：让归附交接后的善后压力实际落到州郡治安/顺从状态。
+
+核心更新：
+
+- `CommandExecutor.executeSubmissionHandoff` 生成 `SubmissionAftermathRecord` 后，会按风险等级把受影响州郡的 `OccupationState.resistance` 提高、`compliance` 降低。
+- 善后压力落地后追加外交战报，提示受影响州郡治安承压，需要太守安民或整修支撑。
+- `SubmissionAftermathRecord` / `SubmissionAftermathGovernanceRecord` 边界说明同步更新：安民等既有州郡经营能调整治安/顺从，但不会删除善后记录或触发完整忠诚、叛乱、贡赋、俘虏、安置系统。
+- 总提示词 §0.2 将“归附善后实际规则”降级为部分完成：治安/顺从压力已落地，完整忠诚、叛乱、贡赋、俘虏、安置仍待后续。
+
+关键文件：
+
+- `WWIIHexV0/Rules/CommandExecutor.swift`
+- `WWIIHexV0/Core/DiplomacyState.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_submission_aftermath_occupation_pressure_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `swiftc -parse WWIIHexV0/Rules/CommandExecutor.swift`：通过。
+- `swiftc -parse WWIIHexV0/Core/DiplomacyState.swift`：通过。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只把善后压力落到既有 `OccupationState`，没有实现独立忠诚、叛乱、贡赋、俘虏、安置模型。
+- 未启动 App 做归附交接、AI 太守治理和外交面板显示的人工运行复核；需由 GitHub Actions 与后续 Agent C 云端结果包验收继续确认。
+
 ## v3.7-preflight.100 - MapEditor 非法 unit faction 导入诊断收口
 
 完成日期：2026-07-07
