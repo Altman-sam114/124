@@ -9,6 +9,47 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.108 - 己控渡口港口移动渡河减免
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在渡口港口粮道补给减免、受控水路补给投送点和默认水路地点河边资产补录之后，继续补“移动渡河”的低风险子切片：让己方控制的渡口、港口和海港影响战术移动路径成本。
+
+核心更新：
+
+- `MovementRules.shortestPaths` 使用带 `GameState` / 移动方势力的内部移动成本函数。
+- 非道路跨 `riverEdges` 行军时，若跨河两端任一 hex 有 `MapFeatureKind.ferry` / `port` / `harbor` 且该 hex `controller == movingFaction`，该段移动渡河额外成本降为 0。
+- 敌控或未控水路地点不提供移动减免；道路跨河仍按既有道路优先规则处理。
+- 保留公开 `movementCost(from:to:direction:)` 的纯地形语义和既有测试口径，供旧调用方和纯规则断言继续使用。
+- 玩家移动高亮、移动校验、AI 选点和执行方向均复用 `MovementRules.shortestPath` / `movementRange`，自然消费该移动减免。
+- 本轮不改 `Command` / `ZoneDirective`、JSON schema、MapEditor、补给、水战、战斗、部署点或默认数据。
+
+关键文件：
+
+- `WWIIHexV0/Rules/MovementRules.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_water_transit_movement_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RuleEngineCoreTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 未启动 App 或截图复核移动高亮实际视觉表现。
+- 本轮只实现相邻水路通行点的移动渡河成本减免，完整水战、港口部署点、完整港口补给源和更细水域控制仍待后续独立切片。
+
 ## v3.7-preflight.107 - 默认水路地点河边资产补录
 
 完成日期：2026-07-07

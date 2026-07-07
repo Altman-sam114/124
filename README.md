@@ -1,6 +1,6 @@
 # WWIIHexV0 — iOS / macOS AI 战略战棋骨架
 
-> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.107 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营命令、AI 太守/使者/归附交接、善后记录链、发布检查静态门禁、多轮玩家可见文案收口、本局执掌势力选择、MapEditor 隋唐资源桥与可见文案收口、默认数据说明和补给战报中文化、AI 元帅/方面军令摘要中文化、Legacy MockAI 与元帅解析诊断中文化、legacy fallback JSON 可见文本收口、legacy 将领档案可见文本和技能显示收口、Agent 诊断/错误兜底文案收口、自动回合与元帅诊断兜底文案收口、数据加载与导出说明可见文案收口、复核面板与记录摘要可见文案收口、MapEditor 与主游戏 raw id 可见文案复扫收口、命令错误与源头战报可见文案收口、总管与将领档案防区展示名 raw id 收口、legacy fallback 数据展示文案收口、legacy fallback 单位与防区展示文案收口、legacy static fallback 目标兼容与展示文案收口、legacy LLM prompt 语言收口、外交面板名称和记录净化收口、战报意图屏蔽与中文分类收口、MapEditor 导出元数据 fallback 收口、AI 诊断净化口径对齐、legacy 总管配置中文兜底、legacy prompt 内部编号分层收口、legacy prompt 直通文本净化、legacy prompt 决策者身份净化、legacy MockAI stance 文案收口、legacy prompt 工程说明词收口、模拟元帅输出纯 JSON 收口、UI/战报/外交记录净化 helper 顺序与词表对齐、legacy 将领与朝堂记录可见文案复扫、CommandPanel 命令消息展示净化收口、单位详情与提示 legacy 单位名展示收口、州郡详情 legacy 地名与目标名展示收口、将领与总管面板 legacy 可见文案复扫收口、MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、MapEditor 选择器与状态消息 legacy 文案收口、AppContainer 交互日志与存档反馈 legacy 文案收口、GameLogEntry 源头战报 legacy 文案收口、legacy LocalLLM prompt 临时编号别名收口、legacy fallback 行军总管配置收口、朝堂/外交实际记录 id 展示净化收口、行军总管可见称谓净化收口、源头 legacy 中文势力/国家/地名展示净化收口、将领档案/总管军令称谓净化对齐、fallback JSON 可见数据文本收口、源码层 legacy 可见兜底文本收口、静态 GameState / MapState fallback 可见文本收口、legacy objective lookup 字面量收口、RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口，阶段与旧总管展示口径收口，自动总管默认指挥风格收口，默认指挥风格共享 helper 收口，DataLoader 场景阶段兜底收口，legacy phase 存档规范化收口，动态方面推进势力兜底收口，RegionDataSet owner/controller 兜底收口，ScenarioSemantics 场景语义与胜负 fallback 门禁收口，MapEditor 非法 unit faction 导入诊断收口，归附善后治安压力落地，归附善后贡赋效率落地，渡口港口粮道补给减免落地，MapEditor 河边数据往返保真落地，MapEditor 河边绘制/擦除入口落地，受控渡口港口补给投送点落地，以及默认水路地点河边资产补录。正式地图资产、交接后的完整忠诚/叛乱/俘虏/安置实际效果、更完整朝堂决策、授权构建/启动/多回合运行验证和云端结果包验收仍未完成。
+> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.108 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营命令、AI 太守/使者/归附交接、善后记录链、发布检查静态门禁、多轮玩家可见文案收口、本局执掌势力选择、MapEditor 隋唐资源桥与可见文案收口、默认数据说明和补给战报中文化、AI 元帅/方面军令摘要中文化、Legacy MockAI 与元帅解析诊断中文化、legacy fallback JSON 可见文本收口、legacy 将领档案可见文本和技能显示收口、Agent 诊断/错误兜底文案收口、自动回合与元帅诊断兜底文案收口、数据加载与导出说明可见文案收口、复核面板与记录摘要可见文案收口、MapEditor 与主游戏 raw id 可见文案复扫收口、命令错误与源头战报可见文案收口、总管与将领档案防区展示名 raw id 收口、legacy fallback 数据展示文案收口、legacy fallback 单位与防区展示文案收口、legacy static fallback 目标兼容与展示文案收口、legacy LLM prompt 语言收口、外交面板名称和记录净化收口、战报意图屏蔽与中文分类收口、MapEditor 导出元数据 fallback 收口、AI 诊断净化口径对齐、legacy 总管配置中文兜底、legacy prompt 内部编号分层收口、legacy prompt 直通文本净化、legacy prompt 决策者身份净化、legacy MockAI stance 文案收口、legacy prompt 工程说明词收口、模拟元帅输出纯 JSON 收口、UI/战报/外交记录净化 helper 顺序与词表对齐、legacy 将领与朝堂记录可见文案复扫、CommandPanel 命令消息展示净化收口、单位详情与提示 legacy 单位名展示收口、州郡详情 legacy 地名与目标名展示收口、将领与总管面板 legacy 可见文案复扫收口、MapDisplayAdapter / SpriteKit 地图展示入口 legacy 文案收口、MapEditor 选择器与状态消息 legacy 文案收口、AppContainer 交互日志与存档反馈 legacy 文案收口、GameLogEntry 源头战报 legacy 文案收口、legacy LocalLLM prompt 临时编号别名收口、legacy fallback 行军总管配置收口、朝堂/外交实际记录 id 展示净化收口、行军总管可见称谓净化收口、源头 legacy 中文势力/国家/地名展示净化收口、将领档案/总管军令称谓净化对齐、fallback JSON 可见数据文本收口、源码层 legacy 可见兜底文本收口、静态 GameState / MapState fallback 可见文本收口、legacy objective lookup 字面量收口、RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口，阶段与旧总管展示口径收口，自动总管默认指挥风格收口，默认指挥风格共享 helper 收口，DataLoader 场景阶段兜底收口，legacy phase 存档规范化收口，动态方面推进势力兜底收口，RegionDataSet owner/controller 兜底收口，ScenarioSemantics 场景语义与胜负 fallback 门禁收口，MapEditor 非法 unit faction 导入诊断收口，归附善后治安压力落地，归附善后贡赋效率落地，渡口港口粮道补给减免落地，MapEditor 河边数据往返保真落地，MapEditor 河边绘制/擦除入口落地，受控渡口港口补给投送点落地，默认水路地点河边资产补录，以及己控渡口港口移动渡河减免落地。正式地图资产、交接后的完整忠诚/叛乱/俘虏/安置实际效果、更完整朝堂决策、水战/港口部署点、授权构建/启动/多回合运行验证和云端结果包验收仍未完成。
 
 ---
 
@@ -86,10 +86,16 @@ MapEditor/
 
 ## 当前完成进度
 
+### v3.7-preflight.108：己控渡口港口移动渡河减免
+
+- `MovementRules` 路径搜索现在会在跨 `riverEdges` 行军时检查两端是否有己方控制的渡口、港口或海港。
+- 若移动方控制相邻水路通行点，该段非道路跨河移动不再额外增加渡河成本；敌控或未控水路点不提供减免。
+- 边界：不改公开 `movementCost(from:to:direction:)` 的纯地形语义，不改命令、JSON schema、补给、战斗、水战或部署点。
+
 ### v3.7-preflight.107：默认水路地点河边资产补录
 
 - 默认 `wude_618_scenario.json` 为蒲津渡、孟津渡和洛口津补上贴近地点的 `riverEdges`。
-- 四个默认水路地点现在自身 hex 均有河边输入，能被既有跨河补给、补给 anchor 和后续移动规则消费。
+- 四个默认水路地点现在自身 hex 均有河边输入，能被既有跨河补给、补给 anchor 和移动渡河规则消费。
 - 边界：不新增地图尺寸、地形、单位、地点、schema 或运行时规则；不声称真实河网已完整补齐。
 
 ### v3.7-preflight.106：受控渡口港口补给投送点

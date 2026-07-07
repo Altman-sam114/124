@@ -6,10 +6,12 @@ struct MovementPath: Equatable {
 }
 
 struct MovementRules {
+    private static let riverCrossingExtraCost = 2
+
     func movementCost(from: HexTile, to: HexTile, direction: HexDirection) -> Int {
         var cost = from.hasRoad && to.hasRoad ? 1 : to.baseTerrain.movementCost
         if hasRiverCrossing(from: from, to: to, direction: direction), !(from.hasRoad && to.hasRoad) {
-            cost += 2
+            cost += Self.riverCrossingExtraCost
         }
         return cost
     }
@@ -81,7 +83,13 @@ struct MovementRules {
                 }
 
                 let nextCost = current.cost
-                    + movementCost(from: fromTile, to: toTile, direction: direction)
+                    + movementCost(
+                        from: fromTile,
+                        to: toTile,
+                        direction: direction,
+                        for: division.faction,
+                        in: state
+                    )
                     + tacticalTerrainPenalty(for: division, entering: toTile)
                 guard nextCost <= movementLimit else {
                     continue
@@ -100,6 +108,39 @@ struct MovementRules {
             paths[coord] = MovementPath(coords: bestPath[coord] ?? [division.coord, coord], cost: cost)
         }
         return paths
+    }
+
+    private func movementCost(
+        from fromTile: HexTile,
+        to toTile: HexTile,
+        direction: HexDirection,
+        for faction: Faction,
+        in state: GameState
+    ) -> Int {
+        var cost = fromTile.hasRoad && toTile.hasRoad ? 1 : toTile.baseTerrain.movementCost
+        if hasRiverCrossing(from: fromTile, to: toTile, direction: direction),
+           !(fromTile.hasRoad && toTile.hasRoad) {
+            cost += riverMovementCrossingCost(from: fromTile.coord, to: toTile.coord, for: faction, in: state)
+        }
+        return cost
+    }
+
+    private func riverMovementCrossingCost(from: HexCoord, to: HexCoord, for faction: Faction, in state: GameState) -> Int {
+        if hasControlledWaterTransit(at: from, for: faction, in: state) ||
+            hasControlledWaterTransit(at: to, for: faction, in: state) {
+            return 0
+        }
+        return Self.riverCrossingExtraCost
+    }
+
+    private func hasControlledWaterTransit(at coord: HexCoord, for faction: Faction, in state: GameState) -> Bool {
+        guard state.map.tile(at: coord)?.controller == faction else {
+            return false
+        }
+
+        return state.map.featureMarkers.contains { marker in
+            marker.coord == coord && marker.kind.isWaterTransit
+        }
     }
 
     private func tacticalTerrainPenalty(for division: Division, entering tile: HexTile) -> Int {

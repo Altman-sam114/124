@@ -102,6 +102,48 @@ final class RuleEngineCoreTests: XCTestCase {
         XCTAssertEqual(stopOnFriendlyResult.validation.errors, [.destinationOccupied])
     }
 
+    func testControlledWaterTransitReducesRiverCrossingMovementCost() throws {
+        let start = HexCoord(q: 0, r: 0)
+        let destination = HexCoord(q: 2, r: 0)
+        var map = Self.basicMap(width: 3, height: 1)
+        map.featureMarkers = [
+            MapFeatureMarker(
+                id: "test_ferry",
+                name: "Test Ferry",
+                kind: .ferry,
+                coord: start,
+                faction: nil,
+                objectiveId: nil
+            )
+        ]
+        if var startTile = map.tile(at: start) {
+            startTile.riverEdges = [.east]
+            startTile.controller = .allies
+            map.setTile(startTile)
+        }
+        let mover = Self.division(id: "a", faction: .allies, coord: start)
+        let state = Self.testState(activeFaction: .allies, map: map, divisions: [mover])
+
+        let controlledPath = try XCTUnwrap(MovementRules().shortestPath(for: mover, to: destination, in: state))
+        XCTAssertEqual(controlledPath.cost, 2)
+
+        if var startTile = map.tile(at: start) {
+            startTile.controller = .germany
+            map.setTile(startTile)
+        }
+        let enemyControlledState = Self.testState(activeFaction: .allies, map: map, divisions: [mover])
+
+        XCTAssertNil(MovementRules().shortestPath(for: mover, to: destination, in: enemyControlledState))
+        XCTAssertEqual(
+            MovementRules().shortestPathIgnoringMovement(
+                for: mover,
+                to: destination,
+                in: enemyControlledState
+            )?.cost,
+            4
+        )
+    }
+
     func testMoveValidationDistinguishesOutOfBoundsNoPathAndInsufficientMovement() {
         let start = HexCoord(q: 0, r: 0)
         let isolatedDestination = HexCoord(q: 2, r: 2)
