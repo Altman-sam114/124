@@ -38,6 +38,7 @@
 - P3 聚焦扫描：`MapEditorGameResourceBridge.swift` 不再命中 `Faction(rawValue: unit.faction) ?? .allies`，新增 `MapEditorGameResourceImportDiagnostic`、`loadDefaultDocumentResult` 和“已跳过”状态消息命中。
 - `command -v swiftc`：无输出，当前容器缺少 `swiftc`，未能执行 Swift 单文件 parse。
 - 本轮未改 JSON、plist、scheme 或 workflow，未运行对应解析检查。
+- 云端 GitHub Actions 结果包已复核：run id `28838581824`，run attempt `1`，commit `30000cf41d1a798038ae38d877464813d8b072f2`，workflow `WWIIHexV0 CI Results`。`ci-artifact-manifest.json` 记录 `staticChecksOutcome: success`、`buildOutcome: success`、`testOutcome: skipped`；`junit.xml` 为 2 项、0 failures、0 errors；`ci-failure-summary.md` 写明 CI passed；`xcodebuild.log` 末尾为 `** BUILD SUCCEEDED **`。结果包缓存目录：`/private/tmp/wwiihexv0-c-review-28838581824/`。
 
 未执行：
 
@@ -47,7 +48,7 @@
 
 - 未启动 MapEditor 读取默认隋唐资源或人工构造坏 unit faction JSON 做运行时导入复核。
 - Swift 单文件 parse 未执行成功，因为当前容器缺少 `swiftc`。
-- 本轮尚未 commit / push，云端 GitHub Actions 尚未触发。
+- 云端 build 已通过，但本轮仍未做模拟器、UI、手动 MapEditor 导入或多回合运行时复核。
 
 ## v3.7-preflight.99 - 场景语义与胜负 fallback 门禁收口
 

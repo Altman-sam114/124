@@ -1,6 +1,6 @@
 # 项目 Markdown 大纲：隋末唐初 AI Agent 历史策略迁移
 
-> 本文件是项目 md 层的路线大纲，依据 `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md` 整理。它不是实现记录，也不表示 v3.x 代码已经完成。实际开发仍以 `AGENTS.md`、`update_log.md`、`md/flow/flow.md`、`md/flow/flowchart.md`、`md/test/test.md` 和各阶段 prompt 为准。
+> 本文件是项目 md 层的路线大纲，依据 `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md` 整理。它不是完整产品完成证明；当前已落地状态以 `update_log.md`、`md/flow/flow.md`、`md/flow/flowchart.md`、`README.md` 和真实源码 / 检查结果为准。
 
 ## 1. 当前项目判断
 
