@@ -1,4 +1,4 @@
-# WWIIHexV0 核心流程文档（v3.7-preflight.114 隋唐迁移）
+# WWIIHexV0 核心流程文档（v3.7-preflight.115 隋唐迁移）
 
 > 本文是项目当前核心逻辑的接手文档。目标不是复述历史设计，而是按当前代码真实链路说明：数据如何进入游戏，hex / region / theater / front / deploy 如何派生，主游戏和地图编辑器如何共同维护同一套地图语义，AI / 玩家命令如何落到规则系统。
 
@@ -60,9 +60,9 @@ MapEditor / JSON 数据
 - 朝堂层只塑形和审计 `DirectiveEnvelope`，写入 `RulerDecisionRecord` / `CourtDecisionRecord`；它不直接生成底层 `Command`，也不直接修改 hex、单位、战区、部署或外交关系。
 - 协作验证层以 `main` 直推和 GitHub Actions 结果包为准；本机默认只跑轻量检查，Agent C 不再只凭文字汇报验收。
 
-### 0.1 v3.0-v3.7-preflight.114 隋唐迁移状态
+### 0.1 v3.0-v3.7-preflight.115 隋唐迁移状态
 
-当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.114 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地、归附善后贡赋效率落地、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免落地、MapEditor 河边数据往返保真、MapEditor 河边绘制/擦除入口、受控渡口港口补给投送点、默认水路地点河边资产补录、己控渡口港口移动渡河减免、隔河近战水路控制校验、己控港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化，以及骑兵基础机动/冲击强化：
+当前已存在隋末唐初迁移总提示词、v3.0 审计合同、v3.1 最小兼容迁移记录、v3.2 默认数据迁移记录、v3.3 战争规则迁移记录、v3.4 朝堂 AI 分层记录、v3.5 玩家体验记录、v3.6 UI 收口记录，以及 v3.7-preflight 至 v3.7-preflight.115 的发布候选前置记录。最近阶段已完成 RegionVictoryRules 隋唐胜负摘要对齐、共享隋唐胜负 evaluator 收口、指令结果语义化固守判定收口、阶段与旧总管展示口径收口、自动总管默认指挥风格收口、默认指挥风格共享 helper 收口、DataLoader 场景阶段兜底收口、legacy phase 存档规范化收口、动态方面推进势力兜底收口、RegionDataSet owner/controller 兜底收口、ScenarioSemantics 场景语义和胜负 fallback 门禁收口、MapEditor 非法 unit faction 导入诊断收口、归附善后治安压力落地、归附善后贡赋效率落地、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免落地、MapEditor 河边数据往返保真、MapEditor 河边绘制/擦除入口、受控渡口港口补给投送点、默认水路地点河边资产补录、己控渡口港口移动渡河减免、隔河近战水路控制校验、己控港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化、骑兵基础机动/冲击强化，以及水路补给 anchor 粮道显示对齐：
 
 - `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
 - `md/prompt/v3.0-隋唐迁移/v3.0_audit_and_contract.md`
@@ -420,7 +420,9 @@ v3.7-preflight.113 已把首轮玩家可见接触态势术语古代化：`MapDis
 
 v3.7-preflight.114 已把骑兵基础冲击和机动强化：`ComponentType.cavalry` 基础攻击提高到 7、移动提高到 6，防御保持 4；`CombatRules.effectiveAttack` 的平原骑兵冲击加成提高到 `+0.3`，让骑军在开阔地具备更明确的古代战场差异。该层不改单位模板 JSON、AI tactic 权重、将领技能消费、补给、水战、命令 schema 或存档字段。
 
-仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、完整水战/河面控制/运输、siege progress、真实多模型协作、归附交接后的实际叛乱触发/俘虏处置/安置命令、正式地图资产替换决策、完整 UI 文案穷尽审计、骑兵技能/名将统率消费和完整发布候选运行时重测流程尚未迁移。
+v3.7-preflight.115 已把地图粮道显示与规则层水路补给 anchor 对齐：`SupplyRules.effectiveSupplyAnchors(for:in:)` 作为内部规则 API 返回永久补给源和己控、可通行渡口/港口/海港坐标；`BoardScene` 绘制粮道虚线时复用同一 anchor 集合，己控水路地点不再只影响补给判定，也会成为玩家可见的粮道落点提示。该层不改变补给规则、JSON schema、移动、战斗、水战或部署；虚线仍是最近可达 anchor 的直线提示，不是真实逐格路径。
+
+仍未完成的迁移边界：README / AGENTS 项目身份仍按真实工程历史保留，完整天命/民心、完整水战/河面控制/运输、siege progress、真实多模型协作、归附交接后的实际叛乱触发/俘虏处置/安置命令、正式地图资产替换决策、完整 UI 文案穷尽审计、骑兵技能/名将统率消费、AI 粮道目标权重和完整发布候选运行时重测流程尚未迁移。
 
 迁移期间必须继续守住本文既有权威边界：hex 是战术权威，动态 theater/front/deploy 从 hex 与单位位置派生，玩家和 AI 行动仍统一进入 `Command` / `ZoneDirective -> WarCommandExecutor -> RuleEngine`。
 

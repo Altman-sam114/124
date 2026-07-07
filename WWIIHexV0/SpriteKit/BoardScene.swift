@@ -342,15 +342,15 @@ final class BoardScene: SKScene {
                 continue
             }
 
-            if let source = nearestSuppliedSource(
+            if let anchor = nearestSupplyAnchor(
                 for: division,
                 in: renderState.gameState,
                 supplyRules: supplyRules
             ) {
-                let routeKey = SupplyRouteKey(unitHex: placement.hex, sourceHex: source.coord)
+                let routeKey = SupplyRouteKey(unitHex: placement.hex, anchorHex: anchor)
                 if drawnSupplyRoutes.insert(routeKey).inserted {
                     drawSupplyRoute(
-                        from: layout.hexToPixel(source.coord),
+                        from: layout.hexToPixel(anchor),
                         to: layout.hexToPixel(placement.hex),
                         faction: division.faction,
                         layout: layout
@@ -474,18 +474,18 @@ final class BoardScene: SKScene {
         renderState.observerModeEnabled || division.faction == renderState.viewerFaction
     }
 
-    private func nearestSuppliedSource(
+    private func nearestSupplyAnchor(
         for division: Division,
         in state: GameState,
         supplyRules: SupplyRules
-    ) -> SupplySource? {
-        let candidates = state.map.supplySources(for: division.faction)
-            .map { source in
+    ) -> HexCoord? {
+        let candidates = supplyRules.effectiveSupplyAnchors(for: division.faction, in: state)
+            .map { anchor in
                 (
-                    source: source,
+                    coord: anchor,
                     cost: supplyRules.supplyPathCost(
                         from: division.coord,
-                        to: source.coord,
+                        to: anchor,
                         for: division.faction,
                         in: state
                     )
@@ -497,16 +497,16 @@ final class BoardScene: SKScene {
             if lhs.cost != rhs.cost {
                 return lhs.cost < rhs.cost
             }
-            let lhsDistance = division.coord.distance(to: lhs.source.coord)
-            let rhsDistance = division.coord.distance(to: rhs.source.coord)
+            let lhsDistance = division.coord.distance(to: lhs.coord)
+            let rhsDistance = division.coord.distance(to: rhs.coord)
             if lhsDistance != rhsDistance {
                 return lhsDistance < rhsDistance
             }
-            if lhs.source.coord.r != rhs.source.coord.r {
-                return lhs.source.coord.r < rhs.source.coord.r
+            if lhs.coord.r != rhs.coord.r {
+                return lhs.coord.r < rhs.coord.r
             }
-            return lhs.source.coord.q < rhs.source.coord.q
-        }?.source
+            return lhs.coord.q < rhs.coord.q
+        }?.coord
     }
 
     private func drawSupplyRoute(from start: CGPoint, to end: CGPoint, faction: Faction, layout: HexLayout) {
@@ -895,5 +895,5 @@ final class BoardScene: SKScene {
 
 private struct SupplyRouteKey: Hashable {
     let unitHex: HexCoord
-    let sourceHex: HexCoord
+    let anchorHex: HexCoord
 }

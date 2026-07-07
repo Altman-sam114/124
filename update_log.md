@@ -9,6 +9,50 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.115 - 水路补给 anchor 粮道显示对齐
+
+完成日期：2026-07-07
+
+性质：响应人工最新方向的粮草/粮道反馈切片。在规则层已经让己控渡口、港口、海港成为战术补给 anchor 后，补齐地图显示层，让玩家能从粮道虚线看见这些水路补给落点。
+
+核心更新：
+
+- `SupplyRules.effectiveSupplyAnchors(for:in:)` 从私有 helper 调整为内部规则 API，统一返回永久补给源和己控、可通行水路通行点。
+- `BoardScene` 的粮道虚线从只查 `map.supplySources(for:)`，改为复用 `SupplyRules.effectiveSupplyAnchors(for:in:)`。
+- 己控渡口、港口和海港现在可作为地图粮道虚线的最近可达 anchor。
+- `SupplyRouteKey` 将字段语义从 `sourceHex` 改为 `anchorHex`，避免把水路 anchor 误写成永久补给源。
+- 发布检查说明补充粮道虚线会提示永久补给源和己控渡口、港口、海港补给落点。
+- `RuleEngineCoreTests` 增加有效 anchor 集合中包含己控渡口、敌控后移除的语义断言。
+
+关键文件：
+
+- `WWIIHexV0/Rules/SupplyRules.swift`
+- `WWIIHexV0/SpriteKit/BoardScene.swift`
+- `WWIIHexV0/UI/ReleaseChecklistView.swift`
+- `WWIIHexV0/Tests/RuleEngineCoreTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_water_transit_supply_overlay_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+- 语义保护新增在 `RuleEngineCoreTests`，但本机不默认执行 XCTest，交给 GitHub Actions 重验证。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 粮道虚线仍是直线提示，不是真实逐格路径；完整粮道路径渲染需要后续独立切片。
+- 未启动 App 截图复核水路点、单位、粮道虚线和接触墨线的层级遮挡。
+- AI 粮道目标权重和名将军令署名已由并发子 Agent 定位为后续低风险切片，本轮未混入。
+
 ## v3.7-preflight.114 - 骑兵冲击与机动强化
 
 完成日期：2026-07-07

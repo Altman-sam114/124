@@ -1,6 +1,6 @@
 # WWIIHexV0 — iOS / macOS AI 战略战棋骨架
 
-> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.114 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路仍是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营、AI 太守/使者/归附交接、善后记录、MapEditor 隋唐资源桥、多轮玩家可见 legacy 文案收口、场景语义与胜负 fallback 门禁、归附善后治安/贡赋效率、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免、河边数据保真与编辑、受控水路补给投送点、默认水路地点河边资产、移动渡河减免、隔河近战水路控制校验、港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化，以及骑兵基础机动/冲击强化。正式地图资产、完整叛乱触发/俘虏处置/安置命令、完整水战/河面控制、真实 LLM 接入、授权运行时验证和 Agent C artifact 级验收仍未完成。
+> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.115 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路仍是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营、AI 太守/使者/归附交接、善后记录、MapEditor 隋唐资源桥、多轮玩家可见 legacy 文案收口、场景语义与胜负 fallback 门禁、归附善后治安/贡赋效率、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免、河边数据保真与编辑、受控水路补给投送点、默认水路地点河边资产、移动渡河减免、隔河近战水路控制校验、港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化、骑兵基础机动/冲击强化，以及水路补给 anchor 粮道显示对齐。正式地图资产、完整叛乱触发/俘虏处置/安置命令、完整水战/河面控制、真实 LLM 接入、授权运行时验证和 Agent C artifact 级验收仍未完成。
 
 ---
 
@@ -89,6 +89,12 @@ MapEditor/
 ---
 
 ## 当前完成进度
+
+### v3.7-preflight.115：水路补给 anchor 粮道显示对齐
+
+- `SupplyRules.effectiveSupplyAnchors(for:in:)` 作为内部规则 API 暴露，统一永久补给源和己控渡口/港口/海港战术补给 anchor。
+- `BoardScene` 绘制粮道虚线时复用同一 anchor 集合，己控渡口、港口和海港不再只参与规则判定，也会成为地图粮道提示的可选落点。
+- 边界：粮道仍是最近可达 anchor 的直线提示，不是真实逐格路径；不改补给规则、JSON schema、移动、战斗、水战或部署。
 
 ### v3.7-preflight.114：骑兵冲击与机动强化
 
@@ -592,7 +598,7 @@ MapEditor/
 - `VictoryRules` 消费 `wude_618` 长安、洛阳、洛口仓、潼关胜利目标。
 - `GameSaveStore` 支持本地 JSON 自动存档，新局/继续/重置入口已接入。
 - HUD 筹备菜单、开局引导、基础设置和发布检查面板已接入。
-- 渡口/港口标识、渡口港口粮道补给减免、AI 计划箭头、普通地图层接触墨线、存档错误反馈和发布说明/资产边界已接入。
+- 渡口/港口标识、渡口港口粮道补给减免、己控水路补给 anchor 粮道显示、AI 计划箭头、普通地图层接触墨线、存档错误反馈和发布说明/资产边界已接入。
 
 ### v3.0-v3.6：迁移基础
 

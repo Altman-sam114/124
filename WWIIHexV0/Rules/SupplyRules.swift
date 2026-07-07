@@ -251,7 +251,7 @@ struct SupplyRules {
         }
     }
 
-    private func effectiveSupplyAnchors(for faction: Faction, in state: GameState) -> [HexCoord] {
+    func effectiveSupplyAnchors(for faction: Faction, in state: GameState) -> [HexCoord] {
         orderedUnique(
             state.map.supplySources(for: faction).map(\.coord) +
                 controlledWaterTransitCoords(for: faction, in: state)

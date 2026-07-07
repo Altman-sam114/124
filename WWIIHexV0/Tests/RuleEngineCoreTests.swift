@@ -672,6 +672,7 @@ final class RuleEngineCoreTests: XCTestCase {
         SupplyRules().updateSupplyStates(in: &state)
 
         XCTAssertEqual(state.division(id: "a")?.supplyState, .supplied)
+        XCTAssertTrue(SupplyRules().effectiveSupplyAnchors(for: .allies, in: state).contains(ferryCoord))
 
         if var ferryTile = map.tile(at: ferryCoord) {
             ferryTile.controller = .germany
@@ -681,6 +682,7 @@ final class RuleEngineCoreTests: XCTestCase {
         SupplyRules().updateSupplyStates(in: &enemyControlledState)
 
         XCTAssertNotEqual(enemyControlledState.division(id: "a")?.supplyState, .supplied)
+        XCTAssertFalse(SupplyRules().effectiveSupplyAnchors(for: .allies, in: enemyControlledState).contains(ferryCoord))
     }
 
     func testControlledPortCanReceiveProducedDivisionWhenNoSupplySourceIsAvailable() throws {
