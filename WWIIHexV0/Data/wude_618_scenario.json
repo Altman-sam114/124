@@ -489,7 +489,9 @@
         "r": 3,
         "terrain": "plain",
         "hasRoad": true,
-        "riverEdges": [],
+        "riverEdges": [
+          "northEast"
+        ],
         "controller": "tang",
         "cityName": null,
         "fortressName": null,
@@ -662,7 +664,8 @@
         "terrain": "plain",
         "hasRoad": true,
         "riverEdges": [
-          "east"
+          "east",
+          "northEast"
         ],
         "controller": "luoyangSui",
         "cityName": null,
@@ -957,7 +960,9 @@
         "r": 6,
         "terrain": "plain",
         "hasRoad": true,
-        "riverEdges": [],
+        "riverEdges": [
+          "west"
+        ],
         "controller": "wagang",
         "cityName": null,
         "fortressName": null,

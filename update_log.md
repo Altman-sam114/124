@@ -9,6 +9,48 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.107 - 默认水路地点河边资产补录
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在渡口港口粮道补给减免、MapEditor 河边保真/编辑入口和受控水路补给投送点之后，继续补默认 `wude_618` 地图资产数据：让默认渡口/港口地点自身 hex 有可被既有 river edge 规则消费的河边输入。
+
+核心更新：
+
+- `wude_618_scenario.json` 为蒲津渡 `(4,3)` 补录 `northEast` 河边。
+- 孟津渡 `(6,4)` 保留既有 `east`，并补录 `northEast` 河边。
+- 洛口津 `(6,6)` 补录 `west` 河边。
+- 黎阳津 `(7,4)` 保留既有 `east`，不重复写入对侧河边。
+- 四个默认水路地点自身 hex 现在均有非空 `riverEdges`，可供既有跨河补给、补给 anchor 和后续移动渡河切片消费。
+- 本轮只补 JSON 资产，不新增地形、地点、单位、schema 或运行时规则；不自动双写邻接 hex 反向河边，避免 SpriteKit 重复描边。
+
+关键文件：
+
+- `WWIIHexV0/Data/wude_618_scenario.json`
+- `md/prompt/v3.0-隋唐迁移/v3.7_water_transit_river_edges_asset_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `jq empty WWIIHexV0/Data/wude_618_scenario.json`：通过。
+- 默认水路地点 `riverEdges` 查询：蒲津渡、孟津渡、黎阳津、洛口津自身 hex 均非空。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只做默认数据补录，没有启动 App 或 MapEditor 做地图渲染截图复核。
+- 河边方向基于现有 hex 六邻关系和 keyLocation 坐标审计，历史地理精确性和玩法体验仍需后续人工/运行时复核。
+- 移动渡河减免、水战、港口部署点和完整港口补给源仍待后续独立切片。
+
 ## v3.7-preflight.106 - 受控渡口港口补给投送点
 
 完成日期：2026-07-07
