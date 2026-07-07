@@ -9,6 +9,48 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.104 - MapEditor 河边数据往返保真
+
+完成日期：2026-07-07
+
+性质：完整 v3.7 发布候选前置补洞。在渡口港口粮道补给减免落地后，修复 MapEditor 默认资源读写会丢失 tile `riverEdges` 的数据保真问题，避免覆盖默认资源时清空河边。
+
+核心更新：
+
+- `MapEditorHex` 新增 `riverEdges: Set<HexDirection>`，编码时按 `HexDirection.ordered` 稳定输出，旧 `.mapeditor` 文档缺字段时按空集合兼容读取。
+- `MapEditorGameResourceBridge.makeDocument` 从 scenario tile `riverEdges` 导入编辑器文档，不再在默认资源桥读入阶段丢失河边。
+- `MapEditorExporter.makeScenarioDefinition` 导出 tile 时写回 `hex.riverEdges`，不再固定输出空数组。
+- `MapEditorOutputTests` 的 probe 文档增加非空河边断言，用于云端回归保护。
+
+关键文件：
+
+- `MapEditor/MapEditorDocument.swift`
+- `MapEditor/MapEditorGameResourceBridge.swift`
+- `MapEditor/MapEditorExporter.swift`
+- `WWIIHexV0/Tests/MapEditorOutputTests.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_mapeditor_river_edges_roundtrip_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- `swiftc -parse MapEditor/MapEditorDocument.swift MapEditor/MapEditorGameResourceBridge.swift MapEditor/MapEditorExporter.swift WWIIHexV0/Tests/MapEditorOutputTests.swift`：通过。
+- 提交前复跑轻量格式与冲突扫描，结果记录在本轮交付回复。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 本轮只做数据保真，不新增河流绘制/编辑 UI。
+- 本轮不自动镜像邻接边，避免改变既有单边/双边河流数据语义；运行时仍按既有 `from.direction || to.opposite` 判断跨河。
+- 默认 `wude_618_scenario.json` 当前没有非空 `riverEdges`，真实资产河边补录仍待后续地图资产切片。
+
 ## v3.7-preflight.103 - 渡口港口粮道补给减免落地
 
 完成日期：2026-07-07

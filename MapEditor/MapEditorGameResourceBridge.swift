@@ -106,6 +106,7 @@ enum MapEditorGameResourceBridge {
                 coord: coord,
                 terrain: terrain,
                 hasRoad: tile.hasRoad,
+                riverEdges: Set(tile.riverEdges.compactMap(HexDirection.init(rawValue:))),
                 controller: Faction(rawValue: tile.controller),
                 cityName: tile.cityName,
                 fortressName: tile.fortressName,

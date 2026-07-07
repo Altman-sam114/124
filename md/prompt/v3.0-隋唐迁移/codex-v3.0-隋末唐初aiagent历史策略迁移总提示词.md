@@ -48,9 +48,9 @@ MapEditor / JSON 数据
 
 迁移目标不是换皮，不是把 Germany 改成 Tang、Allies 改成 Sui，而是把现有引擎逐步迁移为一个可发布的 AI Agent 驱动隋末唐初历史策略游戏。
 
-### 0.1 当前交接状态（v3.7-preflight.103）
+### 0.1 当前交接状态（v3.7-preflight.104）
 
-截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.103`：
+截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.104`：
 
 - v3.1 已完成多势力兼容、通用阶段和外交关系入口。
 - v3.2 已接入默认 `wude_618_guanzhong_luoyang` 数据，主游戏和 MapEditor 默认桥优先隋唐路径，旧阿登路径仅作 fallback / 回归兼容。
@@ -59,7 +59,7 @@ MapEditor / JSON 数据
 - v3.5 已形成玩家军令、州郡、外交、战报的最小信息闭环。
 - v3.6 已接入 `SuitangDesignTokens`、地图最小历史视觉、粮道、围城、前线墨线和 AI 计划箭头。
 - v3.7-preflight 已连续补齐胜负、本地存档、引导/设置、外交/州郡命令、AI 太守/使者、归附交接、善后记录、MapEditor 隋唐桥和大量玩家可见 legacy 文案收口。
-- v3.7-preflight.89-.103 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力，让 `RegionDataSet.toRegions()` 不再把任意缺省 owner/controller 静默兜底到旧西路势力，用 `ScenarioSemantics` 收口默认场景语义与胜负 fallback 门禁，让 MapEditor 导入坏 unit faction 时不再静默落到旧 `.allies`，让归附交接后的善后风险写入受影响州郡治安/顺从状态，让治安/顺从折算后续贡赋收入效率，并让渡口/港口/海港地点减免粮道跨河补给成本。
+- v3.7-preflight.89-.104 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力，让 `RegionDataSet.toRegions()` 不再把任意缺省 owner/controller 静默兜底到旧西路势力，用 `ScenarioSemantics` 收口默认场景语义与胜负 fallback 门禁，让 MapEditor 导入坏 unit faction 时不再静默落到旧 `.allies`，让归附交接后的善后风险写入受影响州郡治安/顺从状态，让治安/顺从折算后续贡赋收入效率，让渡口/港口/海港地点减免粮道跨河补给成本，并让 MapEditor 默认资源读写不再丢失 tile `riverEdges`。
 
 后续 Agent 不能把下方 v3.0-v3.7 路线当作“尚未开始”的待办清单。它们是历史路线和架构合同；当前实际工作应优先从“v3.7+ 剩余风险与 v3.8+ 队列”中切片，并以当前源码和轻量检查结果为准。若 `md/flow/*`、`update_log.md` 或阶段记录仍停留在更早口径，下一轮必须先把文档同步列为切片的一部分，不能让总提示词单独领先核心流程文档。
 
@@ -77,12 +77,13 @@ MapEditor / JSON 数据
 - 归附善后治安/顺从压力：已由 v3.7-preflight.101 部分收口。`CommandExecutor.executeSubmissionHandoff` 生成 `SubmissionAftermathRecord` 后，会按风险等级调整受影响州郡 `OccupationState.resistance` / `compliance`；安民等既有州郡经营可抵消该压力。完整忠诚、叛乱、俘虏、安置系统仍待后续独立切片。
 - 归附善后贡赋效率：已由 v3.7-preflight.102 部分收口。`EconomyRules.income(for:map:)` 会按受控州郡 `OccupationState` 折算贡赋效率，高抵抗降低丁口、军械、粮草收入，安民提高顺从后自然恢复。完整忠诚、叛乱、俘虏、安置系统仍待后续独立切片。
 - 渡口港口粮道补给减免：已由 v3.7-preflight.103 部分收口。`SupplyRules.supplyPathCost` 跨河计算粮道成本时，若跨河两端任一 hex 有 `MapFeatureKind.ferry` / `port` / `harbor`，该段补给渡河额外成本免除。完整水战、移动渡河、港口补给源和 MapEditor riverEdges 往返保存仍待后续独立切片。
+- MapEditor 河边数据往返保存：已由 v3.7-preflight.104 收口。`MapEditorHex` 保存 `riverEdges`，默认资源桥导入 scenario tile 河边，`MapEditorExporter` 稳定写回；不新增河流编辑 UI，不自动镜像邻接边，不改运行时河流规则。
 
 当前可执行队列：
 
 - 正式地图资产、图标资产和运行时截图复核：首屏必须是可玩地图，不是说明页或营销页。
 - 完整忠诚、叛乱、俘虏、安置等归附善后实际规则；治安/顺从压力已由 v3.7-preflight.101 落地，贡赋效率已由 v3.7-preflight.102 落地。
-- 完整水战、移动渡河、港口补给源与粮道扩展规则；渡口/港口粮道补给减免已由 v3.7-preflight.103 落地。
+- 完整水战、移动渡河、港口补给源与粮道扩展规则；渡口/港口粮道补给减免已由 v3.7-preflight.103 落地，MapEditor 河边数据往返保存已由 v3.7-preflight.104 落地。
 - 云端验收闭环：凡 Agent B push `main` 后，Agent C 必须按 `md/test/test.md` 下载并核对 GitHub Actions 未加密 CI 结果包、manifest、JUnit/摘要、日志、run id 和 run attempt；这不是可选发布功能。
 - 真实本地 LLM / 可插拔模型接入；必须继续走结构化 directive、decoder、validator 和规则系统。
 

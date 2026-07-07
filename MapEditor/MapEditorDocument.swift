@@ -61,6 +61,7 @@ struct MapEditorHex: Codable, Equatable, Identifiable {
     var coord: HexCoord
     var terrain: BaseTerrain
     var hasRoad: Bool
+    var riverEdges: Set<HexDirection>
     var controller: Faction?
     var cityName: String?
     var fortressName: String?
@@ -75,6 +76,7 @@ struct MapEditorHex: Codable, Equatable, Identifiable {
         coord: HexCoord,
         terrain: BaseTerrain = .plain,
         hasRoad: Bool = false,
+        riverEdges: Set<HexDirection> = [],
         controller: Faction? = nil,
         cityName: String? = nil,
         fortressName: String? = nil,
@@ -86,6 +88,7 @@ struct MapEditorHex: Codable, Equatable, Identifiable {
         self.coord = coord
         self.terrain = terrain
         self.hasRoad = hasRoad
+        self.riverEdges = riverEdges
         self.controller = controller
         self.cityName = cityName
         self.fortressName = fortressName
@@ -93,6 +96,50 @@ struct MapEditorHex: Codable, Equatable, Identifiable {
         self.supplyFaction = supplyFaction
         self.objectiveId = objectiveId
         self.regionId = regionId
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case coord
+        case terrain
+        case hasRoad
+        case riverEdges
+        case controller
+        case cityName
+        case fortressName
+        case isSupplySource
+        case supplyFaction
+        case objectiveId
+        case regionId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        coord = try container.decode(HexCoord.self, forKey: .coord)
+        terrain = try container.decode(BaseTerrain.self, forKey: .terrain)
+        hasRoad = try container.decode(Bool.self, forKey: .hasRoad)
+        riverEdges = Set(try container.decodeIfPresent([HexDirection].self, forKey: .riverEdges) ?? [])
+        controller = try container.decodeIfPresent(Faction.self, forKey: .controller)
+        cityName = try container.decodeIfPresent(String.self, forKey: .cityName)
+        fortressName = try container.decodeIfPresent(String.self, forKey: .fortressName)
+        isSupplySource = try container.decode(Bool.self, forKey: .isSupplySource)
+        supplyFaction = try container.decodeIfPresent(Faction.self, forKey: .supplyFaction)
+        objectiveId = try container.decodeIfPresent(String.self, forKey: .objectiveId)
+        regionId = try container.decodeIfPresent(RegionId.self, forKey: .regionId)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(coord, forKey: .coord)
+        try container.encode(terrain, forKey: .terrain)
+        try container.encode(hasRoad, forKey: .hasRoad)
+        try container.encode(HexDirection.ordered.filter { riverEdges.contains($0) }, forKey: .riverEdges)
+        try container.encodeIfPresent(controller, forKey: .controller)
+        try container.encodeIfPresent(cityName, forKey: .cityName)
+        try container.encodeIfPresent(fortressName, forKey: .fortressName)
+        try container.encode(isSupplySource, forKey: .isSupplySource)
+        try container.encodeIfPresent(supplyFaction, forKey: .supplyFaction)
+        try container.encodeIfPresent(objectiveId, forKey: .objectiveId)
+        try container.encodeIfPresent(regionId, forKey: .regionId)
     }
 }
 

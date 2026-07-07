@@ -13,6 +13,10 @@ final class MapEditorOutputTests: XCTestCase {
         XCTAssertEqual(result.regionDataSet.regions.count, 2)
         XCTAssertEqual(result.regionDataSet.edges.count, 1)
         XCTAssertTrue(result.regionDataSet.edges[0].hasRoad)
+        XCTAssertEqual(
+            result.scenarioDefinition.map.tiles.first { $0.q == 1 && $0.r == 0 }?.riverEdges,
+            [HexDirection.east.rawValue]
+        )
 
         let tempDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -31,6 +35,7 @@ final class MapEditorOutputTests: XCTestCase {
         XCTAssertFalse(state.frontLineState.frontLines.isEmpty)
         XCTAssertFalse(state.warDeploymentState.frontZones.isEmpty)
         XCTAssertEqual(Set(state.divisions.map(\.id)), ["ger_probe_1", "all_probe_1"])
+        XCTAssertEqual(state.map.tile(at: HexCoord(q: 1, r: 0))?.riverEdges, [.east])
     }
 
     func testGameResourceBridgeLoadsDefaultDataWithoutOverwriting() throws {
@@ -306,6 +311,9 @@ final class MapEditorOutputTests: XCTestCase {
                 guard var hex = document.hexes[coord] else { continue }
                 hex.hasRoad = true
                 hex.controller = q < 2 ? .germany : .allies
+                if coord == HexCoord(q: 1, r: 0) {
+                    hex.riverEdges = [.east]
+                }
                 if coord == HexCoord(q: 0, r: 0) {
                     hex.isSupplySource = true
                     hex.supplyFaction = .germany

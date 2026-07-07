@@ -302,7 +302,9 @@ enum MapEditorExporter {
                         r: hex.coord.r,
                         terrain: hex.terrain.rawValue,
                         hasRoad: hex.hasRoad,
-                        riverEdges: [],
+                        riverEdges: HexDirection.ordered
+                            .filter { hex.riverEdges.contains($0) }
+                            .map(\.rawValue),
                         controller: hex.controller?.rawValue ?? "neutral",
                         cityName: exportOptionalDisplayName(hex.cityName),
                         fortressName: exportOptionalDisplayName(hex.fortressName),
