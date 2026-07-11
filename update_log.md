@@ -9,6 +9,50 @@
 - 若本轮只是文档整理、目录迁移、回滚或打捞，不应伪装成新 v 版本；可写入“历史维护记录”。
 - 若 README、测试规范或源码语义发生变化，应同步更新本日志。
 
+## v3.7-preflight.117 - AI 粮草目标权重
+
+完成日期：2026-07-11
+
+性质：响应人工最新方向的古代粮草作战切片。v3.7-preflight.115 已让粮道显示对齐规则 anchor，本轮继续让本地 AI / 模拟元帅在选择目标和说明理由时更重视粮草、粮仓和粮道价值。
+
+核心更新：
+
+- `ZoneCommanderAgent` 进攻候选排序改为使用 `attackRegionSortKey`，目标价值中 `supplyValue` 按三倍计入。
+- `breakthroughRegionSortKey` 同步把 `supplyValue` 权重提高到三倍，避免突破 / 骑袭 focus 绕开粮仓。
+- `MarshalBattlefieldSummary` schemaVersion 升到 6；`MarshalFrontSummary` 增加高粮草 / 粮仓目标 id 与展示名摘要。
+- `SimulatedMarshalLLMClient` 攻势 directive 会优先把高粮草目标放入 `weightedRegions` 和 `focusRegionId`，并提高含粮草目标的攻势优先级。
+- 模拟元帅 rationale / strategicIntent 会说明“粮仓粮道”理由，方便后续战报和军情面板延续古代粮草口径。
+- `AgentPromptBuilder` 的可见州郡 prompt 加入粮草值，并把高粮草或名称含仓的州郡标注为“粮仓要地”。
+- `MockAIClient` 的攻击评分、部署攻击排序和行军目的地排序纳入粮草值，高粮草目标的 reason 会说明夺粮草、压迫补给或沿粮道逼近粮仓。
+- 本轮关闭 v3.7-preflight.115 遗留的基础 “AI 粮道目标权重” 切片；完整截粮、逐格粮道目标、运行时观察和数值调参仍待后续。
+
+关键文件：
+
+- `WWIIHexV0/Agents/ZoneCommanderAgent.swift`
+- `WWIIHexV0/Agents/AgentPromptBuilder.swift`
+- `WWIIHexV0/Agents/MockAIClient.swift`
+- `md/prompt/v3.0-隋唐迁移/v3.7_ai_supply_target_weight_record.md`
+- `md/prompt/v3.0-隋唐迁移/codex-v3.0-隋末唐初aiagent历史策略迁移总提示词.md`
+- `md/flow/flow.md`
+- `md/flow/flowchart.md`
+- `md/plan/plan.md`
+- `README.md`
+- `update_log.md`
+
+轻量检查：
+
+- 本轮提交前按 `md/test/test.md` 仅跑允许的轻量检查；具体命令和结果以本轮交付回复为准。
+
+未执行：
+
+- 未跑本机 Xcode build / XCTest / UI test / 模拟器 / Probe / Smoke / Full；按 `md/test/test.md` 当前规范，这些重验证需云端或人工授权。
+
+遗留风险：
+
+- 未启动 App 或模拟器观察 AI 是否实际偏向洛口仓、黎阳仓等粮仓目标。
+- 粮道仍不是逐格路径目标，也没有真实截粮 / 封锁命令。
+- 高粮草权重数值仍需后续 playtest 和运行时验证。
+
 ## v3.7-preflight.116 - 名将军令署名显示
 
 完成日期：2026-07-07

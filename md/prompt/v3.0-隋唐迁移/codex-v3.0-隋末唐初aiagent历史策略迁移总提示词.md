@@ -48,9 +48,9 @@ MapEditor / JSON 数据
 
 迁移目标不是换皮，不是把 Germany 改成 Tang、Allies 改成 Sui，而是把现有引擎逐步迁移为一个可发布的 AI Agent 驱动隋末唐初历史策略游戏。
 
-### 0.1 当前交接状态（v3.7-preflight.116）
+### 0.1 当前交接状态（v3.7-preflight.117）
 
-截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.116`：
+截至 `update_log.md` 的最新 v 版本记录和顶部当前交接记录，隋唐迁移已经不是 v3.0 初始审计阶段，而是推进到 `v3.7-preflight.117`：
 
 - v3.1 已完成多势力兼容、通用阶段和外交关系入口。
 - v3.2 已接入默认 `wude_618_guanzhong_luoyang` 数据，主游戏和 MapEditor 默认桥优先隋唐路径，旧阿登路径仅作 fallback / 回归兼容。
@@ -59,7 +59,7 @@ MapEditor / JSON 数据
 - v3.5 已形成玩家军令、州郡、外交、战报的最小信息闭环。
 - v3.6 已接入 `SuitangDesignTokens`、地图最小历史视觉、粮道、围城、接触墨线和 AI 计划箭头。
 - v3.7-preflight 已连续补齐胜负、本地存档、引导/设置、外交/州郡命令、AI 太守/使者、归附交接、善后记录、MapEditor 隋唐桥和大量玩家可见 legacy 文案收口。
-- v3.7-preflight.89-.116 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力，让 `RegionDataSet.toRegions()` 不再把任意缺省 owner/controller 静默兜底到旧西路势力，用 `ScenarioSemantics` 收口默认场景语义与胜负 fallback 门禁，让 MapEditor 导入坏 unit faction 时不再静默落到旧 `.allies`，让归附交接后的善后风险写入受影响州郡治安/顺从状态，让治安/顺从折算后续贡赋收入效率，让归附善后记录带出忠诚压力、叛乱风险、俘虏整编和安置州郡只读审计，让渡口/港口/海港地点减免粮道跨河补给成本，让 MapEditor 默认资源读写不再丢失 tile `riverEdges`，提供 MapEditor 河边绘制/擦除入口，让己控渡口/港口/海港作为战术补给投送点，让默认 `wude_618` 四个水路地点自身 hex 均有非空 `riverEdges`，让己控渡口/港口/海港降低相邻跨河移动成本，让无远程支援的隔河近战攻击需要己控水路通行点，让己控港口/海港成为新征发部队的安全后方部署 fallback，让己控港口/海港所在州郡成为战略补给源，完成首轮玩家可见接触态势术语古代化与骑兵基础机动/冲击强化，让地图粮道虚线复用规则层永久补给源 + 己控水路补给 anchor，并让军令面板预备军令和提交反馈显示“某将军令”署名。
+- v3.7-preflight.89-.117 已把隋唐胜负摘要共享化、命令结果固守判断语义化，收口阶段/legacy 总管展示口径，让自动方面总管默认指挥风格与多势力映射对齐，抽出共享默认风格 helper，让 DataLoader 无效 phase 兜底不再回到 legacy AI 阶段，集中规范化 legacy phase 存档语义，让 `WarCommandExecutor` 动态方面推进不再把异常缺 zone 路径静默兜底到旧东路势力，让 `RegionDataSet.toRegions()` 不再把任意缺省 owner/controller 静默兜底到旧西路势力，用 `ScenarioSemantics` 收口默认场景语义与胜负 fallback 门禁，让 MapEditor 导入坏 unit faction 时不再静默落到旧 `.allies`，让归附交接后的善后风险写入受影响州郡治安/顺从状态，让治安/顺从折算后续贡赋收入效率，让归附善后记录带出忠诚压力、叛乱风险、俘虏整编和安置州郡只读审计，让渡口/港口/海港地点减免粮道跨河补给成本，让 MapEditor 默认资源读写不再丢失 tile `riverEdges`，提供 MapEditor 河边绘制/擦除入口，让己控渡口/港口/海港作为战术补给投送点，让默认 `wude_618` 四个水路地点自身 hex 均有非空 `riverEdges`，让己控渡口/港口/海港降低相邻跨河移动成本，让无远程支援的隔河近战攻击需要己控水路通行点，让己控港口/海港成为新征发部队的安全后方部署 fallback，让己控港口/海港所在州郡成为战略补给源，完成首轮玩家可见接触态势术语古代化与骑兵基础机动/冲击强化，让地图粮道虚线复用规则层永久补给源 + 己控水路补给 anchor，让军令面板预备军令和提交反馈显示“某将军令”署名，并让 AI 进攻/突破目标、模拟元帅摘要、legacy prompt 和 MockAI 评分更重视高粮草/粮仓州郡。
 
 人工最新方向补充：后续不能继续按现代二战“连续战线”感觉推进。隋唐古代战争应更突出天下局势、道口/关隘/粮仓/州郡控制、骑兵机动和英雄人物；底层仍可保留 `FrontLine` 等兼容类型名，但玩家可见和 AI 决策口径要逐步转为“边境接触、战场态势、行军道威胁、粮道压力、骑军突击、名将统率”等古代叙事。可参考《三国志14》等古代战略游戏的局势、粮道、人物和据点体验，但只作为设计启发，不照搬资产、文本、数值或受版权保护内容。
 
@@ -92,13 +92,14 @@ MapEditor / JSON 数据
 - 骑兵冲击与机动基础强化：已由 v3.7-preflight.114 部分收口。`ComponentType.cavalry` 基础攻击/移动提高，`CombatRules` 平原骑兵冲击加成提高；不改单位模板 JSON、AI tactic 权重、将领技能消费或命令 schema。
 - 水路补给 anchor 粮道显示对齐：已由 v3.7-preflight.115 部分收口。`BoardScene` 的粮道虚线复用 `SupplyRules.effectiveSupplyAnchors(for:in:)`，永久补给源和己控渡口/港口/海港都可作为地图粮道提示落点；不改补给判定、JSON schema、移动、战斗、水战或部署。
 - 名将军令署名显示：已由 v3.7-preflight.116 部分收口。`GeneralCommandPanelView` 预备军令和 `AppContainer` 提交反馈会用已有将领 id 经 `GeneralRegistry` 显示“某将军令”；不改 `PlayerPlannedOperation` 存档字段、命令管线、AI 决策、规则执行、JSON schema 或将领技能消费。
+- AI 粮草目标权重：已由 v3.7-preflight.117 部分收口。`ZoneCommanderAgent`、`SimulatedMarshalLLMClient`、`AgentPromptBuilder` 和 `MockAIClient` 会让高粮草 / 粮仓州郡影响进攻、突破、prompt 和 rationale；不改命令 schema、补给规则、战斗/移动、水战、部署、JSON 数据或真实 LLM 接入。
 
 当前可执行队列：
 
 - 正式地图资产、图标资产和运行时截图复核：首屏必须是可玩地图，不是说明页或营销页。
 - 古代作战口径重塑：v3.7-preflight.113 已完成首轮玩家可见术语古代化；后续继续复扫历史文档、底层兼容展示和 AI rationale，把天下局势、边境接触、行军道态势、关隘/粮仓/渡口争夺做成真实体验。
 - 骑兵和名将体验：v3.7-preflight.114 已完成骑兵基础机动/冲击强化，v3.7-preflight.116 已让预备军令和提交反馈出现名将署名；后续让英雄人物、统率、武勇、谋略、骑军指挥技能和人物存在感进入首屏、战报、外交与实际规则消费。
-- 粮草与粮道权重：v3.7-preflight.115 已让己控水路补给 anchor 进入地图粮道提示；后续继续让粮仓、补给、府库粮草和行军粮道影响行动、AI 目标和玩家反馈，不能只是背景资源。
+- 粮草与粮道体验：v3.7-preflight.115 已让己控水路补给 anchor 进入地图粮道提示，v3.7-preflight.117 已让基础 AI 目标权重和 rationale 重视粮草 / 粮仓；后续继续做真实截粮、粮道封锁、逐格粮道目标、玩家反馈和运行时数值验证，不能只是背景资源。
 - 完整忠诚、叛乱、俘虏、安置等归附善后实际规则；治安/顺从压力已由 v3.7-preflight.101 落地，贡赋效率已由 v3.7-preflight.102 落地，四类善后审计字段已由 v3.7-preflight.111 落地。
 - 完整水战与更细水域控制规则；渡口/港口粮道补给减免已由 v3.7-preflight.103 落地，MapEditor 河边数据往返保存已由 v3.7-preflight.104 落地，河边绘制/擦除入口已由 v3.7-preflight.105 落地，受控渡口/港口补给投送点已由 v3.7-preflight.106 落地，默认水路地点河边资产已由 v3.7-preflight.107 补录，受控渡口/港口移动渡河减免已由 v3.7-preflight.108 落地，受控港口/海港生产部署点已由 v3.7-preflight.109 落地，受控港口/海港战略补给源已由 v3.7-preflight.110 落地，隔河近战水路控制校验已由 v3.7-preflight.112 落地。
 - 云端验收闭环：凡 Agent B push `main` 后，Agent C 必须按 `md/test/test.md` 下载并核对 GitHub Actions 未加密 CI 结果包、manifest、JUnit/摘要、日志、run id 和 run attempt；这不是可选发布功能。

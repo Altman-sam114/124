@@ -51,7 +51,7 @@ struct AgentPromptBuilder {
             .joined(separator: "\n")
         let regions = context.visibleRegions
             .filter(\.visible)
-            .map { "\(displayMapName($0.name, fallback: "州郡"))；地形：\($0.terrain.displayName)；控制：\(displayFactionName($0.controller))；相邻：\(neighborNames(for: $0, regionNames: regionNames))" }
+            .map { "\(displayMapName($0.name, fallback: "州郡"))；地形：\($0.terrain.displayName)；控制：\(displayFactionName($0.controller))；\(supplySummary(for: $0))；相邻：\(neighborNames(for: $0, regionNames: regionNames))" }
             .joined(separator: "\n")
         let recentEvents = context.recentEvents
             .map { sanitizePromptText($0.message) }
@@ -145,6 +145,14 @@ struct AgentPromptBuilder {
     private func neighborNames(for region: RegionSnapshot, regionNames: [RegionId: String]) -> String {
         let names = region.neighbors.map { regionNames[$0] ?? "相邻州郡" }
         return names.isEmpty ? "无" : names.joined(separator: "、")
+    }
+
+    private func supplySummary(for region: RegionSnapshot) -> String {
+        let nameHintsGranary = region.name.contains("仓") || region.cityName?.contains("仓") == true
+        if region.supplyValue >= 5 || nameHintsGranary {
+            return "粮草：\(region.supplyValue)（粮仓要地）"
+        }
+        return "粮草：\(region.supplyValue)"
     }
 
     private func displayAgentName(_ agentId: String) -> String {

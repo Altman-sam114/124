@@ -1,6 +1,6 @@
 # WWIIHexV0 — iOS / macOS AI 战略战棋骨架
 
-> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.116 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路仍是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营、AI 太守/使者/归附交接、善后记录、MapEditor 隋唐资源桥、多轮玩家可见 legacy 文案收口、场景语义与胜负 fallback 门禁、归附善后治安/贡赋效率、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免、河边数据保真与编辑、受控水路补给投送点、默认水路地点河边资产、移动渡河减免、隔河近战水路控制校验、港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化、骑兵基础机动/冲击强化、水路补给 anchor 粮道显示对齐，以及名将军令署名显示。正式地图资产、完整叛乱触发/俘虏处置/安置命令、完整水战/河面控制、真实 LLM 接入、授权运行时验证和 Agent C artifact 级验收仍未完成。
+> **当前状态：v0.5 元帅决策链分支骨架 + v3.7-preflight.117 隋末唐初迁移前置收口。** 主游戏默认优先加载 `wude_618_guanzhong_luoyang` 隋唐剧本，失败时 fallback legacy 阿登资源；战争 AI 主链路仍是 `MarshalAgent -> TheaterDirectiveDecoder -> TheaterDirectiveCompiler -> CourtAgent / RulerAgent -> ZoneDirective -> WarCommandExecutor -> RuleEngine`。当前已完成多势力兼容、默认隋唐数据、兵种/粮道/围城最小迁移、朝堂审计、玩家信息闭环、UI/地图视觉基底、胜负闭环、本地存档、外交/州郡经营、AI 太守/使者/归附交接、善后记录、MapEditor 隋唐资源桥、多轮玩家可见 legacy 文案收口、场景语义与胜负 fallback 门禁、归附善后治安/贡赋效率、归附善后忠诚/叛乱/俘虏/安置只读审计、渡口港口粮道补给减免、河边数据保真与编辑、受控水路补给投送点、默认水路地点河边资产、移动渡河减免、隔河近战水路控制校验、港口海港生产部署点、己控港口海港战略补给源、玩家可见接触态势术语古代化、骑兵基础机动/冲击强化、水路补给 anchor 粮道显示对齐、名将军令署名显示，以及 AI 粮草目标权重。正式地图资产、完整叛乱触发/俘虏处置/安置命令、完整水战/河面控制、真实 LLM 接入、授权运行时验证和 Agent C artifact 级验收仍未完成。
 
 ---
 
@@ -89,6 +89,13 @@ MapEditor/
 ---
 
 ## 当前完成进度
+
+### v3.7-preflight.117：AI 粮草目标权重
+
+- `ZoneCommanderAgent` 进攻/突破目标评分提高粮草权重，让高 `supplyValue`、粮仓州郡更容易成为攻势焦点。
+- `SimulatedMarshalLLMClient` 的攻势 directive 会优先把高粮草目标放入 `weightedRegions` / `focusRegionId`，并在 rationale / strategicIntent 中说明粮仓粮道理由。
+- `AgentPromptBuilder` 和 `MockAIClient` 也补入粮草值、粮仓要地提示、攻击/行军评分和中文 reason，避免 legacy LLM / MockAI 路径继续忽略粮草。
+- 边界：不改命令 schema、补给规则、战斗/移动、水战、部署、JSON 数据或真实 LLM 接入；完整截粮和逐格粮道目标仍待后续切片。
 
 ### v3.7-preflight.116：名将军令署名显示
 

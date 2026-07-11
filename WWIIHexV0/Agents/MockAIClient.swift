@@ -66,7 +66,9 @@ struct MockAIClient: DecisionProvider {
                         divisionId: division.id,
                         toRegionId: destination,
                         stance: division.isArmor ? "沿路推进" : "稳步推进",
-                        reason: "向当前战役目标推进，优先选择道路和通畅路线。"
+                        reason: isSupplyTarget(destination, context: context)
+                            ? "向当前战役目标推进，并沿粮道逼近粮仓州郡。"
+                            : "向当前战役目标推进，优先选择道路和通畅路线。"
                     )
                 )
                 continue
@@ -132,7 +134,7 @@ struct MockAIClient: DecisionProvider {
                                 divisionId: unitId,
                                 targetDivisionId: target.id,
                                 stance: segment.isEncircled ? "收紧包围" : "接敌进攻",
-                                reason: "行军部署：接敌军队在所属地段发起进攻。"
+                                reason: "行军部署：\(attackReason(attacker: division, target: target, context: context))"
                             )
                         )
                     } else {
@@ -245,7 +247,17 @@ struct MockAIClient: DecisionProvider {
                 }
                 return division.coord.distance(to: target.coord) <= division.range
             }
-            .sorted { $0.strength < $1.strength }
+            .sorted {
+                let lhsScore = attackScore(attacker: division, target: $0, context: context)
+                let rhsScore = attackScore(attacker: division, target: $1, context: context)
+                if lhsScore != rhsScore {
+                    return lhsScore > rhsScore
+                }
+                if $0.strength != $1.strength {
+                    return $0.strength < $1.strength
+                }
+                return $0.id < $1.id
+            }
             .first
     }
 
@@ -301,7 +313,8 @@ struct MockAIClient: DecisionProvider {
         let lowHPBonus = max(0, 12 - target.strength)
         let distanceBonus = max(0, 4 - attacker.coord.distance(to: target.coord))
         let artilleryBonus = attacker.isArtillery ? objectiveTileBonus : 0
-        return lowHPBonus + distanceBonus + artilleryBonus
+        let supplyBonus = supplyValue(for: target.regionId, context: context) * 2
+        return lowHPBonus + distanceBonus + artilleryBonus + supplyBonus
     }
 
     private func canAttack(
@@ -340,9 +353,15 @@ struct MockAIClient: DecisionProvider {
         context: AgentContext
     ) -> String {
         let targetTile = context.visibleTiles.first { $0.coord == target.coord }
-        if attacker.isArtillery,
-           targetTile?.baseTerrain == .city || targetTile?.baseTerrain == .fortress {
+        let isFortifiedTarget = targetTile?.baseTerrain == .city || targetTile?.baseTerrain == .fortress
+        if attacker.isArtillery, isFortifiedTarget {
+            if isSupplyTarget(target.regionId, context: context) {
+                return "远程部队压制粮仓城池或关隘守军，为夺取粮草并切断敌军补给创造条件。"
+            }
             return "远程部队压制城池或关隘守军。"
+        }
+        if isSupplyTarget(target.regionId, context: context) {
+            return "目标所在州郡牵动粮仓粮道，进攻可夺粮草并压迫敌军补给。"
         }
         return "目标在射程内，且局部态势适合进攻。"
     }
@@ -392,10 +411,34 @@ struct MockAIClient: DecisionProvider {
                 if lhsDistance != rhsDistance {
                     return lhsDistance < rhsDistance
                 }
-                return terrainMoveCost(lhs.terrain) < terrainMoveCost(rhs.terrain)
+                if lhs.supplyValue != rhs.supplyValue {
+                    return lhs.supplyValue > rhs.supplyValue
+                }
+                let lhsMoveCost = terrainMoveCost(lhs.terrain)
+                let rhsMoveCost = terrainMoveCost(rhs.terrain)
+                if lhsMoveCost != rhsMoveCost {
+                    return lhsMoveCost < rhsMoveCost
+                }
+                return lhs.id.rawValue < rhs.id.rawValue
             }
             .first?
             .id
+    }
+
+    private func supplyValue(for regionId: RegionId?, context: AgentContext) -> Int {
+        guard let regionId,
+              let region = context.visibleRegions.first(where: { $0.id == regionId }) else {
+            return 0
+        }
+        return region.supplyValue
+    }
+
+    private func isSupplyTarget(_ regionId: RegionId?, context: AgentContext) -> Bool {
+        guard let regionId,
+              let region = context.visibleRegions.first(where: { $0.id == regionId }) else {
+            return false
+        }
+        return region.supplyValue >= 5 || region.name.contains("仓") || region.cityName?.contains("仓") == true
     }
 
     private func terrainMoveCost(_ terrain: BaseTerrain) -> Int {

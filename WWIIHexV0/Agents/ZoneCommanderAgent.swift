@@ -73,6 +73,9 @@ private struct RegionFocusSortKey: Comparable {
     let id: String
 
     static func < (lhs: RegionFocusSortKey, rhs: RegionFocusSortKey) -> Bool {
+        if lhs.valueScore != rhs.valueScore {
+            return lhs.valueScore > rhs.valueScore
+        }
         if lhs.enemyStrength != rhs.enemyStrength {
             return lhs.enemyStrength < rhs.enemyStrength
         }
@@ -81,9 +84,6 @@ private struct RegionFocusSortKey: Comparable {
         }
         if lhs.roadPenalty != rhs.roadPenalty {
             return lhs.roadPenalty < rhs.roadPenalty
-        }
-        if lhs.valueScore != rhs.valueScore {
-            return lhs.valueScore > rhs.valueScore
         }
         return lhs.id < rhs.id
     }
@@ -311,10 +311,12 @@ struct ZoneCommanderAgent: ZoneCommanderProviding {
 
         let weightedRegions = visibleEnemy
             .sorted {
-                if $0.value == $1.value {
+                let lhsKey = attackRegionSortKey(for: $0.key, enemyStrength: $0.value, state: state)
+                let rhsKey = attackRegionSortKey(for: $1.key, enemyStrength: $1.value, state: state)
+                if lhsKey == rhsKey {
                     return $0.key.rawValue < $1.key.rawValue
                 }
-                return $0.value > $1.value
+                return lhsKey < rhsKey
             }
             .map(\.key)
         let focusRegionId = focusRegion(
@@ -784,7 +786,36 @@ struct ZoneCommanderAgent: ZoneCommanderProviding {
 
         let hasRoad = region.displayHexes.contains { state.map.tile(at: $0)?.hasRoad == true }
         let valueScore = (region.city?.victoryPoints ?? 0)
-            + region.supplyValue
+            + region.supplyValue * 3
+            + region.factories
+            + region.infrastructure / 2
+        return RegionFocusSortKey(
+            enemyStrength: enemyStrength,
+            movementCost: region.terrain.movementCost,
+            roadPenalty: hasRoad ? 0 : 1,
+            valueScore: valueScore,
+            id: regionId.rawValue
+        )
+    }
+
+    private func attackRegionSortKey(
+        for regionId: RegionId,
+        enemyStrength: Int,
+        state: GameState
+    ) -> RegionFocusSortKey {
+        guard let region = state.map.region(id: regionId) else {
+            return RegionFocusSortKey(
+                enemyStrength: Int.max,
+                movementCost: Int.max,
+                roadPenalty: 1,
+                valueScore: 0,
+                id: regionId.rawValue
+            )
+        }
+
+        let hasRoad = region.displayHexes.contains { state.map.tile(at: $0)?.hasRoad == true }
+        let valueScore = (region.city?.victoryPoints ?? 0)
+            + region.supplyValue * 3
             + region.factories
             + region.infrastructure / 2
         return RegionFocusSortKey(
@@ -1008,6 +1039,8 @@ struct MarshalFrontSummary: Codable, Equatable, Identifiable {
     let pressure: Int
     let frontRegionIds: [RegionId]
     let enemyRegionIds: [RegionId]
+    let supplyTargetRegionIds: [RegionId]
+    let supplyTargetNames: [String]
     let enemyZoneIds: [FrontZoneId]
     let friendlyFrontStrength: Int
     let friendlyDepthStrength: Int
@@ -1058,7 +1091,7 @@ struct MarshalBattlefieldSummarizer {
         let recentEvents = Array(state.eventLog.suffix(maxRecentEvents)).map(\.message)
 
         return MarshalBattlefieldSummary(
-            schemaVersion: 5,
+            schemaVersion: 6,
             turn: state.turn,
             faction: faction,
             marshalId: config.id,
@@ -1082,6 +1115,7 @@ struct MarshalBattlefieldSummarizer {
     ) -> MarshalFrontSummary {
         let frontRegionIds = stableUnique(zone.frontSegments.map(\.regionId))
         let enemyRegionIds = visibleEnemyRegionIds(zone: zone, state: state)
+        let supplyTargetRegionIds = supplyTargetRegionIds(in: enemyRegionIds, state: state)
         let enemyZoneIds = stableUnique(zone.frontSegments.map(\.neighborEnemyZone))
         let frontStrength = strength(for: zone.unitsFront, faction: faction, state: state, mode: .friendly)
             + strength(for: zone.frontSegments.flatMap(\.assignedFrontUnitIds), faction: faction, state: state, mode: .friendly)
@@ -1109,6 +1143,8 @@ struct MarshalBattlefieldSummarizer {
             pressure: zone.pressure,
             frontRegionIds: frontRegionIds,
             enemyRegionIds: enemyRegionIds,
+            supplyTargetRegionIds: supplyTargetRegionIds,
+            supplyTargetNames: supplyTargetRegionIds.map { displayRegionName($0, state: state) },
             enemyZoneIds: enemyZoneIds,
             friendlyFrontStrength: frontStrength,
             friendlyDepthStrength: depthStrength,
@@ -1171,6 +1207,36 @@ struct MarshalBattlefieldSummarizer {
             }
         }
         return stableUnique(regionIds)
+    }
+
+    private func supplyTargetRegionIds(in regionIds: [RegionId], state: GameState) -> [RegionId] {
+        regionIds
+            .compactMap { regionId -> RegionNode? in
+                guard let region = state.map.region(id: regionId),
+                      region.supplyValue >= 5 || region.name.contains("仓") || region.city?.name.contains("仓") == true else {
+                    return nil
+                }
+                return region
+            }
+            .sorted {
+                if $0.supplyValue == $1.supplyValue {
+                    return $0.id.rawValue < $1.id.rawValue
+                }
+                return $0.supplyValue > $1.supplyValue
+            }
+            .map(\.id)
+    }
+
+    private func displayRegionName(_ regionId: RegionId, state: GameState) -> String {
+        guard let region = state.map.region(id: regionId) else {
+            return "粮道要地"
+        }
+        let cityName = region.city?.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let cityName, !cityName.isEmpty {
+            return cityName
+        }
+        let name = region.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "粮道要地" : name
     }
 
     private func dynamicRegionTouchesZone(
@@ -1300,6 +1366,8 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
             let shouldAttack = shouldAttack(front: front, bias: config.strategicBias)
             if shouldAttack {
                 let tactic = offensiveTactic(front: front, bias: config.strategicBias)
+                let weightedEnemyRegions = stableUnique(front.supplyTargetRegionIds + front.enemyRegionIds)
+                let focusRegionId = weightedEnemyRegions.first
                 return TheaterDirective(
                     id: "command_\(summary.turn)_\(front.id.rawValue)",
                     zoneId: front.id,
@@ -1307,16 +1375,16 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
                     tactic: tactic,
                     priority: offensivePriority(front: front),
                     targetTheaterId: front.enemyZoneIds.first.map { TheaterId($0.rawValue) },
-                    weightedRegions: front.enemyRegionIds,
-                    focusRegionId: front.enemyRegionIds.first,
+                    weightedRegions: weightedEnemyRegions,
+                    focusRegionId: focusRegionId,
                     supportRegionIds: Array(front.frontRegionIds.prefix(2)),
-                    convergenceRegionId: tactic == .pincerMovement ? front.enemyRegionIds.first : nil,
+                    convergenceRegionId: tactic == .pincerMovement ? focusRegionId : nil,
                     coordinatedZoneIds: tactic == .pincerMovement ? front.enemyZoneIds : [front.id],
                     reserveBias: 0,
                     intensity: front.strengthRatio >= 1.8 ? .allOut : .limitedCounter,
                     maxCommittedUnits: front.frontUnitCount + max(0, front.depthUnitCount / 2),
                     exploitDepth: front.strengthRatio >= 1.8 ? 1 : 0,
-                    rationale: "模拟军议：因兵力比 \(String(format: "%.2f", front.strengthRatio))，选用\(tactic.displayName)。"
+                    rationale: offensiveRationale(front: front, tactic: tactic)
                 )
             }
 
@@ -1372,7 +1440,7 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
     }
 
     private func offensivePriority(front: MarshalFrontSummary) -> Int {
-        min(100, 60 + Int(front.strengthRatio * 10) + front.keyObjectivesLost.count * 5)
+        min(100, 60 + Int(front.strengthRatio * 10) + front.keyObjectivesLost.count * 5 + front.supplyTargetRegionIds.count * 4)
     }
 
     private func defensivePriority(front: MarshalFrontSummary) -> Int {
@@ -1405,6 +1473,15 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
         return .standardAttack
     }
 
+    private func offensiveRationale(front: MarshalFrontSummary, tactic: TacticName) -> String {
+        let strengthText = String(format: "%.2f", front.strengthRatio)
+        guard !front.supplyTargetNames.isEmpty else {
+            return "模拟军议：因兵力比 \(strengthText)，选用\(tactic.displayName)。"
+        }
+        let targets = front.supplyTargetNames.prefix(2).joined(separator: "、")
+        return "模拟军议：因兵力比 \(strengthText)，且 \(targets) 牵动粮仓粮道，选用\(tactic.displayName)。"
+    }
+
     private func defensiveTactic(front: MarshalFrontSummary) -> TacticName {
         if front.strengthRatio <= 0.35,
            front.depthUnitCount == 0 {
@@ -1424,13 +1501,20 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
         summary: MarshalBattlefieldSummary,
         bias: MarshalAgentConfig.StrategicBias
     ) -> String {
+        let supplyTargets = stableUnique(summary.fronts.flatMap(\.supplyTargetNames))
+        let supplySuffix: String
+        if supplyTargets.isEmpty {
+            supplySuffix = ""
+        } else {
+            supplySuffix = " 重点关注 \(supplyTargets.prefix(3).joined(separator: "、")) 等粮仓粮道。"
+        }
         switch bias {
         case .offensive:
-            return "集中优势方面主动进取，受压方面以少量预备稳住阵脚。"
+            return "集中优势方面主动进取，受压方面以少量预备稳住阵脚。\(supplySuffix)"
         case .balanced:
-            return "保持接触态势稳定，只在汇总战机足够明确处投入攻势。"
+            return "保持接触态势稳定，只在汇总战机足够明确处投入攻势。\(supplySuffix)"
         case .defensive:
-            return "先稳住受威胁接触地段，保留预备队等待反击机会。"
+            return "先稳住受威胁接触地段，保留预备队等待反击机会。\(supplySuffix)"
         }
     }
 
@@ -1449,6 +1533,11 @@ struct SimulatedMarshalLLMClient: MarshalLLMClient {
         default:
             return "态势待判"
         }
+    }
+
+    private func stableUnique<T: Hashable>(_ values: [T]) -> [T] {
+        var seen: Set<T> = []
+        return values.filter { seen.insert($0).inserted }
     }
 }
 
